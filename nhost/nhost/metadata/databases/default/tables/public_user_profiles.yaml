@@ -2,8 +2,26 @@ table:
   name: user_profiles
   schema: public
 configuration:
-  column_config: {}
-  custom_column_names: {}
+  column_config:
+    is_subscribed_general:
+      custom_name: isSubscribedGeneral
+    is_subscribed_sync_updates:
+      custom_name: isSubscribedSyncUpdates
+    stripe_customer_id:
+      custom_name: stripeCustomerId
+    sync_updates_frequency:
+      custom_name: syncUpdatesFrequency
+    sync_updates_job_id:
+      custom_name: syncUpdatesJobId
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    is_subscribed_general: isSubscribedGeneral
+    is_subscribed_sync_updates: isSubscribedSyncUpdates
+    stripe_customer_id: stripeCustomerId
+    sync_updates_frequency: syncUpdatesFrequency
+    sync_updates_job_id: syncUpdatesJobId
+    user_id: userId
   custom_name: userProfiles
   custom_root_fields:
     delete: deleteUserProfiles

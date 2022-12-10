@@ -1,0 +1,37 @@
+fragment AllFrontendUserFields on users {
+  __typename
+  id
+  displayName,
+  email,
+  createdAt
+  profile {
+    stripeData {
+      customer {
+        id
+        createdAt
+      }
+      trialEndsAt
+      hasAppAccess
+      subscription {
+        id
+        status
+        cancelAtPeriodEnd
+        trialStartedAt
+        trialEndedAt
+        startedAt
+        endedAt
+        currentPeriodStart
+        currentPeriodEnd
+        interval
+        canceledAt
+      }
+    }
+  }
+  metadata
+}
+
+query GetUser($user_id: uuid!) {
+  user(id: $user_id) {
+    ...AllFrontendUserFields
+  } 
+}

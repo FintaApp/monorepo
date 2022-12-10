@@ -1,6 +1,6 @@
 import { useBreakpointValue, useToast as useToastChakra, ToastPosition } from "@chakra-ui/react";
 
-import { Toast, ToastStatusType } from "src/components/Toast";
+import { Toast, ToastStatusType } from "~/components/Toast";
 
 export interface UseToastProps {
   status: ToastStatusType;
@@ -31,5 +31,5 @@ export const useToast = () => {
     })
   }
 
- return renderToast;
+ return renderToast; 
 }

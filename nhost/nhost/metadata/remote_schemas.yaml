@@ -1,12 +1,8 @@
-- name: stripe_graphql
+- name: remote_schema
   definition:
-    url: '{{API_BASE_URL}}/stripe/graphql'
+    url: '{{NHOST_BACKEND_URL}}/v1/functions/remote_schema'
     timeout_seconds: 60
     customization: {}
-    headers:
-      - name: ngrok-skip-browser-warning
-        value: "true"
-  comment: ""
   permissions:
     - role: user
       definition:
@@ -16,9 +12,28 @@
           }
           scalar Date
           scalar uuid
+          type BillingPortalSession {
+            id: String!
+            url: String!
+          }
+          type CheckoutPortalSession {
+            id: String!
+            url: String!
+          }
           type Query {
-            stripeData(user_id: uuid!): StripeData!
+            billingPortalSession(customerId: String!, returnUrl: String!): BillingPortalSession!
+            checkoutPortalSession(customerId: String!, priceId: String!, successUrl: String!, cancelUrl: String!, trialEnd: Int, trialPeriodDays: Int): CheckoutPortalSession!
+            remoteSchemaUserProfile(userId: uuid!): RemoteSchemaUserProfile!
             stripePrices: [StripePrice!]!
+          }
+          type RemoteSchemaUserProfile {
+            isSubscribedGeneral: Boolean!
+            isSubscribedSyncUpdates: Boolean!
+            stripeCustomerId: String!
+            stripeData: StripeData!
+            syncUpdatesFrequency: SyncUpdatesFrequency!
+            syncUpdatesJobId: String
+            timezone: String
           }
           type StripeCustomer {
             createdAt: Date!
@@ -32,23 +47,24 @@
           }
           type StripePrice {
             id: String!
-            interval: Interval!
+            interval: PriceInterval!
             productId: String!
             unitAmount: Float!
           }
           type StripeSubscription {
             cancelAtPeriodEnd: Boolean!
+            canceledAt: Date
             currentPeriodEnd: Date!
             currentPeriodStart: Date!
             endedAt: Date
             id: String!
-            interval: Interval!
+            interval: PriceInterval!
             startedAt: Date!
             status: SubscriptionStatus!
             trialEndedAt: Date
             trialStartedAt: Date
           }
-          enum Interval {
+          enum PriceInterval {
             day
             month
             week
@@ -62,4 +78,11 @@
             past_due
             trialing
             unpaid
+          }
+          enum SyncUpdatesFrequency {
+            daily
+            monthly
+            quarterly
+            weekly
+            yearly
           }

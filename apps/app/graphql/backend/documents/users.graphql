@@ -1,0 +1,9 @@
+fragment DBUserFields on users {
+  id
+  display_name: displayName
+  metadata
+  disabled
+  created_at: createdAt
+  password_hash: passwordHash
+  email
+}

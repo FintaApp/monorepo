@@ -1,0 +1,34 @@
+fragment AllUserProfileFields on userProfiles {
+  userId
+  timezone
+  isSubscribedGeneral
+  isSubscribedSyncUpdates
+  syncUpdatesFrequency
+  syncUpdatesJobId
+  stripeCustomerId
+}
+
+mutation UpsertUserProfile($userProfile: userProfiles_insert_input!) {
+  userProfile: insertUserProfile (
+    object: $userProfile,
+    on_conflict: { constraint: user_profiles_user_id_key, update_columns: [stripeCustomerId] }
+  ) { ...AllUserProfileFields }
+}
+
+mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
+  userProfile: updateUserProfile(pk_columns: { userId: $userId }, _set: $_set ) {
+    ...AllUserProfileFields
+  }
+}
+
+query GetUserProfile($userId: uuid!) {
+  userProfile(userId: $userId) {
+    ...AllUserProfileFields
+  }
+}
+
+query GetUserByCustomerId($customerId: String!) {
+  userProfiles(where: {stripeCustomerId: {_eq: $customerId}}, limit: 1, order_by: {user: {createdAt: desc}}) {
+    user { ...AllUserFields }
+  }
+}

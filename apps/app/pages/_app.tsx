@@ -3,8 +3,10 @@ import { AppProps } from "next/app";
 import { useEffect } from "react";
 import { NhostNextProvider } from "@nhost/nextjs";
 import { NhostApolloProvider } from "@nhost/react-apollo";
-import { InMemoryCache } from '@apollo/client';;
+import { InMemoryCache } from '@apollo/client';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 
+import { theme } from "@finta/shared";
 import { page as trackPageView, AnalyticsPage } from "~/utils/frontend/analytics";
 import { nhost } from "~/utils/nhost";
 
@@ -33,7 +35,10 @@ export default function App({ Component, pageProps }: AppPropsWithPageName) {
           }
         })}
       >
-        <Component {...pageProps} />
+        <ChakraProvider theme = { theme }>
+          <ColorModeScript />
+          <Component {...pageProps} />
+        </ChakraProvider>
       </NhostApolloProvider>
     </NhostNextProvider>
   )

@@ -4,13 +4,37 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate": "graphql-codegen --config codegen.yml"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@graphql-yoga/node": "^2.13.13",
+    "@logtail/node": "^0.1.14",
+    "analytics-node": "^6.2.0",
+    "axios": "^1.2.0",
+    "cron-builder-ts": "^1.0.5",
     "express": "^4.18.2",
-    "jsonwebtoken": "^8.5.1"
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.0.0",
+    "graphql-tag": "^2.12.6",
+    "jsonwebtoken": "^8.5.1",
+    "logsnag": "^0.1.6",
+    "moment-timezone": "^0.5.39",
+    "stripe": "^11.1.0",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^2.15.0",
+    "@graphql-codegen/introspection": "^2.2.1",
+    "@graphql-codegen/typescript": "^2.8.3",
+    "@graphql-codegen/typescript-document-nodes": "^2.3.8",
+    "@graphql-codegen/typescript-graphql-request": "^4.5.8",
+    "@graphql-codegen/typescript-operations": "^2.5.8",
+    "@types/express": "^4.17.14",
+    "@types/node": "^18.11.10",
+    "typescript": "^4.9.3"
   }
 }

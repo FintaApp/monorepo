@@ -4,9 +4,9 @@ import {
   useColorModeValue as mode 
 } from "@chakra-ui/react";
 
-import whiteLogo from "src/images/logos/white-logo.png";
-import blackLogo from "src/images/logos/black-logo.png";
-import symbolLogo from "src/images/logos/symbol-logo.png";
+const whiteLogo = "/logos/white-logo.png";
+const blackLogo = "/logos/black-logo.png";
+const symbolLogo = "/logos/symbol-logo.png";
 
 export interface LogoProps extends ImageProps {
   variant: 'symbol' | 'full'

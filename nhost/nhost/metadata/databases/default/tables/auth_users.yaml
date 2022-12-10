@@ -91,13 +91,6 @@ object_relationships:
   - name: defaultRoleByRole
     using:
       foreign_key_constraint_on: default_role
-  - name: profile
-    using:
-      foreign_key_constraint_on:
-        column: user_id
-        table:
-          name: user_profiles
-          schema: public
 array_relationships:
   - name: destinations
     using:
@@ -157,11 +150,11 @@ remote_relationships:
       hasura_fields:
         - id
       remote_field:
-        stripeData:
+        remoteSchemaUserProfile:
           arguments:
-            user_id: $id
-      remote_schema: stripe_graphql
-    name: stripeData
+            userId: $id
+      remote_schema: remote_schema
+    name: profile
 select_permissions:
   - role: user
     permission:
@@ -192,7 +185,6 @@ update_permissions:
 delete_permissions:
   - role: user
     permission:
-      backend_only: false
       filter:
         id:
           _eq: X-Hasura-User-Id

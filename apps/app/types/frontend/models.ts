@@ -1,0 +1,1 @@
+export type { AllFrontendUserFieldsFragment as FrontendUserModel } from "~/graphql/frontend"
