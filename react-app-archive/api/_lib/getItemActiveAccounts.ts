@@ -1,7 +1,7 @@
 import { handlePlaidError } from "../oauth/_helpers";
-import * as plaid from "../_lib/plaid";
+import * as plaid from "./plaid";
 import { graphql } from "./graphql";
-import { PlaidItemModel } from "../_lib/types";
+import { PlaidItemModel } from "./types";
 
 export const getItemActiveAccounts = async (item: PlaidItemModel, plaidEnv?: string ) => {
   const { accessToken } = item;

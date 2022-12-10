@@ -1,6 +1,6 @@
 import { GoogleSpreadsheetRow, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
 import { Transaction, AccountBase, Holding, InvestmentTransaction, Security } from "plaid";
-import { DestinationModel, PlaidItemModel } from "../types";
+import { DestinationModel, PlaidItemModel } from ".";
 import { DestinationTableTypes, TableConfigFields, TableConfigs, DestinationCredentials, DestinationError, DestinationErrorCode, InstitutionsTableFields, AccountsTableFields, TransactionsTableFields, HoldingsTableFields, SecurityTableFields, InvestmentTransactionsTableFields, TableConfig, GetDestinationTablesResponse } from "@finta/types";
 
 export type IntegrationConfig = {
