@@ -9,7 +9,7 @@ import { AllUserProfileFieldsFragment, Frequencies_Enum } from "./_utils/graphql
 export default createServer<{ req: Request; res: Response }>({
   context: () => {},
   schema: {
-    typeDefs: /* Graphql */ `
+    typeDefs: /* Graphql */ ` 
       scalar uuid
       scalar Date
 
