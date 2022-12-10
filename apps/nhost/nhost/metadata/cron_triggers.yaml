@@ -1,5 +1,1 @@
-- name: insights
-  webhook: '{{API_BASE_URL}}/db/cron'
-  schedule: 0 0 * * *
-  include_in_metadata: true
-  payload: {}
+[]
