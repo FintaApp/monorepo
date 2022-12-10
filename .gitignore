@@ -41,3 +41,5 @@ yarn-error.log*
 apps/app/tests/.terraform.lock.hcl
 apps/app/tests/terraform.tfstate
 apps/app/tests/terraform.tfstate.backup
+
+.next
