@@ -4,7 +4,7 @@ import * as _ from "lodash";
 
 import { functionWrapper, Sentry, graphql, getDestinationObject, plaid, segment, getItemActiveAccounts, logsnag, types } from "../_lib";
 import { Integrations_Enum, GetPlaidItemsQuery, Plaid_Item_Sync_Logs_Update_Column, Destination_Sync_Logs_Update_Column } from "../_lib/graphql/sdk";
-import { DestinationTableTypes, DestinationError, DestinationErrorCode } from "@finta/types";
+import { DestinationTableTypes, DestinationError, DestinationErrorCode } from "../../../../packages/ui/dist";
 
 export default functionWrapper.client(async (req: types.ManualDestinationSyncRequest, user): Promise<types.ManualDestinationSyncResponse> => {
   const transaction = Sentry.startTransaction({ op: "app function", name: "Manually sync destination" });
