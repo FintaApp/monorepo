@@ -3,7 +3,7 @@ import FormData from 'form-data';
 import { DBEventPayload, DBPlaidInstitution } from "../../types";
 import { graphql } from "../../graphql";
 import { storage } from '../../nhost';
-import * as plaid from "../../plaid";
+import * as plaid from "../../../../../apps/app/utils/backend/plaid";
 
 export const on_insert_plaid_institution = async ({ body }: { body: DBEventPayload<'INSERT', DBPlaidInstitution> }) => {
   const { new: { id, name }} = body.event.data;

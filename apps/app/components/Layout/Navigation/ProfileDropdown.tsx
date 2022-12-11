@@ -6,6 +6,7 @@ import { reset } from "~/utils/frontend/analytics";
 import { useRouter} from 'next/router';
 import { useAuth } from '~/utils/frontend/useAuth';
 import { FrontendUserModel } from '~/types/frontend';
+import { ShareFeedback } from '~/components/ShareFeedback';
 
 const DropdownButton = forwardRef(({ user }: { user: FrontendUserModel }, ref) => (
   <HStack spacing = {{ base: 1, md: 3 }}  ref = { ref } justifyContent = "space-between">
@@ -38,6 +39,7 @@ export const ProfileDropdown = () => {
         { user && <DropdownButton user = { user } /> }
       </MenuButton>
       <MenuList>
+        <ShareFeedback />
         <MenuDivider />
         { menuItems.map(item => (
           <MenuItem

@@ -1,10 +1,34 @@
+import { useEffect, useState } from "react";
 import { getNhostSession } from "@nhost/nextjs";
 import { GetServerSideProps } from "next";
+import { useRouter } from "next/router";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { useAuth } from "~/utils/frontend/useAuth";
+import { useGetOAuthClientQuery } from "~/graphql/frontend";
+import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { AddDestination, ClientError, HasInactiveSubscription } from "~/components/OAuthAuthorize";
 
 const OauthAuthorize = () => {
-  return <></>
+  const router = useRouter();
+  const { user } = useAuth();
+  const hasActiveSubscription = !!user?.profile.stripeData.hasAppAccess;
+
+  const { client_id: clientId, state } = router.query;
+  const { data: oauthClientData, loading } = useGetOAuthClientQuery({ 
+    variables: { client_id: clientId }, 
+    skip: !clientId }
+  )
+  const oauthClient = oauthClientData?.oauth_client;
+  
+  return (
+    <>
+      { loading ? <LoadingSpinner /> : (
+        oauthClient ? <AddDestination oauthClient = { oauthClient } state = { state } /> : <ClientError />
+      )}
+      < HasInactiveSubscription isOpen = { !hasActiveSubscription } />
+    </>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {

@@ -7,3 +7,46 @@ fragment DBUserFields on users {
   password_hash: passwordHash
   email
 }
+
+fragment AllBackendUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
+  profile {
+    stripeData {
+      trialEndsAt
+      customer {
+        id
+      }
+      subscription {
+        id
+        status
+      }
+    }
+  }
+}
+
+query GetUserFromToken {
+  users {
+    id
+    displayName
+    email
+    createdAt
+  }
+}
+
+query GetUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBackendUserFields
+  }
+}
+
+mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {} ) {
+  updateUser(pk_columns: {id: $userId}, _set: $_set, _append: $_append) {
+    ...AllBackendUserFields
+  }
+}

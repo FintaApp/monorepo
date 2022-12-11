@@ -78,11 +78,6 @@ export type RemoteSchemaUserProfile = {
   timezone?: Maybe<Scalars['String']>;
 };
 
-export type SetupUserResponse = {
-  __typename?: 'SetupUserResponse';
-  ok: Scalars['Boolean'];
-};
-
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type String_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['String']>;
@@ -4489,8 +4484,6 @@ export type Mutation_Root = {
   insert_sync_logs?: Maybe<Sync_Logs_Mutation_Response>;
   /** insert a single row into the table: "sync_logs" */
   insert_sync_logs_one?: Maybe<Sync_Logs>;
-  /** Helper action to make sure user has all necessary properties */
-  setupUser?: Maybe<SetupUserResponse>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -5391,12 +5384,6 @@ export type Mutation_RootInsert_Sync_LogsArgs = {
 export type Mutation_RootInsert_Sync_Logs_OneArgs = {
   object: Sync_Logs_Insert_Input;
   on_conflict?: InputMaybe<Sync_Logs_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootSetupUserArgs = {
-  userId: Scalars['uuid'];
 };
 
 
@@ -11575,8 +11562,330 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
+export type AllDestinationAccountFieldsFragment = { __typename: 'destination_accounts', account_id: string, destination_id: any };
+
+export type DeleteDestinationAccountsMutationVariables = Exact<{
+  where: Destination_Accounts_Bool_Exp;
+}>;
+
+
+export type DeleteDestinationAccountsMutation = { __typename?: 'mutation_root', delete_destination_accounts?: { __typename?: 'destination_accounts_mutation_response', affected_rows: number } | null };
+
+export type DbDestinationFieldsFragment = { __typename?: 'destinations', id: any, user_id: any, integration_id: Integrations_Enum, created_at: any, disabled_at?: any | null };
+
+export type AllBackendIntegrationFieldsFragment = { __typename?: 'integrations', id: string, name: string };
+
+export type AllBackendDestinationFieldsFragment = { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null };
+
+export type GetDestinationQueryVariables = Exact<{
+  destination_id: Scalars['uuid'];
+  account_connections_where?: InputMaybe<Destination_Accounts_Bool_Exp>;
+}>;
+
+
+export type GetDestinationQuery = { __typename?: 'query_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
+
+export type GetDestinationsQueryVariables = Exact<{
+  where: Destinations_Bool_Exp;
+  account_connections_where?: InputMaybe<Destination_Accounts_Bool_Exp>;
+}>;
+
+
+export type GetDestinationsQuery = { __typename?: 'query_root', destinations: Array<{ __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null }> };
+
+export type UpdateDestinationMutationVariables = Exact<{
+  destination_id: Scalars['uuid'];
+  _set: Destinations_Set_Input;
+  account_connections_where?: InputMaybe<Destination_Accounts_Bool_Exp>;
+}>;
+
+
+export type UpdateDestinationMutation = { __typename?: 'mutation_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
+
+export type AllBackendAccountFieldsFragment = { __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean };
+
+export type UpdatePlaidAccountsMutationVariables = Exact<{
+  _set: PlaidAccounts_Set_Input;
+  where: PlaidAccounts_Bool_Exp;
+}>;
+
+
+export type UpdatePlaidAccountsMutation = { __typename?: 'mutation_root', plaidAccounts?: { __typename?: 'plaidAccounts_mutation_response', returning: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
+
+export type DbPlaidItemFieldsFragment = { __typename?: 'plaid_items', id: string, user_id: any, disabled_at?: any | null, error?: string | null, consent_expires_at?: any | null, access_token: string };
+
+export type AllBackendPlaidItemFieldsFragment = { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> };
+
+export type GetPlaidItemsQueryVariables = Exact<{
+  where?: InputMaybe<Plaid_Items_Bool_Exp>;
+  accounts_where?: InputMaybe<PlaidAccounts_Bool_Exp>;
+  include_removed_transactions?: InputMaybe<Scalars['Boolean']>;
+  date?: InputMaybe<Scalars['timestamptz']>;
+}>;
+
+
+export type GetPlaidItemsQuery = { __typename?: 'query_root', plaidItems: Array<{ __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> }> };
+
+export type GetPlaidItemQueryVariables = Exact<{
+  plaidItemId: Scalars['String'];
+  accounts_where?: InputMaybe<PlaidAccounts_Bool_Exp>;
+  include_removed_transactions?: InputMaybe<Scalars['Boolean']>;
+  date?: InputMaybe<Scalars['timestamptz']>;
+}>;
+
+
+export type GetPlaidItemQuery = { __typename?: 'query_root', plaidItem?: { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
+
+export type UpdatePlaidItemMutationVariables = Exact<{
+  plaidItemId: Scalars['String'];
+  _set: Plaid_Items_Set_Input;
+  accounts_where?: InputMaybe<PlaidAccounts_Bool_Exp>;
+  include_removed_transactions?: InputMaybe<Scalars['Boolean']>;
+  date?: InputMaybe<Scalars['timestamptz']>;
+}>;
+
+
+export type UpdatePlaidItemMutation = { __typename?: 'mutation_root', plaid_item?: { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
+
+export type DbSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, ended_at?: any | null, error?: any | null, trigger: string, is_success: boolean };
+
+export type AllSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null };
+
+export type AllPlaidItemSyncLogFieldsFragment = { __typename?: 'plaid_item_sync_logs', plaid_item_id: string, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any };
+
+export type AllDestinationSyncLogFieldsFragment = { __typename?: 'destination_sync_logs', destination_id: any, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any };
+
+export type InsertSyncLogMutationVariables = Exact<{
+  sync_log: Sync_Logs_Insert_Input;
+}>;
+
+
+export type InsertSyncLogMutation = { __typename?: 'mutation_root', sync_log?: { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null } | null };
+
+export type UpdateSyncLogMutationVariables = Exact<{
+  sync_log_id: Scalars['uuid'];
+  _set: Sync_Logs_Set_Input;
+}>;
+
+
+export type UpdateSyncLogMutation = { __typename?: 'mutation_root', sync_log?: { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null } | null };
+
+export type InsertPlaidItemSyncLogsMutationVariables = Exact<{
+  plaid_item_sync_logs: Array<Plaid_Item_Sync_Logs_Insert_Input> | Plaid_Item_Sync_Logs_Insert_Input;
+}>;
+
+
+export type InsertPlaidItemSyncLogsMutation = { __typename?: 'mutation_root', plaid_item_sync_logs?: { __typename?: 'plaid_item_sync_logs_mutation_response', returning: Array<{ __typename?: 'plaid_item_sync_logs', plaid_item_id: string, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any }> } | null };
+
+export type InsertPlaidItemSyncLogMutationVariables = Exact<{
+  plaid_item_sync_log: Plaid_Item_Sync_Logs_Insert_Input;
+  update_columns: Array<Plaid_Item_Sync_Logs_Update_Column> | Plaid_Item_Sync_Logs_Update_Column;
+}>;
+
+
+export type InsertPlaidItemSyncLogMutation = { __typename?: 'mutation_root', plaid_item_sync_log?: { __typename?: 'plaid_item_sync_logs', plaid_item_id: string, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any } | null };
+
+export type InsertDestinationSyncLogMutationVariables = Exact<{
+  destination_sync_log: Destination_Sync_Logs_Insert_Input;
+  update_columns: Array<Destination_Sync_Logs_Update_Column> | Destination_Sync_Logs_Update_Column;
+}>;
+
+
+export type InsertDestinationSyncLogMutation = { __typename?: 'mutation_root', destination_sync_log?: { __typename?: 'destination_sync_logs', destination_id: any, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any } | null };
+
+export type GetSyncLogQueryVariables = Exact<{
+  sync_log_id: Scalars['uuid'];
+}>;
+
+
+export type GetSyncLogQuery = { __typename?: 'query_root', sync_log?: { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', destination_id: any, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, destination: { __typename?: 'destinations', integration_id: Integrations_Enum, user_id: any } }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', plaid_item_id: string, sync_log_id: any, error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, plaid_item: { __typename?: 'plaid_items', user_id: any } }> } | null };
+
+export type GetUserSyncLogsQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+  start: Scalars['timestamptz'];
+  end: Scalars['timestamptz'];
+}>;
+
+
+export type GetUserSyncLogsQuery = { __typename?: 'query_root', sync_logs: Array<{ __typename?: 'sync_logs', id: any, is_success: boolean, error?: any | null, ended_at?: any | null, created_at: any, metadata?: any | null, trigger: string, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', accounts: any, destination_id: any, error?: any | null, holdings: any, investment_transactions: any, transactions: any }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', accounts: any, error?: any | null, holdings: any, investment_transactions: any, transactions: any }> }> };
+
 export type DbUserFieldsFragment = { __typename?: 'users', id: any, metadata?: any | null, disabled: boolean, email?: any | null, display_name: string, created_at: any, password_hash?: string | null };
 
+export type AllBackendUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus } | null } } };
+
+export type GetUserFromTokenQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUserFromTokenQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, displayName: string, email?: any | null, createdAt: any }> };
+
+export type GetUserQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus } | null } } } | null };
+
+export type UpdateUserMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+  _set?: InputMaybe<Users_Set_Input>;
+  _append?: InputMaybe<Users_Append_Input>;
+}>;
+
+
+export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus } | null } } } | null };
+
+export const AllDestinationAccountFields = gql`
+    fragment AllDestinationAccountFields on destination_accounts {
+  __typename
+  account_id
+  destination_id
+}
+    `;
+export const DbDestinationFields = gql`
+    fragment DBDestinationFields on destinations {
+  id
+  user_id
+  integration_id
+  created_at
+  disabled_at
+  disabled_at
+}
+    `;
+export const AllBackendIntegrationFields = gql`
+    fragment AllBackendIntegrationFields on integrations {
+  id
+  name
+}
+    `;
+export const AllBackendDestinationFields = gql`
+    fragment AllBackendDestinationFields on destinations {
+  __typename
+  id
+  name
+  authentication
+  integration {
+    ...AllBackendIntegrationFields
+  }
+  account_connections(where: $account_connections_where) {
+    account {
+      id
+      plaid_item_id
+    }
+  }
+  user {
+    id
+    email
+    metadata
+    profile {
+      stripeData {
+        hasAppAccess
+        subscription {
+          status
+        }
+      }
+    }
+  }
+  sync_start_date
+  should_sync_transactions
+  should_sync_investments
+  should_override_transaction_name
+  table_configs
+  notion_connection {
+    access_token
+  }
+}
+    ${AllBackendIntegrationFields}`;
+export const DbPlaidItemFields = gql`
+    fragment DBPlaidItemFields on plaid_items {
+  id
+  user_id
+  disabled_at
+  consent_expires_at: consentExpiresAt
+  access_token: accessToken
+  error
+}
+    `;
+export const AllBackendAccountFields = gql`
+    fragment AllBackendAccountFields on plaidAccounts {
+  __typename
+  id
+  name
+  mask
+  is_closed
+}
+    `;
+export const AllBackendPlaidItemFields = gql`
+    fragment AllBackendPlaidItemFields on plaid_items {
+  __typename
+  id
+  accessToken
+  billed_products
+  available_products
+  is_initial_update_complete
+  is_historical_update_complete
+  institution {
+    name
+    logo_file_id
+  }
+  removed_transactions(where: {created_at: {_lt: $date}}) @include(if: $include_removed_transactions) {
+    transaction_id
+  }
+  user {
+    id
+    email
+  }
+  accounts(where: $accounts_where) {
+    ...AllBackendAccountFields
+  }
+  error
+  created_at
+  synced_at
+  plaid_sync_cursor
+  plaid_sync_cursor_added_at
+}
+    ${AllBackendAccountFields}`;
+export const DbSyncLogFields = gql`
+    fragment DBSyncLogFields on sync_logs {
+  id
+  ended_at
+  error
+  trigger
+  is_success
+}
+    `;
+export const AllSyncLogFields = gql`
+    fragment AllSyncLogFields on sync_logs {
+  id
+  created_at
+  ended_at
+  trigger
+  is_success
+  error
+  metadata
+}
+    `;
+export const AllPlaidItemSyncLogFields = gql`
+    fragment AllPlaidItemSyncLogFields on plaid_item_sync_logs {
+  plaid_item_id
+  sync_log_id
+  error
+  accounts
+  holdings
+  transactions
+  investment_transactions
+}
+    `;
+export const AllDestinationSyncLogFields = gql`
+    fragment AllDestinationSyncLogFields on destination_sync_logs {
+  destination_id
+  sync_log_id
+  error
+  accounts
+  holdings
+  transactions
+  investment_transactions
+}
+    `;
 export const DbUserFields = gql`
     fragment DBUserFields on users {
   id
@@ -11586,6 +11895,366 @@ export const DbUserFields = gql`
   created_at: createdAt
   password_hash: passwordHash
   email
+}
+    `;
+export const AllBackendUserFields = gql`
+    fragment AllBackendUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
+  profile {
+    stripeData {
+      trialEndsAt
+      customer {
+        id
+      }
+      subscription {
+        id
+        status
+      }
+    }
+  }
+}
+    `;
+export const DeleteDestinationAccounts = gql`
+    mutation DeleteDestinationAccounts($where: destination_accounts_bool_exp!) {
+  delete_destination_accounts(where: $where) {
+    affected_rows
+  }
+}
+    `;
+export const GetDestination = gql`
+    query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: destinations_by_pk(id: $destination_id) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFields}`;
+export const GetDestinations = gql`
+    query GetDestinations($where: destinations_bool_exp!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destinations(where: $where) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFields}`;
+export const UpdateDestination = gql`
+    mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: update_destinations_by_pk(
+    pk_columns: {id: $destination_id}
+    _set: $_set
+  ) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFields}`;
+export const UpdatePlaidAccounts = gql`
+    mutation UpdatePlaidAccounts($_set: plaidAccounts_set_input!, $where: plaidAccounts_bool_exp!) {
+  plaidAccounts: updatePlaidAccounts(where: $where, _set: $_set) {
+    returning {
+      ...AllBackendAccountFields
+    }
+  }
+}
+    ${AllBackendAccountFields}`;
+export const GetPlaidItems = gql`
+    query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaidItems(where: $where) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFields}`;
+export const GetPlaidItem = gql`
+    query GetPlaidItem($plaidItemId: String!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaidItem(id: $plaidItemId) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFields}`;
+export const UpdatePlaidItem = gql`
+    mutation UpdatePlaidItem($plaidItemId: String!, $_set: plaid_items_set_input!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaid_item: update_plaid_items_by_pk(
+    pk_columns: {id: $plaidItemId}
+    _set: $_set
+  ) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFields}`;
+export const InsertSyncLog = gql`
+    mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
+  sync_log: insert_sync_logs_one(object: $sync_log) {
+    ...AllSyncLogFields
+  }
+}
+    ${AllSyncLogFields}`;
+export const UpdateSyncLog = gql`
+    mutation UpdateSyncLog($sync_log_id: uuid!, $_set: sync_logs_set_input!) {
+  sync_log: update_sync_logs_by_pk(pk_columns: {id: $sync_log_id}, _set: $_set) {
+    ...AllSyncLogFields
+  }
+}
+    ${AllSyncLogFields}`;
+export const InsertPlaidItemSyncLogs = gql`
+    mutation InsertPlaidItemSyncLogs($plaid_item_sync_logs: [plaid_item_sync_logs_insert_input!]!) {
+  plaid_item_sync_logs: insert_plaid_item_sync_logs(
+    objects: $plaid_item_sync_logs
+  ) {
+    returning {
+      ...AllPlaidItemSyncLogFields
+    }
+  }
+}
+    ${AllPlaidItemSyncLogFields}`;
+export const InsertPlaidItemSyncLog = gql`
+    mutation InsertPlaidItemSyncLog($plaid_item_sync_log: plaid_item_sync_logs_insert_input!, $update_columns: [plaid_item_sync_logs_update_column!]!) {
+  plaid_item_sync_log: insert_plaid_item_sync_logs_one(
+    object: $plaid_item_sync_log
+    on_conflict: {constraint: plaid_item_sync_logs_pkey, update_columns: $update_columns}
+  ) {
+    ...AllPlaidItemSyncLogFields
+  }
+}
+    ${AllPlaidItemSyncLogFields}`;
+export const InsertDestinationSyncLog = gql`
+    mutation InsertDestinationSyncLog($destination_sync_log: destination_sync_logs_insert_input!, $update_columns: [destination_sync_logs_update_column!]!) {
+  destination_sync_log: insert_destination_sync_logs_one(
+    object: $destination_sync_log
+    on_conflict: {constraint: destination_sync_logs_pkey, update_columns: $update_columns}
+  ) {
+    ...AllDestinationSyncLogFields
+  }
+}
+    ${AllDestinationSyncLogFields}`;
+export const GetSyncLog = gql`
+    query GetSyncLog($sync_log_id: uuid!) {
+  sync_log: sync_logs_by_pk(id: $sync_log_id) {
+    ...AllSyncLogFields
+    destination_sync_logs {
+      ...AllDestinationSyncLogFields
+      destination {
+        integration_id
+        user_id
+      }
+    }
+    plaid_item_sync_logs {
+      ...AllPlaidItemSyncLogFields
+      plaid_item {
+        user_id
+      }
+    }
+  }
+}
+    ${AllSyncLogFields}
+${AllDestinationSyncLogFields}
+${AllPlaidItemSyncLogFields}`;
+export const GetUserSyncLogs = gql`
+    query GetUserSyncLogs($userId: uuid!, $start: timestamptz!, $end: timestamptz!) {
+  sync_logs(
+    where: {_or: {plaid_item_sync_logs: {plaid_item: {user_id: {_eq: $userId}}}, destination_sync_logs: {destination: {user_id: {_eq: $userId}}}}, _and: {created_at: {_gte: $start}, ended_at: {_lte: $end}}}
+  ) {
+    id
+    is_success
+    error
+    ended_at
+    created_at
+    destination_sync_logs {
+      accounts
+      destination_id
+      error
+      holdings
+      investment_transactions
+      transactions
+    }
+    plaid_item_sync_logs {
+      accounts
+      error
+      holdings
+      investment_transactions
+      transactions
+    }
+    metadata
+    trigger
+  }
+}
+    `;
+export const GetUserFromToken = gql`
+    query GetUserFromToken {
+  users {
+    id
+    displayName
+    email
+    createdAt
+  }
+}
+    `;
+export const GetUser = gql`
+    query GetUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBackendUserFields
+  }
+}
+    ${AllBackendUserFields}`;
+export const UpdateUser = gql`
+    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}) {
+  updateUser(pk_columns: {id: $userId}, _set: $_set, _append: $_append) {
+    ...AllBackendUserFields
+  }
+}
+    ${AllBackendUserFields}`;
+export const AllDestinationAccountFieldsFragmentDoc = gql`
+    fragment AllDestinationAccountFields on destination_accounts {
+  __typename
+  account_id
+  destination_id
+}
+    `;
+export const DbDestinationFieldsFragmentDoc = gql`
+    fragment DBDestinationFields on destinations {
+  id
+  user_id
+  integration_id
+  created_at
+  disabled_at
+  disabled_at
+}
+    `;
+export const AllBackendIntegrationFieldsFragmentDoc = gql`
+    fragment AllBackendIntegrationFields on integrations {
+  id
+  name
+}
+    `;
+export const AllBackendDestinationFieldsFragmentDoc = gql`
+    fragment AllBackendDestinationFields on destinations {
+  __typename
+  id
+  name
+  authentication
+  integration {
+    ...AllBackendIntegrationFields
+  }
+  account_connections(where: $account_connections_where) {
+    account {
+      id
+      plaid_item_id
+    }
+  }
+  user {
+    id
+    email
+    metadata
+    profile {
+      stripeData {
+        hasAppAccess
+        subscription {
+          status
+        }
+      }
+    }
+  }
+  sync_start_date
+  should_sync_transactions
+  should_sync_investments
+  should_override_transaction_name
+  table_configs
+  notion_connection {
+    access_token
+  }
+}
+    ${AllBackendIntegrationFieldsFragmentDoc}`;
+export const DbPlaidItemFieldsFragmentDoc = gql`
+    fragment DBPlaidItemFields on plaid_items {
+  id
+  user_id
+  disabled_at
+  consent_expires_at: consentExpiresAt
+  access_token: accessToken
+  error
+}
+    `;
+export const AllBackendAccountFieldsFragmentDoc = gql`
+    fragment AllBackendAccountFields on plaidAccounts {
+  __typename
+  id
+  name
+  mask
+  is_closed
+}
+    `;
+export const AllBackendPlaidItemFieldsFragmentDoc = gql`
+    fragment AllBackendPlaidItemFields on plaid_items {
+  __typename
+  id
+  accessToken
+  billed_products
+  available_products
+  is_initial_update_complete
+  is_historical_update_complete
+  institution {
+    name
+    logo_file_id
+  }
+  removed_transactions(where: {created_at: {_lt: $date}}) @include(if: $include_removed_transactions) {
+    transaction_id
+  }
+  user {
+    id
+    email
+  }
+  accounts(where: $accounts_where) {
+    ...AllBackendAccountFields
+  }
+  error
+  created_at
+  synced_at
+  plaid_sync_cursor
+  plaid_sync_cursor_added_at
+}
+    ${AllBackendAccountFieldsFragmentDoc}`;
+export const DbSyncLogFieldsFragmentDoc = gql`
+    fragment DBSyncLogFields on sync_logs {
+  id
+  ended_at
+  error
+  trigger
+  is_success
+}
+    `;
+export const AllSyncLogFieldsFragmentDoc = gql`
+    fragment AllSyncLogFields on sync_logs {
+  id
+  created_at
+  ended_at
+  trigger
+  is_success
+  error
+  metadata
+}
+    `;
+export const AllPlaidItemSyncLogFieldsFragmentDoc = gql`
+    fragment AllPlaidItemSyncLogFields on plaid_item_sync_logs {
+  plaid_item_id
+  sync_log_id
+  error
+  accounts
+  holdings
+  transactions
+  investment_transactions
+}
+    `;
+export const AllDestinationSyncLogFieldsFragmentDoc = gql`
+    fragment AllDestinationSyncLogFields on destination_sync_logs {
+  destination_id
+  sync_log_id
+  error
+  accounts
+  holdings
+  transactions
+  investment_transactions
 }
     `;
 export const DbUserFieldsFragmentDoc = gql`
@@ -11599,6 +12268,214 @@ export const DbUserFieldsFragmentDoc = gql`
   email
 }
     `;
+export const AllBackendUserFieldsFragmentDoc = gql`
+    fragment AllBackendUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
+  profile {
+    stripeData {
+      trialEndsAt
+      customer {
+        id
+      }
+      subscription {
+        id
+        status
+      }
+    }
+  }
+}
+    `;
+export const DeleteDestinationAccountsDocument = gql`
+    mutation DeleteDestinationAccounts($where: destination_accounts_bool_exp!) {
+  delete_destination_accounts(where: $where) {
+    affected_rows
+  }
+}
+    `;
+export const GetDestinationDocument = gql`
+    query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: destinations_by_pk(id: $destination_id) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFieldsFragmentDoc}`;
+export const GetDestinationsDocument = gql`
+    query GetDestinations($where: destinations_bool_exp!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destinations(where: $where) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFieldsFragmentDoc}`;
+export const UpdateDestinationDocument = gql`
+    mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: update_destinations_by_pk(
+    pk_columns: {id: $destination_id}
+    _set: $_set
+  ) {
+    ...AllBackendDestinationFields
+  }
+}
+    ${AllBackendDestinationFieldsFragmentDoc}`;
+export const UpdatePlaidAccountsDocument = gql`
+    mutation UpdatePlaidAccounts($_set: plaidAccounts_set_input!, $where: plaidAccounts_bool_exp!) {
+  plaidAccounts: updatePlaidAccounts(where: $where, _set: $_set) {
+    returning {
+      ...AllBackendAccountFields
+    }
+  }
+}
+    ${AllBackendAccountFieldsFragmentDoc}`;
+export const GetPlaidItemsDocument = gql`
+    query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaidItems(where: $where) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFieldsFragmentDoc}`;
+export const GetPlaidItemDocument = gql`
+    query GetPlaidItem($plaidItemId: String!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaidItem(id: $plaidItemId) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFieldsFragmentDoc}`;
+export const UpdatePlaidItemDocument = gql`
+    mutation UpdatePlaidItem($plaidItemId: String!, $_set: plaid_items_set_input!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaid_item: update_plaid_items_by_pk(
+    pk_columns: {id: $plaidItemId}
+    _set: $_set
+  ) {
+    ...AllBackendPlaidItemFields
+  }
+}
+    ${AllBackendPlaidItemFieldsFragmentDoc}`;
+export const InsertSyncLogDocument = gql`
+    mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
+  sync_log: insert_sync_logs_one(object: $sync_log) {
+    ...AllSyncLogFields
+  }
+}
+    ${AllSyncLogFieldsFragmentDoc}`;
+export const UpdateSyncLogDocument = gql`
+    mutation UpdateSyncLog($sync_log_id: uuid!, $_set: sync_logs_set_input!) {
+  sync_log: update_sync_logs_by_pk(pk_columns: {id: $sync_log_id}, _set: $_set) {
+    ...AllSyncLogFields
+  }
+}
+    ${AllSyncLogFieldsFragmentDoc}`;
+export const InsertPlaidItemSyncLogsDocument = gql`
+    mutation InsertPlaidItemSyncLogs($plaid_item_sync_logs: [plaid_item_sync_logs_insert_input!]!) {
+  plaid_item_sync_logs: insert_plaid_item_sync_logs(
+    objects: $plaid_item_sync_logs
+  ) {
+    returning {
+      ...AllPlaidItemSyncLogFields
+    }
+  }
+}
+    ${AllPlaidItemSyncLogFieldsFragmentDoc}`;
+export const InsertPlaidItemSyncLogDocument = gql`
+    mutation InsertPlaidItemSyncLog($plaid_item_sync_log: plaid_item_sync_logs_insert_input!, $update_columns: [plaid_item_sync_logs_update_column!]!) {
+  plaid_item_sync_log: insert_plaid_item_sync_logs_one(
+    object: $plaid_item_sync_log
+    on_conflict: {constraint: plaid_item_sync_logs_pkey, update_columns: $update_columns}
+  ) {
+    ...AllPlaidItemSyncLogFields
+  }
+}
+    ${AllPlaidItemSyncLogFieldsFragmentDoc}`;
+export const InsertDestinationSyncLogDocument = gql`
+    mutation InsertDestinationSyncLog($destination_sync_log: destination_sync_logs_insert_input!, $update_columns: [destination_sync_logs_update_column!]!) {
+  destination_sync_log: insert_destination_sync_logs_one(
+    object: $destination_sync_log
+    on_conflict: {constraint: destination_sync_logs_pkey, update_columns: $update_columns}
+  ) {
+    ...AllDestinationSyncLogFields
+  }
+}
+    ${AllDestinationSyncLogFieldsFragmentDoc}`;
+export const GetSyncLogDocument = gql`
+    query GetSyncLog($sync_log_id: uuid!) {
+  sync_log: sync_logs_by_pk(id: $sync_log_id) {
+    ...AllSyncLogFields
+    destination_sync_logs {
+      ...AllDestinationSyncLogFields
+      destination {
+        integration_id
+        user_id
+      }
+    }
+    plaid_item_sync_logs {
+      ...AllPlaidItemSyncLogFields
+      plaid_item {
+        user_id
+      }
+    }
+  }
+}
+    ${AllSyncLogFieldsFragmentDoc}
+${AllDestinationSyncLogFieldsFragmentDoc}
+${AllPlaidItemSyncLogFieldsFragmentDoc}`;
+export const GetUserSyncLogsDocument = gql`
+    query GetUserSyncLogs($userId: uuid!, $start: timestamptz!, $end: timestamptz!) {
+  sync_logs(
+    where: {_or: {plaid_item_sync_logs: {plaid_item: {user_id: {_eq: $userId}}}, destination_sync_logs: {destination: {user_id: {_eq: $userId}}}}, _and: {created_at: {_gte: $start}, ended_at: {_lte: $end}}}
+  ) {
+    id
+    is_success
+    error
+    ended_at
+    created_at
+    destination_sync_logs {
+      accounts
+      destination_id
+      error
+      holdings
+      investment_transactions
+      transactions
+    }
+    plaid_item_sync_logs {
+      accounts
+      error
+      holdings
+      investment_transactions
+      transactions
+    }
+    metadata
+    trigger
+  }
+}
+    `;
+export const GetUserFromTokenDocument = gql`
+    query GetUserFromToken {
+  users {
+    id
+    displayName
+    email
+    createdAt
+  }
+}
+    `;
+export const GetUserDocument = gql`
+    query GetUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBackendUserFields
+  }
+}
+    ${AllBackendUserFieldsFragmentDoc}`;
+export const UpdateUserDocument = gql`
+    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}) {
+  updateUser(pk_columns: {id: $userId}, _set: $_set, _append: $_append) {
+    ...AllBackendUserFields
+  }
+}
+    ${AllBackendUserFieldsFragmentDoc}`;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
@@ -11607,7 +12484,60 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-
+    DeleteDestinationAccounts(variables: DeleteDestinationAccountsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteDestinationAccountsMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteDestinationAccountsMutation>(DeleteDestinationAccountsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'DeleteDestinationAccounts', 'mutation');
+    },
+    GetDestination(variables: GetDestinationQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetDestinationQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetDestinationQuery>(GetDestinationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetDestination', 'query');
+    },
+    GetDestinations(variables: GetDestinationsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetDestinationsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetDestinationsQuery>(GetDestinationsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetDestinations', 'query');
+    },
+    UpdateDestination(variables: UpdateDestinationMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateDestinationMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateDestinationMutation>(UpdateDestinationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateDestination', 'mutation');
+    },
+    UpdatePlaidAccounts(variables: UpdatePlaidAccountsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidAccountsMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidAccountsMutation>(UpdatePlaidAccountsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidAccounts', 'mutation');
+    },
+    GetPlaidItems(variables?: GetPlaidItemsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetPlaidItemsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPlaidItemsQuery>(GetPlaidItemsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetPlaidItems', 'query');
+    },
+    GetPlaidItem(variables: GetPlaidItemQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetPlaidItemQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPlaidItemQuery>(GetPlaidItemDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetPlaidItem', 'query');
+    },
+    UpdatePlaidItem(variables: UpdatePlaidItemMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidItemMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidItemMutation>(UpdatePlaidItemDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidItem', 'mutation');
+    },
+    InsertSyncLog(variables: InsertSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertSyncLogMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertSyncLogMutation>(InsertSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertSyncLog', 'mutation');
+    },
+    UpdateSyncLog(variables: UpdateSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateSyncLogMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateSyncLogMutation>(UpdateSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateSyncLog', 'mutation');
+    },
+    InsertPlaidItemSyncLogs(variables: InsertPlaidItemSyncLogsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertPlaidItemSyncLogsMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertPlaidItemSyncLogsMutation>(InsertPlaidItemSyncLogsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertPlaidItemSyncLogs', 'mutation');
+    },
+    InsertPlaidItemSyncLog(variables: InsertPlaidItemSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertPlaidItemSyncLogMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertPlaidItemSyncLogMutation>(InsertPlaidItemSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertPlaidItemSyncLog', 'mutation');
+    },
+    InsertDestinationSyncLog(variables: InsertDestinationSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertDestinationSyncLogMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertDestinationSyncLogMutation>(InsertDestinationSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertDestinationSyncLog', 'mutation');
+    },
+    GetSyncLog(variables: GetSyncLogQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetSyncLogQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetSyncLogQuery>(GetSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetSyncLog', 'query');
+    },
+    GetUserSyncLogs(variables: GetUserSyncLogsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserSyncLogsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserSyncLogsQuery>(GetUserSyncLogsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserSyncLogs', 'query');
+    },
+    GetUserFromToken(variables?: GetUserFromTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserFromTokenQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserFromTokenQuery>(GetUserFromTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserFromToken', 'query');
+    },
+    GetUser(variables: GetUserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserQuery>(GetUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUser', 'query');
+    },
+    UpdateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUser', 'mutation');
+    }
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;

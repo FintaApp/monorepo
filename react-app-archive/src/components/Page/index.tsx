@@ -13,7 +13,7 @@ interface PageProps extends BoxProps {
   children: any;
 }
 
-export { PageHeader } from "./PageHeader";
+export { PageHeader } from "../../../../apps/app/components/Layout/PageHeader";
 
 export const Page = ({ children, hasNavigation = true, ...props }: PageProps) => (
   <Flex

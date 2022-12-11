@@ -1,4 +1,4 @@
 export * from "./db";
 export * from "./functions";
-export * from "./integrations";
+export * from "../../../../apps/app/types/backend/integrations";
 export * from "./models";

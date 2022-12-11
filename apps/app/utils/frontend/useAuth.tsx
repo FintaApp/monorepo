@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
 
   //const action = router.query.action as string;
 
-  const { data: userData } = useGetUserQuery({
-    variables: { user_id: userId },
+  const { data: userData, error } = useGetUserQuery({
+    variables: { userId },
     skip: !userId
   });
   const user = useMemo(() => userData?.user || undefined, [ userData ]);

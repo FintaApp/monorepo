@@ -1,7 +1,7 @@
 import { DBEventPayload, DBPlaidItem } from "../../types";
 import { graphql } from "../../graphql";
 import * as logsnag from "../../logsnag";
-import * as plaid from "../../plaid";
+import * as plaid from "../../../../../apps/app/utils/backend/plaid";
 import * as segment from "../../segment";
 import { Products } from "plaid";
 

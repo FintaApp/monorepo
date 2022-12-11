@@ -1,0 +1,32 @@
+fragment AllDestinationAccountFields on destination_accounts {
+  __typename,
+  account_id
+  destination_id
+}
+
+mutation InsertDestinationAccounts($destination_accounts: [destination_accounts_insert_input!]!) {
+  destination_accounts: insert_destination_accounts(
+    objects: $destination_accounts,
+    on_conflict: {
+      constraint: destination_accounts_pkey,
+      update_columns: [destination_id]
+    }
+  ) {
+    returning { ...AllDestinationAccountFields }
+  }
+}
+
+mutation DeleteDestinationAccounts($where: destination_accounts_bool_exp!) {
+  destination_accounts: delete_destination_accounts(where: $where) {
+    returning {
+      ...AllDestinationAccountFields
+    }
+  }
+}
+
+
+query GetDestinationAccounts {
+  destination_accounts {
+    ...AllDestinationAccountFields
+  }
+}

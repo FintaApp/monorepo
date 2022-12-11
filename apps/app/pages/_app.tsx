@@ -9,6 +9,11 @@ import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { theme } from "@finta/shared";
 import { page as trackPageView, AnalyticsPage } from "~/utils/frontend/analytics";
 import { nhost } from "~/utils/nhost";
+import { LoggerProvider } from '~/utils/frontend/useLogger';
+import { AuthProvider } from '~/utils/frontend/useAuth';
+import { Layout } from '~/components/Layout';
+
+import "./DatePicker.css";
 
 type NextPageWithPageName<P = {}, IP = P> = NextPage<P, IP> & {
   analyticsPageName?: AnalyticsPage
@@ -36,8 +41,14 @@ export default function App({ Component, pageProps }: AppPropsWithPageName) {
         })}
       >
         <ChakraProvider theme = { theme }>
-          <ColorModeScript />
-          <Component {...pageProps} />
+          <LoggerProvider>
+            <AuthProvider>
+              <ColorModeScript />
+              <Layout showNavigation = { pageProps.showNavigation }>
+                <Component {...pageProps} />
+              </Layout>
+            </AuthProvider>
+          </LoggerProvider>
         </ChakraProvider>
       </NhostApolloProvider>
     </NhostNextProvider>
