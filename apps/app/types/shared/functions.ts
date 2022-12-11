@@ -76,7 +76,6 @@ export type CreatePlaidLinkTokenPayload = {
   accessToken?: string;
   products: Products[];
   originUrl: string;
-  plaidEnv: string;
   isAccountSelectionEnabled?: boolean
 }
 
@@ -90,7 +89,6 @@ export type DisablePlaidItemResponse = "OK";
 
 export type ExchangePlaidPublicTokenPayload = {
   publicToken: string;
-  plaidEnv: string;
 }
 
 export type ExchangePlaidPublicTokenResponse = ItemPublicTokenExchangeResponse;

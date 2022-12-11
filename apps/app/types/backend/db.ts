@@ -1,4 +1,5 @@
 export type {
+  DbPlaidItemFieldsFragment as DBPlaidItem,
   DbUserFieldsFragment as DBUser
 } from "~/graphql/backend/sdk";
 

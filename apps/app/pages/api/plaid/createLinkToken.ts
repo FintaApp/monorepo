@@ -5,7 +5,7 @@ import { CreatePlaidLinkTokenPayload, CreatePlaidLinkTokenResponse } from "~/typ
 import { graphql } from "~/graphql/backend";
 
 export default wrapper('client', async function handler({ req, user, logger }) {
-  const { accessToken, products, originUrl, plaidEnv, isAccountSelectionEnabled } = req.body as CreatePlaidLinkTokenPayload;
+  const { accessToken, products, originUrl, isAccountSelectionEnabled } = req.body as CreatePlaidLinkTokenPayload;
   const webhookURL = `${originUrl}/api/plaid/webhook`;
   const redirectUri = `${originUrl}/plaid-oauth`;
   
@@ -15,7 +15,6 @@ export default wrapper('client', async function handler({ req, user, logger }) {
     accessToken,
     webhookURL,
     redirectUri,
-    env: plaidEnv as PlaidEnv,
     isAccountSelectionEnabled
   })
   .then(async response => {
@@ -26,6 +25,6 @@ export default wrapper('client', async function handler({ req, user, logger }) {
   })
   .catch(async error => {
     logger.error(error, { data: error.response.data });
-    return { status: 500, message: "Internal Error"}
+    return { status: 500, message: "Internal Error" }
   }) 
 })

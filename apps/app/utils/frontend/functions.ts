@@ -9,9 +9,6 @@ const isDemoUser = () => {
   return user?.email === "demo@finta.io";
 }
 
-const getPlaidEnv = () => 
-  ['development', 'preview'].includes(process.env.VERCEL_ENV || "") ? "sandbox" : "production"
-
 const client = axios.create({
   baseURL: `/api`
 });
@@ -33,7 +30,7 @@ export const createCheckoutPortalSession = (props: functionTypes.CreateCheckoutP
   .then(response => response.data as functionTypes.CreateCheckoutPortalSessionResponse)
   
 export const exchangePlaidPublicToken = async ({ publicToken }: { publicToken: string }) => {
-  const plaidEnv = isDemoUser() ? "sandbox" : getPlaidEnv();
+  const plaidEnv = isDemoUser() ? "sandbox" : undefined;
 
   return client.post('/plaid/exchangePublicToken', { publicToken, plaidEnv } as functionTypes.ExchangePlaidPublicTokenPayload)
   .then(response => response.data as functionTypes.ExchangePlaidPublicTokenResponse)
@@ -44,7 +41,7 @@ export const createPlaidLinkToken = async ({ products, accessToken, isAccountSel
   accessToken?: string;
   isAccountSelectionEnabled?: boolean;
 }): Promise<functionTypes.CreatePlaidLinkTokenResponse> => {
-  const plaidEnv = isDemoUser() ? "sandbox" : getPlaidEnv();
+  const plaidEnv = isDemoUser() ? "sandbox" : undefined;
   return client.post('/plaid/createLinkToken', { products, originUrl: window.location.origin, plaidEnv, accessToken, isAccountSelectionEnabled } as functionTypes.CreatePlaidLinkTokenPayload)
   .then(response => response.data)
 }

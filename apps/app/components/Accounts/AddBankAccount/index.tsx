@@ -90,20 +90,9 @@ export const AddBankAccount = () => {
           <ModalCloseButton />
 
           <ModalBody>
-            { mode === 'selectBankType' ? (
-              <SelectBankType 
-                onClick = { onSelectBankType } 
-                loadingProduct = { loadingProduct } 
-              />
-            ) : null }
-
-            { mode === "onSuccess" ? (
-              <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } />
-            ) : null }
-
-            { mode === "loadingPlaidItem" ? (
-              <LoadingPlaidItem />
-            ) : null }
+            { mode === 'selectBankType' ? ( <SelectBankType onClick = { onSelectBankType } loadingProduct = { loadingProduct } /> ) : null }
+            { mode === "onSuccess" ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } /> ) : null }
+            { mode === "loadingPlaidItem" ? ( <LoadingPlaidItem /> ) : null }
           </ModalBody>
         </ModalContent>
       </Modal>

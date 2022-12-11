@@ -6,14 +6,6 @@ export type PlaidEnv = 'sandbox' | 'production';
 
 export const plaidEnvFromVercelEnv = ['development', 'preview'].includes(process.env.VERCEL_ENV || "") ? 'sandbox' : 'production'
 
-const constructPlaidError = (err: any) => {
-  const { error_message, error_code } = err.response.data;
-
-  const error = new Error(error_message)
-  error.name = error_code;
-  throw error
-}
-
 const credentials = {
   clientId: process.env.PLAID_CLIENT_ID,
   secret: {
@@ -41,16 +33,15 @@ const getEnvFromAccessToken = (accessToken: string): PlaidEnv => {
   return 'sandbox'
 }
 
-export const createLinkToken = ({ userId, products, accessToken, webhookURL, redirectUri, env, isAccountSelectionEnabled = false }: {
+export const createLinkToken = ({ userId, products, accessToken, webhookURL, redirectUri, isAccountSelectionEnabled = false }: {
   userId: string;
   products: Products[];
   accessToken?: string;
   webhookURL: string;
   redirectUri: string;
-  env?: PlaidEnv
   isAccountSelectionEnabled?: boolean
 }) =>
-  getClient(accessToken ? getEnvFromAccessToken(accessToken) : env || plaidEnvFromVercelEnv ).linkTokenCreate({
+  getClient(accessToken ? getEnvFromAccessToken(accessToken) : plaidEnvFromVercelEnv ).linkTokenCreate({
     user: { client_user_id: userId },
     client_name: "Finta",
     language: 'en',
@@ -60,15 +51,13 @@ export const createLinkToken = ({ userId, products, accessToken, webhookURL, red
     webhook: webhookURL,
     redirect_uri: redirectUri,
     update: accessToken ? { account_selection_enabled: isAccountSelectionEnabled } : undefined
-  }).catch(constructPlaidError)
+  })
 
-export const exchangePublicToken = ({ publicToken, env }: { publicToken: string; env: PlaidEnv }) =>
-  getClient(env).itemPublicTokenExchange({ public_token: publicToken })
-  .catch(constructPlaidError)
+export const exchangePublicToken = ({ publicToken }: { publicToken: string; }) =>
+  getClient(plaidEnvFromVercelEnv).itemPublicTokenExchange({ public_token: publicToken })
 
 export const removeItem = ({ accessToken }: { accessToken: string }) =>
   getClient(getEnvFromAccessToken(accessToken)).itemRemove({ access_token: accessToken })
-  .catch(constructPlaidError)
 
 export const getAccounts = async ({ accessToken, options = {} }: {
   accessToken: string;
