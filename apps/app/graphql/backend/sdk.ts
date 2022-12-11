@@ -11612,6 +11612,16 @@ export type UpdatePlaidAccountsMutationVariables = Exact<{
 
 export type UpdatePlaidAccountsMutation = { __typename?: 'mutation_root', plaidAccounts?: { __typename?: 'plaidAccounts_mutation_response', returning: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
 
+export type DbPlaidInstitutionFieldsFragment = { __typename?: 'plaid_institutions', id: string, name: string };
+
+export type UpdatePlaidInstitutionMutationVariables = Exact<{
+  plaidInstitutionId: Scalars['String'];
+  _set: Plaid_Institutions_Set_Input;
+}>;
+
+
+export type UpdatePlaidInstitutionMutation = { __typename?: 'mutation_root', institution?: { __typename?: 'plaid_institutions', id: string } | null };
+
 export type DbPlaidItemFieldsFragment = { __typename?: 'plaid_items', id: string, user_id: any, disabled_at?: any | null, error?: string | null, consent_expires_at?: any | null, access_token: string };
 
 export type AllBackendPlaidItemFieldsFragment = { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> };
@@ -11795,6 +11805,12 @@ export const AllBackendDestinationFields = gql`
   }
 }
     ${AllBackendIntegrationFields}`;
+export const DbPlaidInstitutionFields = gql`
+    fragment DBPlaidInstitutionFields on plaid_institutions {
+  id
+  name
+}
+    `;
 export const DbPlaidItemFields = gql`
     fragment DBPlaidItemFields on plaid_items {
   id
@@ -11960,6 +11976,16 @@ export const UpdatePlaidAccounts = gql`
   }
 }
     ${AllBackendAccountFields}`;
+export const UpdatePlaidInstitution = gql`
+    mutation UpdatePlaidInstitution($plaidInstitutionId: String!, $_set: plaid_institutions_set_input!) {
+  institution: update_plaid_institutions_by_pk(
+    pk_columns: {id: $plaidInstitutionId}
+    _set: $_set
+  ) {
+    id
+  }
+}
+    `;
 export const GetPlaidItems = gql`
     query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
   plaidItems(where: $where) {
@@ -12166,6 +12192,12 @@ export const AllBackendDestinationFieldsFragmentDoc = gql`
   }
 }
     ${AllBackendIntegrationFieldsFragmentDoc}`;
+export const DbPlaidInstitutionFieldsFragmentDoc = gql`
+    fragment DBPlaidInstitutionFields on plaid_institutions {
+  id
+  name
+}
+    `;
 export const DbPlaidItemFieldsFragmentDoc = gql`
     fragment DBPlaidItemFields on plaid_items {
   id
@@ -12331,6 +12363,16 @@ export const UpdatePlaidAccountsDocument = gql`
   }
 }
     ${AllBackendAccountFieldsFragmentDoc}`;
+export const UpdatePlaidInstitutionDocument = gql`
+    mutation UpdatePlaidInstitution($plaidInstitutionId: String!, $_set: plaid_institutions_set_input!) {
+  institution: update_plaid_institutions_by_pk(
+    pk_columns: {id: $plaidInstitutionId}
+    _set: $_set
+  ) {
+    id
+  }
+}
+    `;
 export const GetPlaidItemsDocument = gql`
     query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
   plaidItems(where: $where) {
@@ -12498,6 +12540,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     UpdatePlaidAccounts(variables: UpdatePlaidAccountsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidAccountsMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidAccountsMutation>(UpdatePlaidAccountsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidAccounts', 'mutation');
+    },
+    UpdatePlaidInstitution(variables: UpdatePlaidInstitutionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidInstitutionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidInstitutionMutation>(UpdatePlaidInstitutionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidInstitution', 'mutation');
     },
     GetPlaidItems(variables?: GetPlaidItemsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetPlaidItemsQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetPlaidItemsQuery>(GetPlaidItemsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetPlaidItems', 'query');
