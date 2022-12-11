@@ -1,22 +1,10 @@
 import { DBEventPayload, DBUser } from "../../types";
-import * as stripe from "../../stripe";
 import * as segment from "../../segment";
 import { graphql } from "../../graphql";
 import * as easyCron from "../../easyCron";
 
 export const on_update_user = async ({ body }: { body: DBEventPayload<'UPDATE', DBUser> }) => {
   const { event: { data: { new: { id, display_name: newDisplayName, metadata: newMetadata, disabled: newDisabled }, old: { display_name: oldDisplayName, metadata: oldMetadata, disabled: oldDisabled }}} } = body;
-
-  if ( newDisplayName != oldDisplayName ) {
-    const customerId = newMetadata?.stripe_customer_id;
-    if ( !customerId ) { throw new Error("User does not have customerId "); return; }
-    await stripe.updateCustomer({ customerId, properties: { name: newDisplayName }});
-    await segment.track({
-      userId: id,
-      event: segment.Events.USER_UPDATED,
-      properties: { field: 'display_name' }
-    })
-  }
 
   if ( oldMetadata?.timezone != newMetadata?.timezone ) {
     await segment.track({

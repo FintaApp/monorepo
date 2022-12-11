@@ -29,13 +29,13 @@ export const createCheckoutPortalSession = ({ customerId, priceId, successUrl, c
       } : undefined
     }).then(response => ({ id: response.id, url: response.url }))
 
+export const updateCustomer = async ({ customerId, properties = {} }: { 
+  customerId: string;
+  properties: Stripe.CustomerUpdateParams 
+}) => client.customers.update(customerId, properties);
+
 // export const getPrices = (params: Stripe.PriceListParams) => client.prices.list(params);
 // export const getSubscriptions = (params: Stripe.SubscriptionListParams) => client.subscriptions.list(params);
-
-// export const updateCustomer = async ({ customerId, properties = {} }: { 
-//   customerId: string;
-//   properties: Stripe.CustomerUpdateParams 
-// }) => client.customers.update(customerId, properties);
 
 // export const createCustomer = ({ email, name, userId }: { email: string; name: string; userId: string; }) =>
 //   client.customers.create({

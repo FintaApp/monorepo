@@ -92,6 +92,12 @@ export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
     event: SegmentEvent.SUPPORT_TICKET_CREATED
   })
 
+export const trackUserUpdated = ({ userId, field }: { userId: string; field: 'display_name'}) =>
+  track({
+    userId,
+    event: SegmentEvent.USER_UPDATED,
+    properties: { field }
+  })
 // Types
 export enum SegmentEvent {
   USER_SIGNED_UP = "User Signed Up",
@@ -103,6 +109,7 @@ export enum SegmentEvent {
   INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
+  USER_UPDATED = "User Updated"
 }
 
 interface SegmentTrackProps {
