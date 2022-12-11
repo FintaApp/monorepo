@@ -11613,6 +11613,22 @@ export type GetIntegrationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetIntegrationsQuery = { __typename?: 'query_root', integrations: Array<{ __typename: 'integrations', id: string, name: string }> };
 
+export type AllNotionConnectionFieldsFragment = { __typename: 'notion_connections', bot_id: string, workspace_name?: string | null, workspace_icon?: string | null, access_token: string };
+
+export type GetNotionConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetNotionConnectionsQuery = { __typename?: 'query_root', notion_connections: Array<{ __typename: 'notion_connections', bot_id: string, workspace_name?: string | null, workspace_icon?: string | null, access_token: string }> };
+
+export type AllOauthClientFieldsFragment = { __typename: 'oauth_clients', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } };
+
+export type GetOAuthClientQueryVariables = Exact<{
+  client_id: Scalars['uuid'];
+}>;
+
+
+export type GetOAuthClientQuery = { __typename?: 'query_root', oauth_client?: { __typename: 'oauth_clients', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } } | null };
+
 export type AllFrontendPlaidAccountFieldsFragment = { __typename: 'plaidAccounts', id: string, plaid_item_id: string, created_at: any, mask?: string | null, name: string, destination_connections: Array<{ __typename?: 'destination_accounts', destination: { __typename?: 'destinations', id: any, integration: { __typename?: 'integrations', id: string, name: string } } }> };
 
 export type DeletePlaidAccountsMutationVariables = Exact<{
@@ -11653,6 +11669,15 @@ export type GetStripePricesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetStripePricesQuery = { __typename?: 'query_root', stripePrices: Array<{ __typename?: 'StripePrice', id: string, interval: PriceInterval, unitAmount: number, productId: string }> };
+
+export type AllFrontendSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, destination: { __typename?: 'destinations', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } } }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, plaid_item: { __typename: 'plaid_items', id: string, institution: { __typename?: 'plaid_institutions', name: string, logo_file?: { __typename?: 'files', id: any } | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string }> } }> };
+
+export type GetSyncLogsQueryVariables = Exact<{
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetSyncLogsQuery = { __typename?: 'query_root', sync_logs: Array<{ __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, destination: { __typename?: 'destinations', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } } }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, plaid_item: { __typename: 'plaid_items', id: string, institution: { __typename?: 'plaid_institutions', name: string, logo_file?: { __typename?: 'files', id: any } | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string }> } }> }>, count: { __typename?: 'sync_logs_aggregate', aggregate?: { __typename?: 'sync_logs_aggregate_fields', count: number } | null } };
 
 export type AllFrontendUserFieldsFragment = { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, hasAppAccess: boolean, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
 
@@ -11731,6 +11756,26 @@ export const AllFrontendIntegrationFieldsFragmentDoc = gql`
   name
 }
     `;
+export const AllNotionConnectionFieldsFragmentDoc = gql`
+    fragment AllNotionConnectionFields on notion_connections {
+  __typename
+  bot_id
+  workspace_name
+  workspace_icon
+  access_token
+}
+    `;
+export const AllOauthClientFieldsFragmentDoc = gql`
+    fragment AllOauthClientFields on oauth_clients {
+  __typename
+  id
+  name
+  integration {
+    id
+    name
+  }
+}
+    `;
 export const AllFrontendPlaidAccountFieldsFragmentDoc = gql`
     fragment AllFrontendPlaidAccountFields on plaidAccounts {
   __typename
@@ -11774,6 +11819,54 @@ export const AllFrontendPlaidItemFieldsFragmentDoc = gql`
   disabled_at
 }
     ${AllFrontendPlaidAccountFieldsFragmentDoc}`;
+export const AllFrontendSyncLogFieldsFragmentDoc = gql`
+    fragment AllFrontendSyncLogFields on sync_logs {
+  id
+  created_at
+  ended_at
+  trigger
+  is_success
+  error
+  metadata
+  destination_sync_logs {
+    destination {
+      id
+      name
+      integration {
+        id
+        name
+      }
+    }
+    error
+    accounts
+    holdings
+    transactions
+    investment_transactions
+  }
+  plaid_item_sync_logs {
+    plaid_item {
+      __typename
+      id
+      institution {
+        logo_file {
+          id
+        }
+        name
+      }
+      accounts {
+        __typename
+        id
+        name
+      }
+    }
+    error
+    accounts
+    holdings
+    transactions
+    investment_transactions
+  }
+}
+    `;
 export const AllFrontendUserFieldsFragmentDoc = gql`
     fragment AllFrontendUserFields on users {
   __typename
@@ -12062,6 +12155,75 @@ export function useGetIntegrationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type GetIntegrationsQueryHookResult = ReturnType<typeof useGetIntegrationsQuery>;
 export type GetIntegrationsLazyQueryHookResult = ReturnType<typeof useGetIntegrationsLazyQuery>;
 export type GetIntegrationsQueryResult = Apollo.QueryResult<GetIntegrationsQuery, GetIntegrationsQueryVariables>;
+export const GetNotionConnectionsDocument = gql`
+    query GetNotionConnections {
+  notion_connections {
+    ...AllNotionConnectionFields
+  }
+}
+    ${AllNotionConnectionFieldsFragmentDoc}`;
+
+/**
+ * __useGetNotionConnectionsQuery__
+ *
+ * To run a query within a React component, call `useGetNotionConnectionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNotionConnectionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNotionConnectionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetNotionConnectionsQuery(baseOptions?: Apollo.QueryHookOptions<GetNotionConnectionsQuery, GetNotionConnectionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetNotionConnectionsQuery, GetNotionConnectionsQueryVariables>(GetNotionConnectionsDocument, options);
+      }
+export function useGetNotionConnectionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetNotionConnectionsQuery, GetNotionConnectionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetNotionConnectionsQuery, GetNotionConnectionsQueryVariables>(GetNotionConnectionsDocument, options);
+        }
+export type GetNotionConnectionsQueryHookResult = ReturnType<typeof useGetNotionConnectionsQuery>;
+export type GetNotionConnectionsLazyQueryHookResult = ReturnType<typeof useGetNotionConnectionsLazyQuery>;
+export type GetNotionConnectionsQueryResult = Apollo.QueryResult<GetNotionConnectionsQuery, GetNotionConnectionsQueryVariables>;
+export const GetOAuthClientDocument = gql`
+    query GetOAuthClient($client_id: uuid!) {
+  oauth_client: oauth_clients_by_pk(id: $client_id) {
+    ...AllOauthClientFields
+  }
+}
+    ${AllOauthClientFieldsFragmentDoc}`;
+
+/**
+ * __useGetOAuthClientQuery__
+ *
+ * To run a query within a React component, call `useGetOAuthClientQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOAuthClientQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOAuthClientQuery({
+ *   variables: {
+ *      client_id: // value for 'client_id'
+ *   },
+ * });
+ */
+export function useGetOAuthClientQuery(baseOptions: Apollo.QueryHookOptions<GetOAuthClientQuery, GetOAuthClientQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOAuthClientQuery, GetOAuthClientQueryVariables>(GetOAuthClientDocument, options);
+      }
+export function useGetOAuthClientLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOAuthClientQuery, GetOAuthClientQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOAuthClientQuery, GetOAuthClientQueryVariables>(GetOAuthClientDocument, options);
+        }
+export type GetOAuthClientQueryHookResult = ReturnType<typeof useGetOAuthClientQuery>;
+export type GetOAuthClientLazyQueryHookResult = ReturnType<typeof useGetOAuthClientLazyQuery>;
+export type GetOAuthClientQueryResult = Apollo.QueryResult<GetOAuthClientQuery, GetOAuthClientQueryVariables>;
 export const DeletePlaidAccountsDocument = gql`
     mutation DeletePlaidAccounts($where: plaidAccounts_bool_exp!) {
   deletePlaidAccounts(where: $where) {
@@ -12274,6 +12436,51 @@ export function useGetStripePricesLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type GetStripePricesQueryHookResult = ReturnType<typeof useGetStripePricesQuery>;
 export type GetStripePricesLazyQueryHookResult = ReturnType<typeof useGetStripePricesLazyQuery>;
 export type GetStripePricesQueryResult = Apollo.QueryResult<GetStripePricesQuery, GetStripePricesQueryVariables>;
+export const GetSyncLogsDocument = gql`
+    query GetSyncLogs($offset: Int!) {
+  sync_logs(
+    limit: 10
+    offset: $offset
+    order_by: {created_at: desc_nulls_last}
+    where: {_not: {metadata: {_contains: {asAdmin: true}}}}
+  ) {
+    ...AllFrontendSyncLogFields
+  }
+  count: sync_logs_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
+    ${AllFrontendSyncLogFieldsFragmentDoc}`;
+
+/**
+ * __useGetSyncLogsQuery__
+ *
+ * To run a query within a React component, call `useGetSyncLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSyncLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSyncLogsQuery({
+ *   variables: {
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetSyncLogsQuery(baseOptions: Apollo.QueryHookOptions<GetSyncLogsQuery, GetSyncLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSyncLogsQuery, GetSyncLogsQueryVariables>(GetSyncLogsDocument, options);
+      }
+export function useGetSyncLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSyncLogsQuery, GetSyncLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSyncLogsQuery, GetSyncLogsQueryVariables>(GetSyncLogsDocument, options);
+        }
+export type GetSyncLogsQueryHookResult = ReturnType<typeof useGetSyncLogsQuery>;
+export type GetSyncLogsLazyQueryHookResult = ReturnType<typeof useGetSyncLogsLazyQuery>;
+export type GetSyncLogsQueryResult = Apollo.QueryResult<GetSyncLogsQuery, GetSyncLogsQueryVariables>;
 export const UpdateUserDocument = gql`
     mutation UpdateUser($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
   user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {

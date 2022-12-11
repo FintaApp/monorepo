@@ -13,6 +13,8 @@ import { LoggerProvider } from '~/utils/frontend/useLogger';
 import { AuthProvider } from '~/utils/frontend/useAuth';
 import { Layout } from '~/components/Layout';
 
+import "./DatePicker.css";
+
 type NextPageWithPageName<P = {}, IP = P> = NextPage<P, IP> & {
   analyticsPageName?: AnalyticsPage
 };

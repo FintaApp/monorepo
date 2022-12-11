@@ -7,7 +7,7 @@ export interface IntegrationLogoProps extends ImageProps {
   integration: IntegrationModel
 }
 
-const integrationLogos = {
+export const integrationLogos = {
   [Integrations_Enum.Airtable]: "/logos/airtable-logo.png",
   [Integrations_Enum.Notion]: "/logos/notion-logo.png",
   [Integrations_Enum.Google]: "/logos/google-logo.png",

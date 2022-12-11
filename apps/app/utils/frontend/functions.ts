@@ -63,7 +63,7 @@ export const triggerManualDestinationSync = (props: functionTypes.ManualDestinat
 
 export const checkDestinationCredentials = (props: functionTypes.CheckDestinationCredentialsPayload) =>
   client.post('/destination/checkCredentials', props)
-  .then(response => response.data as functionTypes.CheckDestinationCredentialsPayload)
+  .then(response => response.data as functionTypes.CheckDestinationCredentialsResponse)
 
 export const checkDestinationTableConfig = (props: functionTypes.CheckDestinationTableConfigPayload) =>
   client.post('/destination/checkTableConfig', props)

@@ -124,7 +124,6 @@ export type CreateSupportTicketResponse = string;
 
 
 export type ExchangeNotionTokenPayload = {
-  userId: string;
   code: string;
   redirectUri: string;
 }
