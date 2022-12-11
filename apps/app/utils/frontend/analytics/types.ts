@@ -1,4 +1,4 @@
-export enum EventNames {
+export enum AnalyticsEvent {
   ADD_INSTITUTION_PORTAL_OPENED = "Add Institution Portal Opened",
   ADD_INSTITUTION_PORTAL_CLOSED = "Add Institution Portal Closed",
   PASSWORD_CHANGED = "Password Changed"

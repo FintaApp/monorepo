@@ -1,10 +1,10 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
 
-import { EventNames, AnalyticsPage, AliasParams, IdentifyParams, PageParams, TrackParams } from "./types";
+import { AnalyticsEvent, AnalyticsPage, AliasParams, IdentifyParams, PageParams, TrackParams } from "./types";
 
 const analytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY });
 
-export { EventNames, AnalyticsPage }
+export { AnalyticsEvent as EventNames, AnalyticsPage }
 
 export const alias = (params: AliasParams) => {
   const { userId } = params;
@@ -34,3 +34,6 @@ export const reset = () =>{
   if ( typeof global === 'undefined' ) { return;}
   analytics.reset();
 }
+
+export const trackPasswordChanged = () =>
+  track({ event: AnalyticsEvent.PASSWORD_CHANGED })

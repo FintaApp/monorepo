@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       case 'User is already signed in':
         response = { field: "", message: "", code: "already_singed_in" }
       default:
-        await logger.error(new Error("Unhandled auth error"), { error })
+        await logger.error(new Error("Unhandled auth error"), { error }, true)
     }
   
     return response;
