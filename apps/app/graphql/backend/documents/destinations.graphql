@@ -7,14 +7,18 @@ fragment DBDestinationFields on destinations {
   disabled_at
 }
 
+fragment AllBackendIntegrationFields on integrations {
+  id
+  name
+}
+
 fragment AllBackendDestinationFields on destinations {
   __typename
   id
   name
   authentication
   integration {
-    id
-    name
+    ...AllBackendIntegrationFields
   }
   account_connections(where: $account_connections_where) {
     account {

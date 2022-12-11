@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { TriangleUpIcon } from "@chakra-ui/icons";
 
-import { IntegrationLogo } from "../IntegrationLogo";
+import { IntegrationLogo } from "../../../../apps/app/components/IntegrationLogo";
 import { Logo } from "src/components/Logo";
 import { IntegrationModel } from "src/types";
 

@@ -7,7 +7,7 @@ import { nhost } from '~/utils/nhost';
 
 type WrappedFunctionResponse = Promise<{ status: number; message: any }>;
 
-type User = { id: string, displayName: string; email: string, createdAt: string }
+export type User = { id: string, displayName: string; email: string, createdAt: string }
 
 export type WrappedFunction = ({ req, logger, user }: { req: NextApiRequest; logger: Logger; user: User}) => WrappedFunctionResponse;
 

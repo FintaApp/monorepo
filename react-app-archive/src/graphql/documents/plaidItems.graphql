@@ -39,20 +39,6 @@ fragment AllPlaidItemFields on plaid_items {
   disabled_at
 }
 
-mutation UpsertPlaidItem($plaidItem: plaid_items_insert_input!) {
-  plaidItem: insertPlaidItem(
-    object: $plaidItem,
-    on_conflict: {
-      constraint: plaid_items_pkey,
-      update_columns: [
-        error, consentExpiresAt
-      ]
-    }
-  ) {
-    ...AllPlaidItemFields
-  }
-}
-
 query GetPlaidItems {
   plaidItems(order_by: {created_at: asc}) {
     ...AllPlaidItemFields

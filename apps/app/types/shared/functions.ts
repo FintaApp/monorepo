@@ -1,3 +1,4 @@
+import { Products, LinkTokenCreateResponse, ItemPublicTokenExchangeResponse } from "plaid"
 import { DestinationCredentials, DestinationError, DestinationErrorCode, TableConfig, TableConfigs, DestinationTableTypes, DestinationFieldTypes } from "./models";
 import { Integrations_Enum } from "~/graphql/frontend";
 
@@ -49,8 +50,8 @@ export type GetDestinationTablesResponse = {
   }[]
 }
 
-export type CheckDestinationTableConfigPayload<IntegrationIdType> = {
-  integrationId: IntegrationIdType,
+export type CheckDestinationTableConfigPayload = {
+  integrationId: Integrations_Enum,
   credentials: DestinationCredentials,
   dataType: DestinationTableTypes;
   tableId: string;
@@ -70,3 +71,62 @@ export type GetDestinationTableDefaultConfigPayload = {
 export type GetDestinationTableDefaultConfigResponse = {
   tableConfigs: TableConfigs
 }
+
+export type CreatePlaidLinkTokenPayload = {
+  accessToken?: string;
+  products: Products[];
+  originUrl: string;
+  plaidEnv: string;
+  isAccountSelectionEnabled?: boolean
+}
+
+export type CreatePlaidLinkTokenResponse = LinkTokenCreateResponse;
+
+export type DisablePlaidItemPayload = {
+  plaidItemId: string;
+}
+
+export type DisablePlaidItemResponse = "OK";
+
+export type ExchangePlaidPublicTokenPayload = {
+  publicToken: string;
+  plaidEnv: string;
+}
+
+export type ExchangePlaidPublicTokenResponse = ItemPublicTokenExchangeResponse;
+
+export type CreateCodePayload = {
+  clientId: string;
+}
+
+export type CreateCodeResponse = {
+  code: string;
+  accessTokenHash: string;
+}
+
+export type ManualDestinationSyncPayload = {
+  destinationId: string;
+  startDate: string;
+  endDate: string;
+}
+
+export type ManualDestinationSyncResponse = {
+  sync_start_date?: string;
+  has_error?: boolean;
+}
+
+export type CreateSupportTicketPayload = {
+  subject: string;
+  body: string;
+}
+
+export type CreateSupportTicketResponse = string;
+
+
+export type ExchangeNotionTokenPayload = {
+  userId: string;
+  code: string;
+  redirectUri: string;
+}
+
+export type ExchangeNotionTokenResponse = "OK"

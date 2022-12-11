@@ -25,7 +25,7 @@ export const disableUser = async (userId: string) => {
   }))
 
   await graphql.UpdateUser({
-    user_id: userId,
+    userId,
     _set: {
       email: null,
       displayName: "",

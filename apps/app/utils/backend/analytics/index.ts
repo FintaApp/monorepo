@@ -1,7 +1,8 @@
 import segment from "analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
-import { Frequencies_Enum, StripeSubscription } from "~/graphql/backend/sdk";
+import { Frequencies_Enum, Integrations_Enum, StripeSubscription } from "~/graphql/backend/sdk";
+import { DestinationError } from "~/types/shared/models";
 
 const analytics = new segment(process.env.SEGMENT_KEY!, { flushAt: 1 });
 
@@ -42,13 +43,66 @@ export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; it
     properties: { plaidItemId: itemId }
   })
 
+export const trackDestinationErrorTriggered = ({ userId, integration, destinationName, destinationId, trigger, error }: {
+  userId: string;
+  integration: Integrations_Enum;
+  destinationName: string;
+  destinationId: string;
+  trigger: string;
+  error: DestinationError
+}) =>
+  track({
+    userId,
+    event: SegmentEvent.DESTINATION_ERROR_TRIGGERED,
+    properties: {
+      integration,
+      destinationName,
+      destinationId,
+      trigger,
+      ...error
+    }
+  })
+
+export const trackInstitutionErrorTriggered = ({ userId, institution, error, plaidItemId }: {
+  userId: string;
+  institution: string;
+  error: string;
+  plaidItemId: string;
+}) =>
+  track({
+    userId,
+    event: SegmentEvent.INSTITUTION_ERROR_TRIGGERED,
+    properties: {
+      institution,
+      error,
+      plaidItemId
+    }
+  })
+
+export const trackInstitutionConsentRevoked = ({ userId, institution }: { userId: string; institution: string }) =>
+  track({
+    userId,
+    event: SegmentEvent.INSTITUTION_CONSENT_REVOKED,
+    properties: { institution }
+  })
+
+export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: SegmentEvent.SUPPORT_TICKET_CREATED
+  })
+
 // Types
 export enum SegmentEvent {
   USER_SIGNED_UP = "User Signed Up",
   PLAID_ACCOUNT_UPDATED = "Plaid Account Updated",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
-  INSTITUTION_DELETED = "Institution Deleted"
+  INSTITUTION_DELETED = "Institution Deleted",
+  INSTITUTION_CONSENT_REVOKED = "Institution Consent Revoked",
+  INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
+  DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
+  SUPPORT_TICKET_CREATED = "Support Ticket Created",
 }
 
 interface SegmentTrackProps {

@@ -5,6 +5,7 @@ import winston from "winston";
 import { LogSnag, PublishOptions as LogSnagPublishOptions } from 'logsnag';
 
 import { LogSnagChannel, LogSnagTag, LogSnagEvent } from './types';
+import { DestinationError } from "~/types/shared/models";
 
 const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN!, { batchInterval: 1000 });
 
@@ -25,6 +26,16 @@ const shouldMockLogsnag = ['development', 'preview'].includes(process.env.VERCEL
 const logsnag = new LogSnag({ 
   token: process.env.LOGSNAG_TOKEN!,
   project: 'finta'
+});
+
+export { logsnag, LogSnagChannel, LogSnagTag, LogSnagEvent }
+
+export const logUnhandledEvent = (description: string) => logsnag.publish({
+  channel: LogSnagChannel.ERRORS,
+  event: LogSnagEvent.UNHANDLED,
+  icon: '😶',
+  notify: true,
+  description
 });
 
 export class Logger {
@@ -150,4 +161,64 @@ export class Logger {
       }
     })
   };
+
+  async logSyncCompleted({ userId, isSuccess, itemId, syncLogId, destinationsSynced, shouldNotify = false}: {
+    userId: string;
+    isSuccess: boolean;
+    itemId: string;
+    syncLogId: string;
+    destinationsSynced: number;
+    shouldNotify?: boolean
+  }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: isSuccess ? LogSnagEvent.SYNC_COMPLETED : LogSnagEvent.SYNC_FAILED,
+      description: `${destinationsSynced} destination(s) synced`,
+      icon: isSuccess ? '☑️' : '⏹',
+      notify: shouldNotify,
+      tags: {
+        [LogSnagTag.USER_ID]: userId,
+        [LogSnagTag.ITEM_ID]: itemId,
+        [LogSnagTag.SYNC_LOG_ID]: syncLogId
+      }
+    })
+  }
+
+  async logInstitutionErrorTriggered({ userId, institution, itemId, error }: {
+    userId: string;
+    institution: string;
+    itemId: string;
+    error: string;
+  }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.INSTITUTION_ERROR_TRIGGERED,
+      description: `Error: ${error}`,
+      icon: '🏦',
+      tags: {
+        [LogSnagTag.USER_ID]: userId,
+        [LogSnagTag.INSTITUTION]: institution,
+        [LogSnagTag.ITEM_ID]: itemId
+      }
+    })
+  }
+
+  async logDestinationErrorTriggered({ userId, destinationId, error, syncLogId }: {
+    userId: string;
+    destinationId: string;
+    error: DestinationError;
+    syncLogId: string
+  }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.SYNCS,
+      event: LogSnagEvent.DESTINATION_ERROR_TRIGGERED,
+      description: JSON.stringify(error),
+      icon: '🗺',
+      tags: {
+        [LogSnagTag.USER_ID]: userId,
+        [LogSnagTag.DESTINATION_ID]: destinationId,
+        [LogSnagTag.SYNC_LOG_ID]: syncLogId
+      }
+    })
+  }
 }

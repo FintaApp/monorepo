@@ -42,14 +42,14 @@ query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAcc
   }
 }
 
-query GetPlaidItem($plaid_item_id: String!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
-  plaidItem(id: $plaid_item_id) {
+query GetPlaidItem($plaidItemId: String!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaidItem(id: $plaidItemId) {
     ...AllBackendPlaidItemFields
   }
 }
 
-mutation UpdatePlaidItem($plaid_item_id: String!, $_set: plaid_items_set_input!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
-  plaid_item: update_plaid_items_by_pk(pk_columns: { id: $plaid_item_id }, _set: $_set ) {
+mutation UpdatePlaidItem($plaidItemId: String!, $_set: plaid_items_set_input!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
+  plaid_item: update_plaid_items_by_pk(pk_columns: { id: $plaidItemId }, _set: $_set ) {
     ...AllBackendPlaidItemFields
   }
 }
