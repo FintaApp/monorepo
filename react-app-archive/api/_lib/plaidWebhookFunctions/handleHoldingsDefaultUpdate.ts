@@ -1,7 +1,7 @@
 import { getDestinationObject } from "../getDestinationObject";
 import { graphql } from "../graphql";
 import { Integrations_Enum, Destination_Sync_Logs_Update_Column } from "../graphql/sdk";
-import { getHoldings } from "../plaid";
+import { getHoldings } from "../../../../apps/app/utils/backend/plaid";
 import * as segment from "../segment";
 import { Sentry } from "../sentry";
 import * as logsnag from "../logsnag";

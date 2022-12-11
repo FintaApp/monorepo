@@ -1,5 +1,6 @@
 import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 export type NotionPropertyTypes = PropertyItemObjectResponse['type']
+export type DestinationFieldTypes = NotionPropertyTypes;
 
 export type AirtableCredentials = {
   api_key: string;
@@ -96,6 +97,15 @@ export enum CategoryTableFields {
 
 export type TableConfigFields = InstitutionsTableFields | AccountsTableFields | TransactionsTableFields | HoldingsTableFields | InvestmentTransactionsTableFields | SecurityTableFields | CategoryTableFields;
 
+export type TableConfig = {
+  is_enabled: boolean;
+  table_id?: string;
+  fields: {
+    field: TableConfigFields;
+    field_id: string;
+  }[]
+}
+
 export enum DestinationTableTypes {
   INSTITUTIONS = 'institutions',
   ACCOUNTS = 'accounts',
@@ -104,15 +114,6 @@ export enum DestinationTableTypes {
   INVESTMENT_TRANSACTIONS = 'investment_transactions',
   SECURITIES = 'securities',
   CATEGORIES = 'categories'
-}
-
-export type TableConfig = {
-  is_enabled: boolean;
-  table_id?: string;
-  fields: {
-    field: TableConfigFields;
-    field_id: string;
-  }[]
 }
 
 export type TableConfigs = {

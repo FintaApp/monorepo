@@ -1,4 +1,4 @@
-import { disablePlaidItem } from "../disablePlaidItem";
+import { disablePlaidItem } from "../../../../apps/app/utils/backend/disablePlaidItem";
 import * as segment from "../segment";
 import { PlaidItemModel } from "../types";
 

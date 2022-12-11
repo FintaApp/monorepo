@@ -1,7 +1,7 @@
 import { Button, FormControl, FormErrorMessage, HStack } from "@chakra-ui/react";
  import { PlusIcon } from "@radix-ui/react-icons";
 
-import { SelectProps, Select } from "./Select";
+import { SelectProps, Select } from "../../../apps/app/components/Forms/Select";
 
 interface OauthConnectionSelectProps extends SelectProps {
   onClickAddConnection: () => void;

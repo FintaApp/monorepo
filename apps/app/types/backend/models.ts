@@ -1,0 +1,1 @@
+export type { AllBackendPlaidItemFieldsFragment as PlaidItemModel } from "~/graphql/backend/sdk"

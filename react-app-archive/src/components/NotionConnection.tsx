@@ -3,7 +3,7 @@ import { Button, FormControl, FormErrorMessage, FormLabel, HStack, VStack, FormH
 import { PlusIcon } from "@radix-ui/react-icons";
 
 import { nhost } from "src/lib/nhost";
-import { SelectProps, Select } from "./Select";
+import { SelectProps, Select } from "../../../apps/app/components/Forms/Select";
 import { useGetNotionConnectionsQuery } from "src/graphql";
 
 interface NotionConnectionProps extends SelectProps {

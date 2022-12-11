@@ -17,15 +17,6 @@ fragment AllStripeDataFields on StripeData {
   }
 }
 
-fragment AllUserProfileFields on userProfiles {
-  __typename
-  user_id
-  timezone
-  is_subscribed_general
-  is_subscribed_sync_updates
-  sync_updates_frequency
-}
-
 fragment AllUserFields on users {
   __typename
   id
@@ -57,12 +48,6 @@ mutation UpdateUser($id: uuid!, $_set: users_set_input!) {
 mutation DeleteUser($id: uuid!) {
   deleteUser(id: $id) {
     id
-  }
-}
-
-query GetUserProfile($userId: uuid!) {
-  userProfile(user_id: $userId) {
-    ...AllUserProfileFields
   }
 }
 

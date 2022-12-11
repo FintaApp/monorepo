@@ -4,7 +4,7 @@ import * as crypto from "../crypto";
 import { WrappedOauthFunction } from "../types";
 import { Sentry } from "../sentry";
 import * as logsnag from "../logsnag";
-import { plaidEnvFromVercelEnv } from "../plaid";
+import { plaidEnvFromVercelEnv } from "../../../../apps/app/utils/backend/plaid";
 
 export const oauthFunctionWrapper = (fn: WrappedOauthFunction) => async (req: VercelRequest, res: VercelResponse) => {
   const transaction = Sentry.startTransaction({ op: "wrapper", name: "client function"});

@@ -1,11 +1,11 @@
 import { cancelSubscription } from "./stripe";
-import { graphql } from "./graphql";
+import { graphql } from "~/graphql/backend";
 import { disablePlaidItem } from "./disablePlaidItem";
-import { SubscriptionStatus } from "./graphql/sdk";
+import { SubscriptionStatus } from "~/graphql/backend/sdk";
 
 export const disableUser = async (userId: string) => {
-  const user = await graphql.GetUser({ user_id: userId }).then(response => response.user!)
-  const userSubscription = user.stripeData.subscription;
+  const user = await graphql.GetUser({ userId }).then(response => response.user!)
+  const userSubscription = user.profile.stripeData.subscription;
   if ( userSubscription && ![SubscriptionStatus.Canceled, SubscriptionStatus.IncompleteExpired].includes(userSubscription.status) ) {
     await cancelSubscription({ subscriptionId: userSubscription.id })
   }

@@ -1,5 +1,5 @@
 import { handlePlaidError } from "../oauth/_helpers";
-import * as plaid from "./plaid";
+import * as plaid from "../../../apps/app/utils/backend/plaid";
 import { graphql } from "./graphql";
 import { PlaidItemModel } from "./types";
 

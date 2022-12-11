@@ -1,6 +1,6 @@
-import { graphql } from "./graphql";
+import { graphql } from "~/graphql/backend";
 import { removeItem } from "./plaid";
-import { PlaidItemModel } from "./types";
+import { PlaidItemModel } from "~/types/backend/models";
 
 export const disablePlaidItem = async (plaidItem: PlaidItemModel) => {
   const { accessToken } = plaidItem;

@@ -7,7 +7,7 @@ fragment DBPlaidItemFields on plaid_items {
   error
 }
 
-fragment AllPlaidItemFields on plaid_items {
+fragment AllBackendPlaidItemFields on plaid_items {
   __typename
   id
   accessToken
@@ -27,7 +27,7 @@ fragment AllPlaidItemFields on plaid_items {
     email
   }
   accounts(where: $accounts_where) {
-    ...AllAccountFields
+    ...AllBackendAccountFields
   }
   error
   created_at
@@ -38,18 +38,18 @@ fragment AllPlaidItemFields on plaid_items {
 
 query GetPlaidItems($where: plaid_items_bool_exp = {}, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
   plaidItems(where: $where) {
-    ...AllPlaidItemFields
+    ...AllBackendPlaidItemFields
   }
 }
 
 query GetPlaidItem($plaid_item_id: String!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
   plaidItem(id: $plaid_item_id) {
-    ...AllPlaidItemFields
+    ...AllBackendPlaidItemFields
   }
 }
 
 mutation UpdatePlaidItem($plaid_item_id: String!, $_set: plaid_items_set_input!, $accounts_where: plaidAccounts_bool_exp = {}, $include_removed_transactions: Boolean = false, $date: timestamptz = "") {
   plaid_item: update_plaid_items_by_pk(pk_columns: { id: $plaid_item_id }, _set: $_set ) {
-    ...AllPlaidItemFields
+    ...AllBackendPlaidItemFields
   }
 }

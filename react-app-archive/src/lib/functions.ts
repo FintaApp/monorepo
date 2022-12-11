@@ -13,16 +13,6 @@ const isDemoUser = () => {
 const getPlaidEnv = () => 
   ['development', 'preview'].includes(process.env.VERCEL_ENV || "") ? "sandbox" : "production"
 
-const client = axios.create({
-  baseURL: `${window.location.origin}/api`
-});
-
-client.interceptors.request.use(config => {
-  const accessToken = nhost.auth.getAccessToken();
-  if ( accessToken ) { config.headers = { ...(config.headers || {}), Authorization: `Bearer ${accessToken}`}}
-  return config;
-});
-
 export const exchangePlaidPublicToken = async ({ publicToken }: { publicToken: string }): Promise<types.ExchangePlaidPublicTokenResponse> => {
   const plaidEnv = isDemoUser() ? "sandbox" : getPlaidEnv();
 
@@ -44,18 +34,8 @@ export const disablePlaidItem = async ({ plaidItemId }: { plaidItemId: string })
   client.post('/plaid/disableItem', { plaidItemId } as types.DisablePlaidItemPayload)
   .then(response => response.data)
 
-export const disableUser = async () => client.post('/user/disable', {});
-
 export const createSupportTicket = (props: types.CreateSupportTicketPayload): Promise<types.CreateSupportTicketResponse> => 
   client.post('/user/createSupportTicket', props)
-  .then(response => response.data)
-
-export const createBillingPortalSession = (props: types.CreateBillingPortalSessionPayload): Promise<types.CreateBillingPortalSessionResponse> =>
-  client.post('/stripe/createBillingPortalSession', props)
-  .then(response => response.data)
-
-export const createCheckoutPortalSession = (props: types.CreateCheckoutPortalSessionPayload): Promise<types.CreateCheckoutPortalSessionResponse> =>
-  client.post('/stripe/createCheckoutPortalSession', props)
   .then(response => response.data)
 
 export const triggerManualDestinationSync = (props: types.ManualDestinationSyncPayload): Promise<types.ManualDestinationSyncResponse> => 

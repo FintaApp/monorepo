@@ -2,7 +2,7 @@ export * as cio from "./cio";
 export * as cronFunctions from "./cronFunctions";
 export * as crypto from "./crypto";
 export * as dbEventFunctions from "./dbEventFunctions";
-export { disablePlaidItem } from "./disablePlaidItem";
+export { disablePlaidItem } from "../../../apps/app/utils/backend/disablePlaidItem";
 export { disableUser } from "./disableUser";
 export * as easyCron from "./easyCron";
 export * as formatter from "./formatter";
@@ -11,7 +11,7 @@ export { getItemActiveAccounts } from "./getItemActiveAccounts";
 export * from "./graphql";
 export * as logsnag from "./logsnag";
 export * as nhost from "./nhost"
-export * as plaid from "./plaid";
+export * as plaid from "../../../apps/app/utils/backend/plaid";
 export * as plaidWebhookFunctions from "./plaidWebhookFunctions";
 export * as segment from "./segment";
 export * from "./sentry";

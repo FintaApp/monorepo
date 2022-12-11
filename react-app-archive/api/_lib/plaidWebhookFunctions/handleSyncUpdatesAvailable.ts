@@ -1,7 +1,7 @@
 import { SyncUpdatesAvailableWebhook, Transaction, RemovedTransaction } from "plaid";
 import * as _ from "lodash";
 
-import { getAccounts, transactionsSync } from "../plaid";
+import { getAccounts, transactionsSync } from "../../../../apps/app/utils/backend/plaid";
 import { graphql } from "../graphql";
 import { PlaidItemModel, DestinationModel } from "../types";
 import { DestinationTableTypes, DestinationError } from "@finta/types";

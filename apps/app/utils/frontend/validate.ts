@@ -1,4 +1,4 @@
-import { TableConfigs, DestinationTableTypes, DestinationErrorCode, TableConfig, TableConfigFields } from "src/types";
+import { TableConfigs, DestinationTableTypes, DestinationErrorCode, TableConfig, TableConfigFields } from "~/types/shared/models";
 
 export enum TableConfigErrorCode {
   DUPLICATE_TABLE = 'duplicate_table',

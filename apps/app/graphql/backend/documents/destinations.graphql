@@ -7,7 +7,7 @@ fragment DBDestinationFields on destinations {
   disabled_at
 }
 
-fragment AllDestinationFields on destinations {
+fragment AllBackendDestinationFields on destinations {
   __typename
   id
   name
@@ -26,10 +26,12 @@ fragment AllDestinationFields on destinations {
     id
     email
     metadata
-    stripeData {
-      hasAppAccess
-      subscription {
-        status
+    profile {
+      stripeData {
+        hasAppAccess
+        subscription {
+          status
+        }
       }
     }
   }
@@ -45,18 +47,18 @@ fragment AllDestinationFields on destinations {
 
 query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
   destination: destinations_by_pk(id: $destination_id) {
-    ...AllDestinationFields
+    ...AllBackendDestinationFields
   }
 }
 
 query GetDestinations($where: destinations_bool_exp!, $account_connections_where: destination_accounts_bool_exp = {}) {
   destinations(where: $where) {
-    ...AllDestinationFields
+    ...AllBackendDestinationFields
   }
 }
 
 mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
   destination: update_destinations_by_pk(pk_columns: { id: $destination_id }, _set: $_set ) {
-    ...AllDestinationFields
+    ...AllBackendDestinationFields
   }
 }

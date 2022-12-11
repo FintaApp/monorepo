@@ -3,7 +3,7 @@ import moment from "moment-timezone";
 import { getDestinationObject } from "../getDestinationObject";
 import { graphql } from "../graphql";
 import { Integrations_Enum, Destination_Sync_Logs_Update_Column } from "../graphql/sdk";
-import { getAllInvestmentTransactions } from "../plaid";
+import { getAllInvestmentTransactions } from "../../../../apps/app/utils/backend/plaid";
 import * as segment from "../segment";
 import * as logsnag from "../logsnag";
 import { PlaidItemModel, DestinationModel } from "../types";
