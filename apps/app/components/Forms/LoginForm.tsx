@@ -85,7 +85,7 @@ export const LoginForm = () => {
               width = "full"
               isDisabled = { !values.email || !isValid }
               isLoading = { isSubmitting }
-              loadingText = "Loggin in..."
+              loadingText = "Logging in..."
               id = 'submit-login-button'
             >Log In</Button> 
           </Box>
