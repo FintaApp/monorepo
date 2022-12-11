@@ -88,7 +88,7 @@ export class Logger {
   }
 
   async flush() {
-    return logtail.info("Logtail flushed")
+    return logtail.info("Logtail flushed", { ...this.logger.defaultMeta })
   }
 
   async logsnagPublish(options: PublishOptions): Promise<any> {
