@@ -91,7 +91,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {
     logger.info("Plaid Link event", { eventName, metadata });
     if (["HANDOFF", "EXIT"].includes(eventName)) { onExitCallback() }
-    if ( eventName === "OPEN" ) { analytics.track({ event: analytics.EventNames.ADD_INSTITUTION_PORTAL_OPENED }); }
+    if ( eventName === "OPEN" ) { analytics.track({ event: analytics.EventNames.PLAID_PORTAL_OPENED }); }
     if ( eventName === "TRANSITION_VIEW" && metadata.view_name === 'CONNECTED' ) { onConnectCallback && onConnectCallback() }
   }, [ onExitCallback, onConnectCallback ]);
 
@@ -99,7 +99,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
     if ( error ) { logger.error(new Error("Plaid Link error"), { error, metadata })};
     await Promise.all([
       updateUserMutation({ variables: { id: userId, _delete_key: { metadata: "activeLinkToken" }}}),
-      analytics.track({ event: analytics.EventNames.ADD_INSTITUTION_PORTAL_CLOSED, properties: { has_error: !!error }})
+      analytics.track({ event: analytics.EventNames.PLAID_PORTAL_CLOSED, properties: { has_error: !!error }})
     ])
     onExitCallback();
   }, [ onExitCallback, userId ])

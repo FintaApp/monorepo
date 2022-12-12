@@ -1,6 +1,6 @@
 export enum AnalyticsEvent {
-  ADD_INSTITUTION_PORTAL_OPENED = "Add Institution Portal Opened",
-  ADD_INSTITUTION_PORTAL_CLOSED = "Add Institution Portal Closed",
+  PLAID_PORTAL_OPENED = "Plaid Portal Opened",
+  PLAID_PORTAL_CLOSED = "Plaid Portal Closed",
   PASSWORD_CHANGED = "Password Changed"
 };
 

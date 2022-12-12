@@ -14,8 +14,10 @@ import {
 import { nhost } from "~/utils/nhost";
 
 import { disableUser } from "~/utils/frontend/functions";
+import { useRouter } from "next/router";
 
 export const DeleteAccountDialog = () => {
+  const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [ isDeleting, toggleIsDeleting ] = useState(false);
   const cancelRef = useRef(null);
@@ -23,7 +25,9 @@ export const DeleteAccountDialog = () => {
   const onDelete = () => {
     toggleIsDeleting(true);
     disableUser()
-    .then(() => nhost.auth.signOut());
+    .then(() => {
+      nhost.auth.signOut().then(() => router.push('/login'))
+    });
   }
 
   return (

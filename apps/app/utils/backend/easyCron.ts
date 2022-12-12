@@ -1,11 +1,11 @@
 import axios from "axios";
 import { CronBuilder } from 'cron-builder-ts';
 
-import { Frequencies_Enum } from "./graphql/sdk";
+import { Frequencies_Enum } from "~/graphql/backend/sdk";
 
 const syncUpdatesEmailUrl = {
-  'development': 'http://localhost:3000/api/sendSyncUpdateEmail',
-  'preview': 'https://staging.app.finta.io/api/sendSyncUpdateEmail',
+  'development': 'https://finta.ngrok.io/api/sendSyncUpdateEmail',
+  'staging': 'https://staging.app.finta.io/api/sendSyncUpdateEmail',
   'production': 'https://app.finta.io/api/sendSyncUpdateEmail' 
 }
 
@@ -28,6 +28,7 @@ const getCronExpression = (frequency: Frequencies_Enum) => {
 
 const client = axios.create({
   baseURL: "https://www.easycron.com/rest",
+  headers: { 'Accept-Encoding': 'application/json' }
 });
 
 client.interceptors.request.use(config => {
@@ -42,15 +43,15 @@ export const upsertJob = async ({ jobId, job }: { jobId?: string | null; job: Jo
   return client.get(jobId ? '/edit' : '/add', { params: {
     id: jobId,
     cron_job_name: job.userId,
-    url: syncUpdatesEmailUrl[(process.env.VERCEL_ENV || 'development') as keyof typeof syncUpdatesEmailUrl],
+    url: syncUpdatesEmailUrl[(process.env.VERCEL_ENV || 'production') as keyof typeof syncUpdatesEmailUrl],
     cron_expression: getCronExpression(job.frequency),
     timezone_from: 2,
     timezone: job.timezone || 'America/New_York',
     http_method: 'POST',
-    http_message_body: {
+    http_message_body: JSON.stringify({
       userId: job.userId,
       frequency: job.frequency
-    },
+    }),
     status: job.isEnabled ? 1 : 0
   }})
   .then(response => response.data)

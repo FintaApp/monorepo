@@ -62,3 +62,28 @@ update_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       check: null
+event_triggers:
+  - name: onUpsertUserProfile
+    definition:
+      enable_manual: true
+      insert:
+        columns: '*'
+      update:
+        columns:
+          - is_subscribed_general
+          - is_subscribed_sync_updates
+          - timezone
+          - stripe_customer_id
+          - sync_updates_frequency
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{API_BASE_URL}}/db/events'
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: false
+      clear_older_than: 168
+      paused: true
+      schedule: 0 0 * * *
+      timeout: 60

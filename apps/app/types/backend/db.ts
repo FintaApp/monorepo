@@ -1,7 +1,9 @@
 export type {
+  DbPlaidAccountFieldsFragment as DBPlaidAccount,
   DbPlaidInstitutionFieldsFragment as DBPlaidInstitution,
   DbPlaidItemFieldsFragment as DBPlaidItem,
-  DbUserFieldsFragment as DBUser
+  DbUserFieldsFragment as DBUser,
+  DbUserProfileFieldsFragment as DBUserProfile
 } from "~/graphql/backend/sdk";
 
 type AdminSessionVariables = {

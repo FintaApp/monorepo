@@ -45,6 +45,7 @@ importers:
       airtable: ^0.11.6
       analytics-node: ^6.2.0
       axios: ^1.2.1
+      cron-builder-ts: ^1.0.5
       form-data: ^4.0.0
       formik: ^2.2.9
       framer-motion: '>=4.0.0'
@@ -87,6 +88,7 @@ importers:
       airtable: 0.11.6
       analytics-node: 6.2.0
       axios: 1.2.1
+      cron-builder-ts: 1.0.5
       form-data: 4.0.0
       formik: 2.2.9_react@18.2.0
       framer-motion: 7.6.19_biqbaboplfbrettd7655fr4n2y
@@ -6804,6 +6806,21 @@ packages:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
     dev: true
 
+  /cron-builder-ts/1.0.5:
+    resolution: {integrity: sha512-zMh+HpiFUyN9bePEDKk/zptDE8IBTfsXmihC4Ea8i36FxSF8ehYoceKgL/JC+aG60qq9MwQHQyFEuNuKRiyVUw==}
+    peerDependencies:
+      tslib: ^1.10.0
+    dependencies:
+      cron-converter: 1.0.0
+    dev: false
+
+  /cron-converter/1.0.0:
+    resolution: {integrity: sha512-org2ua/GhK5YdXxAyg0dP5Mt9ehCYAxxt+arIPpXY6mW74FRzL23GKcJ7GRXbD377d3M3XCitEfcqMu1E1joqg==}
+    dependencies:
+      moment-timezone: 0.5.39
+      sprintf-js: 1.1.2
+    dev: false
+
   /cross-fetch/3.1.5:
     resolution: {integrity: sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==}
     dependencies:
@@ -11132,6 +11149,10 @@ packages:
     dependencies:
       tslib: 2.4.1
     dev: true
+
+  /sprintf-js/1.1.2:
+    resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
+    dev: false
 
   /sshpk/1.17.0:
     resolution: {integrity: sha512-/9HIEs1ZXGhSPE8X6Ccm7Nam1z8KcoCqPdI7ecm1N33EzAetWahvQWVqLZtaZQ+IDKX4IyA2o0gBzqIMkAagHQ==}

@@ -48,8 +48,6 @@ export enum EventNames {
   DESTINATION_UPDATED = 'Destination Updated',
   ACCOUNT_UPDATED = 'Account Updated',
   ACCOUNT_VISIBILITY_TOGGLED = 'Account Visibility Toggled',
-  ADD_INSTITUTION_PORTAL_CLOSED = 'Add Institution Portal Closed',
-  ADD_INSTITUTION_PORTAL_OPENED = 'Add Institution Portal Opened',
   NEW_ACCOUNTS_CONNECTED = 'New Accounts Connected'
 }
 

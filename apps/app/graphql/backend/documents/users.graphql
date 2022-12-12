@@ -21,10 +21,20 @@ fragment AllBackendUserFields on users {
       trialEndsAt
       customer {
         id
+        createdAt
       }
       subscription {
         id
         status
+        cancelAtPeriodEnd
+        trialStartedAt
+        trialEndedAt
+        startedAt
+        endedAt
+        currentPeriodStart
+        currentPeriodEnd
+        interval
+        canceledAt
       }
     }
   }

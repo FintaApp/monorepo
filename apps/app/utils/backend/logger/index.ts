@@ -221,4 +221,13 @@ export class Logger {
       }
     })
   }
+
+  async logUserDeleted({ userId }: { userId: string }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.USER_DELETED,
+      icon: '😭',
+      tags: { [LogSnagTag.USER_ID]: userId }
+    })
+  }
 }

@@ -98,9 +98,31 @@ export const trackUserUpdated = ({ userId, field }: { userId: string; field: 'di
     event: SegmentEvent.USER_UPDATED,
     properties: { field }
   })
+
+export const trackUserProfileUpdated = ({ userId, field, oldValue, newValue }: { 
+  userId: string, field: 'timezone' | 'is_subscribed_general' | 'is_subscribed_sync_updates' | 'sync_updates_frequency', oldValue: any; newValue: any 
+}) =>
+  track({
+    userId,
+    event: SegmentEvent.USER_PROFILE_UPDATED,
+    properties: {
+      field,
+      old_value: oldValue,
+      new_value: newValue
+    }
+  })
+
+export const trackUserDeleted = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: SegmentEvent.USER_DELETED
+  })
+
+
 // Types
 export enum SegmentEvent {
   USER_SIGNED_UP = "User Signed Up",
+  USER_DELETED = "User Deleted",
   PLAID_ACCOUNT_UPDATED = "Plaid Account Updated",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
@@ -109,7 +131,8 @@ export enum SegmentEvent {
   INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
-  USER_UPDATED = "User Updated"
+  USER_UPDATED = "User Updated",
+  USER_PROFILE_UPDATED = "User Profile Updated"
 }
 
 interface SegmentTrackProps {
@@ -134,6 +157,7 @@ export interface SegmentUserTraits {
   is_subscribed_sync_updates?: boolean;
   sync_updates_frequency?: Frequencies_Enum;
   lifetime_revenue?: number;
+  deleted_at?: Date;
 }
 
 export const formatSubscriptionForIdentify = ({ subscriptionFromSchema, subscriptionFromStripe }: {subscriptionFromSchema?: StripeSubscription; subscriptionFromStripe?: Stripe.Subscription }) => {
@@ -141,8 +165,8 @@ export const formatSubscriptionForIdentify = ({ subscriptionFromSchema, subscrip
     return {
       billing_interval: subscriptionFromSchema.interval,
       subscription_status: subscriptionFromSchema.status,
-      canceled_at: subscriptionFromSchema.canceledAt,
-      current_period_ends_at: subscriptionFromSchema.currentPeriodEnd,
+      canceled_at: subscriptionFromSchema.canceledAt ? new Date(subscriptionFromSchema.canceledAt) : undefined,
+      current_period_ends_at: new Date(subscriptionFromSchema.currentPeriodEnd),
       cancel_at_period_end: subscriptionFromSchema.cancelAtPeriodEnd
     }
   }
