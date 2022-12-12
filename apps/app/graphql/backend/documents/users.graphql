@@ -18,6 +18,7 @@ fragment AllBackendUserFields on users {
   createdAt
   profile {
     stripeData {
+      hasAppAccess
       trialEndsAt
       customer {
         id

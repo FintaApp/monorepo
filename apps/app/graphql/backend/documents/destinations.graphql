@@ -4,7 +4,8 @@ fragment DBDestinationFields on destinations {
   integration_id
   created_at
   disabled_at
-  disabled_at
+  table_configs
+  name
 }
 
 fragment AllBackendIntegrationFields on integrations {

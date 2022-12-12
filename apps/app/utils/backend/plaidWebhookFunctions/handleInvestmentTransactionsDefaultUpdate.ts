@@ -96,15 +96,6 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
 
   if ( hasUnhandledError ) { syncLogError = { error_code: 'internal_error'} }
 
-  await logger.logSyncCompleted({
-    userId: item.user.id,
-    isSuccess: success,
-    itemId: item.id,
-    syncLogId: syncLog.id,
-    destinationsSynced: filteredDestinations.length,
-    shouldNotify: hasUnhandledError
-  })
-
   await graphql.UpdateSyncLog({
     sync_log_id: syncLog.id,
     _set: { is_success: success, ended_at: new Date(), error: syncLogError }

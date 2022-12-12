@@ -6,6 +6,7 @@ import { LogSnag, PublishOptions as LogSnagPublishOptions } from 'logsnag';
 
 import { LogSnagChannel, LogSnagTag, LogSnagEvent } from './types';
 import { DestinationError } from "~/types/shared/models";
+import { Integrations_Enum } from "~/graphql/backend/sdk";
 
 const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN!, { batchInterval: 1000 });
 
@@ -162,24 +163,28 @@ export class Logger {
     })
   };
 
-  async logSyncCompleted({ userId, isSuccess, itemId, syncLogId, destinationsSynced, shouldNotify = false}: {
+  async logSyncCompleted({ error, trigger, userId, isSuccess, integration, destinationId, syncLogId, institutionsSynced, targetTable }: {
     userId: string;
     isSuccess: boolean;
-    itemId: string;
     syncLogId: string;
-    destinationsSynced: number;
-    shouldNotify?: boolean
+    institutionsSynced: number;
+    integration: Integrations_Enum;
+    destinationId: string;
+    trigger: string;
+    error?: string;
+    targetTable?: string;
   }) {
     return this.logsnagPublish({
       channel: LogSnagChannel.ACTIVITY,
       event: isSuccess ? LogSnagEvent.SYNC_COMPLETED : LogSnagEvent.SYNC_FAILED,
-      description: `${destinationsSynced} destination(s) synced`,
+      description: `Trigger: ${trigger} \n${ error ? `Error: ${error}` : `${institutionsSynced} institution(s) synced`}${ targetTable ? `\nTarget Table: ${targetTable}`: ""}`,
       icon: isSuccess ? '☑️' : '⏹',
-      notify: shouldNotify,
+      notify: false,
       tags: {
         [LogSnagTag.USER_ID]: userId,
-        [LogSnagTag.ITEM_ID]: itemId,
-        [LogSnagTag.SYNC_LOG_ID]: syncLogId
+        [LogSnagTag.SYNC_LOG_ID]: syncLogId,
+        [LogSnagTag.DESTINATION_ID]: destinationId,
+        [LogSnagTag.INTEGRATION]: integration
       }
     })
   }
@@ -228,6 +233,41 @@ export class Logger {
       event: LogSnagEvent.USER_DELETED,
       icon: '😭',
       tags: { [LogSnagTag.USER_ID]: userId }
+    })
+  }
+
+  async logNotionConnectionAdded({ userId }: { userId: string }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.NOTION_CONNECTION_ADDED,
+      icon: '🗺',
+      tags: { [LogSnagTag.USER_ID]: userId }
+    })
+  }
+
+  async logDestinationCreated({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.DESTINATION_CREATED,
+      icon: "🗺",
+      tags: { 
+        [LogSnagTag.INTEGRATION]: integration, 
+        [LogSnagTag.USER_ID]: userId,
+        [LogSnagTag.DESTINATION_ID]: destinationId
+      }
+    })
+  }
+
+  async logDestinationDeleted({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.DESTINATION_DELETED,
+      icon: "🗺",
+      tags: { 
+        [LogSnagTag.INTEGRATION]: integration, 
+        [LogSnagTag.USER_ID]: userId,
+        [LogSnagTag.DESTINATION_ID]: destinationId
+      }
     })
   }
 }

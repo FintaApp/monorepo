@@ -11571,7 +11571,7 @@ export type DeleteDestinationAccountsMutationVariables = Exact<{
 
 export type DeleteDestinationAccountsMutation = { __typename?: 'mutation_root', delete_destination_accounts?: { __typename?: 'destination_accounts_mutation_response', affected_rows: number } | null };
 
-export type DbDestinationFieldsFragment = { __typename?: 'destinations', id: any, user_id: any, integration_id: Integrations_Enum, created_at: any, disabled_at?: any | null };
+export type DbDestinationFieldsFragment = { __typename?: 'destinations', id: any, user_id: any, integration_id: Integrations_Enum, created_at: any, disabled_at?: any | null, table_configs: any, name: string };
 
 export type AllBackendIntegrationFieldsFragment = { __typename?: 'integrations', id: string, name: string };
 
@@ -11601,6 +11601,40 @@ export type UpdateDestinationMutationVariables = Exact<{
 
 
 export type UpdateDestinationMutation = { __typename?: 'mutation_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
+
+export type AllNotionConnectionFieldsFragment = { __typename?: 'notion_connections', bot_id: string, access_token: string, workspace_id: string, workspace_name?: string | null, workspace_icon?: string | null };
+
+export type DbNotionConnectionFieldsFragment = { __typename?: 'notion_connections', bot_id: string, access_token: string, workspace_id: string, workspace_name?: string | null, workspace_icon?: string | null, user_id: any };
+
+export type InsertNotionConnectionMutationVariables = Exact<{
+  notion_connection: Notion_Connections_Insert_Input;
+}>;
+
+
+export type InsertNotionConnectionMutation = { __typename?: 'mutation_root', notion_connection?: { __typename?: 'notion_connections', bot_id: string, access_token: string, workspace_id: string, workspace_name?: string | null, workspace_icon?: string | null } | null };
+
+export type GetOauthClientsQueryVariables = Exact<{
+  where: Oauth_Clients_Bool_Exp;
+}>;
+
+
+export type GetOauthClientsQuery = { __typename?: 'query_root', oauth_clients: Array<{ __typename?: 'oauth_clients', id: any }> };
+
+export type AllOauthCodeFieldsFragment = { __typename: 'oauth_codes', code: any, access_token: string, oauth_client_id: any };
+
+export type GetOauthCodeQueryVariables = Exact<{
+  code: Scalars['uuid'];
+}>;
+
+
+export type GetOauthCodeQuery = { __typename?: 'query_root', oauth_code?: { __typename: 'oauth_codes', code: any, access_token: string, oauth_client_id: any } | null };
+
+export type InsertOauthCodeMutationVariables = Exact<{
+  oauth_code: Oauth_Codes_Insert_Input;
+}>;
+
+
+export type InsertOauthCodeMutation = { __typename?: 'mutation_root', oauth_code?: { __typename: 'oauth_codes', code: any, access_token: string, oauth_client_id: any } | null };
 
 export type AllBackendAccountFieldsFragment = { __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean };
 
@@ -11756,7 +11790,7 @@ export type UpdateUserProfileMutation = { __typename?: 'mutation_root', userProf
 
 export type DbUserFieldsFragment = { __typename?: 'users', id: any, metadata?: any | null, disabled: boolean, email?: any | null, display_name: string, created_at: any, password_hash?: string | null };
 
-export type AllBackendUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
+export type AllBackendUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
 
 export type GetUserFromTokenQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -11768,7 +11802,7 @@ export type GetUserQueryVariables = Exact<{
 }>;
 
 
-export type GetUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
+export type GetUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
 
 export type UpdateUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
@@ -11777,7 +11811,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
+export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
 
 export const AllDestinationAccountFields = gql`
     fragment AllDestinationAccountFields on destination_accounts {
@@ -11793,7 +11827,8 @@ export const DbDestinationFields = gql`
   integration_id
   created_at
   disabled_at
-  disabled_at
+  table_configs
+  name
 }
     `;
 export const AllBackendIntegrationFields = gql`
@@ -11840,6 +11875,33 @@ export const AllBackendDestinationFields = gql`
   }
 }
     ${AllBackendIntegrationFields}`;
+export const AllNotionConnectionFields = gql`
+    fragment AllNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+}
+    `;
+export const DbNotionConnectionFields = gql`
+    fragment DBNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+  user_id
+}
+    `;
+export const AllOauthCodeFields = gql`
+    fragment AllOauthCodeFields on oauth_codes {
+  __typename
+  code
+  access_token
+  oauth_client_id
+}
+    `;
 export const DbPlaidAccountFields = gql`
     fragment DBPlaidAccountFields on plaidAccounts {
   id
@@ -11987,6 +12049,7 @@ export const AllBackendUserFields = gql`
   createdAt
   profile {
     stripeData {
+      hasAppAccess
       trialEndsAt
       customer {
         id
@@ -12040,6 +12103,37 @@ export const UpdateDestination = gql`
   }
 }
     ${AllBackendDestinationFields}`;
+export const InsertNotionConnection = gql`
+    mutation InsertNotionConnection($notion_connection: notion_connections_insert_input!) {
+  notion_connection: insert_notion_connections_one(
+    object: $notion_connection
+    on_conflict: {constraint: notion_connections_pkey, update_columns: [access_token, workspace_icon]}
+  ) {
+    ...AllNotionConnectionFields
+  }
+}
+    ${AllNotionConnectionFields}`;
+export const GetOauthClients = gql`
+    query GetOauthClients($where: oauth_clients_bool_exp!) {
+  oauth_clients(where: $where) {
+    id
+  }
+}
+    `;
+export const GetOauthCode = gql`
+    query GetOauthCode($code: uuid!) {
+  oauth_code: oauth_codes_by_pk(code: $code) {
+    ...AllOauthCodeFields
+  }
+}
+    ${AllOauthCodeFields}`;
+export const InsertOauthCode = gql`
+    mutation InsertOauthCode($oauth_code: oauth_codes_insert_input!) {
+  oauth_code: insert_oauth_codes_one(object: $oauth_code) {
+    ...AllOauthCodeFields
+  }
+}
+    ${AllOauthCodeFields}`;
 export const UpdatePlaidAccounts = gql`
     mutation UpdatePlaidAccounts($_set: plaidAccounts_set_input!, $where: plaidAccounts_bool_exp!) {
   plaidAccounts: updatePlaidAccounts(where: $where, _set: $_set) {
@@ -12254,7 +12348,8 @@ export const DbDestinationFieldsFragmentDoc = gql`
   integration_id
   created_at
   disabled_at
-  disabled_at
+  table_configs
+  name
 }
     `;
 export const AllBackendIntegrationFieldsFragmentDoc = gql`
@@ -12301,6 +12396,33 @@ export const AllBackendDestinationFieldsFragmentDoc = gql`
   }
 }
     ${AllBackendIntegrationFieldsFragmentDoc}`;
+export const AllNotionConnectionFieldsFragmentDoc = gql`
+    fragment AllNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+}
+    `;
+export const DbNotionConnectionFieldsFragmentDoc = gql`
+    fragment DBNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+  user_id
+}
+    `;
+export const AllOauthCodeFieldsFragmentDoc = gql`
+    fragment AllOauthCodeFields on oauth_codes {
+  __typename
+  code
+  access_token
+  oauth_client_id
+}
+    `;
 export const DbPlaidAccountFieldsFragmentDoc = gql`
     fragment DBPlaidAccountFields on plaidAccounts {
   id
@@ -12448,6 +12570,7 @@ export const AllBackendUserFieldsFragmentDoc = gql`
   createdAt
   profile {
     stripeData {
+      hasAppAccess
       trialEndsAt
       customer {
         id
@@ -12501,6 +12624,37 @@ export const UpdateDestinationDocument = gql`
   }
 }
     ${AllBackendDestinationFieldsFragmentDoc}`;
+export const InsertNotionConnectionDocument = gql`
+    mutation InsertNotionConnection($notion_connection: notion_connections_insert_input!) {
+  notion_connection: insert_notion_connections_one(
+    object: $notion_connection
+    on_conflict: {constraint: notion_connections_pkey, update_columns: [access_token, workspace_icon]}
+  ) {
+    ...AllNotionConnectionFields
+  }
+}
+    ${AllNotionConnectionFieldsFragmentDoc}`;
+export const GetOauthClientsDocument = gql`
+    query GetOauthClients($where: oauth_clients_bool_exp!) {
+  oauth_clients(where: $where) {
+    id
+  }
+}
+    `;
+export const GetOauthCodeDocument = gql`
+    query GetOauthCode($code: uuid!) {
+  oauth_code: oauth_codes_by_pk(code: $code) {
+    ...AllOauthCodeFields
+  }
+}
+    ${AllOauthCodeFieldsFragmentDoc}`;
+export const InsertOauthCodeDocument = gql`
+    mutation InsertOauthCode($oauth_code: oauth_codes_insert_input!) {
+  oauth_code: insert_oauth_codes_one(object: $oauth_code) {
+    ...AllOauthCodeFields
+  }
+}
+    ${AllOauthCodeFieldsFragmentDoc}`;
 export const UpdatePlaidAccountsDocument = gql`
     mutation UpdatePlaidAccounts($_set: plaidAccounts_set_input!, $where: plaidAccounts_bool_exp!) {
   plaidAccounts: updatePlaidAccounts(where: $where, _set: $_set) {
@@ -12720,6 +12874,18 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     UpdateDestination(variables: UpdateDestinationMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateDestinationMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateDestinationMutation>(UpdateDestinationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateDestination', 'mutation');
+    },
+    InsertNotionConnection(variables: InsertNotionConnectionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertNotionConnectionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertNotionConnectionMutation>(InsertNotionConnectionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertNotionConnection', 'mutation');
+    },
+    GetOauthClients(variables: GetOauthClientsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetOauthClientsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetOauthClientsQuery>(GetOauthClientsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetOauthClients', 'query');
+    },
+    GetOauthCode(variables: GetOauthCodeQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetOauthCodeQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetOauthCodeQuery>(GetOauthCodeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetOauthCode', 'query');
+    },
+    InsertOauthCode(variables: InsertOauthCodeMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertOauthCodeMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertOauthCodeMutation>(InsertOauthCodeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertOauthCode', 'mutation');
     },
     UpdatePlaidAccounts(variables: UpdatePlaidAccountsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidAccountsMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidAccountsMutation>(UpdatePlaidAccountsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidAccounts', 'mutation');

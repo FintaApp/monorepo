@@ -118,19 +118,59 @@ export const trackUserDeleted = ({ userId }: { userId: string }) =>
     event: SegmentEvent.USER_DELETED
   })
 
+export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
+  track({ userId, event: SegmentEvent.NOTION_CONNECTION_ADDED })
+
+export const trackDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) =>
+  track({ userId, event: SegmentEvent.DESTINATION_CREATED, properties: { integration, destinationId }})
+
+export const trackDestinationUpdated = ({ userId, integration, destinationId, field }: { userId: string; integration: Integrations_Enum; destinationId: string; field: 'name' | 'table_configs' }) =>
+  track({ userId, event: SegmentEvent.DESTINATION_UPDATED, properties: { integration, destinationId, field }})
+
+export const trackDestinationDeleted = ({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) =>
+  track({ userId, event: SegmentEvent.DESTINATION_DELETED, properties: { integration, destinationId }})
+
+export const trackSyncCompleted = ({ userId, trigger, isSuccess, integration, institutionsSynced, error, destinationId, endedAt }: {
+  userId: string;
+  trigger: string;
+  isSuccess: boolean;
+  integration: Integrations_Enum;
+  institutionsSynced: number;
+  error?: string;
+  destinationId: string;
+  endedAt: string;
+}) =>
+  track({
+    userId,
+    event: SegmentEvent.SYNC_COMPLETED,
+    properties: {
+      trigger,
+      is_success: isSuccess,
+      integration,
+      institutions_synced: institutionsSynced,
+      error,
+      destinationId
+    },
+    timestamp: new Date(endedAt)
+  })
 
 // Types
 export enum SegmentEvent {
   USER_SIGNED_UP = "User Signed Up",
   USER_DELETED = "User Deleted",
+  NOTION_CONNECTION_ADDED = "Notion Connection Added",
   PLAID_ACCOUNT_UPDATED = "Plaid Account Updated",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_CONSENT_REVOKED = "Institution Consent Revoked",
   INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
+  DESTINATION_CREATED = "Destination Created",
+  DESTINATION_UPDATED = "Destination Updated",
+  DESTINATION_DELETED = "Destination Deleted",
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
+  SYNC_COMPLETED = "Sync Completed",
   USER_UPDATED = "User Updated",
   USER_PROFILE_UPDATED = "User Profile Updated"
 }

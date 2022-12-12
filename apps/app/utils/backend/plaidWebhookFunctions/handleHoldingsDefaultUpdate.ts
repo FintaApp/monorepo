@@ -99,15 +99,6 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, asAdmin,
     _set: { is_success: success, ended_at: new Date(), error: syncLogError }
   })
 
-  await logger.logSyncCompleted({
-    userId: item.user.id,
-    isSuccess: success,
-    itemId: item.id,
-    syncLogId: syncLog.id,
-    destinationsSynced: filteredDestinations.length,
-    shouldNotify: hasUnhandledError
-  })
-
   if ( success ) {
     await graphql.UpdatePlaidItem({
       plaidItemId: item.id,

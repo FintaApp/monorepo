@@ -46,6 +46,7 @@ importers:
       analytics-node: ^6.2.0
       axios: ^1.2.1
       cron-builder-ts: ^1.0.5
+      customerio-node: ^3.4.0
       form-data: ^4.0.0
       formik: ^2.2.9
       framer-motion: '>=4.0.0'
@@ -59,6 +60,7 @@ importers:
       moment-timezone: ^0.5.39
       next: latest
       plaid: ^12.0.0
+      randomstring: ^1.2.3
       react: latest
       react-datepicker: ^4.8.0
       react-dom: latest
@@ -89,6 +91,7 @@ importers:
       analytics-node: 6.2.0
       axios: 1.2.1
       cron-builder-ts: 1.0.5
+      customerio-node: 3.4.0
       form-data: 4.0.0
       formik: 2.2.9_react@18.2.0
       framer-motion: 7.6.19_biqbaboplfbrettd7655fr4n2y
@@ -102,6 +105,7 @@ importers:
       moment-timezone: 0.5.39
       next: 13.0.6_biqbaboplfbrettd7655fr4n2y
       plaid: 12.1.0
+      randomstring: 1.2.3
       react: 18.2.0
       react-datepicker: 4.8.0_biqbaboplfbrettd7655fr4n2y
       react-dom: 18.2.0_react@18.2.0
@@ -5856,6 +5860,11 @@ packages:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
     engines: {node: '>=8'}
 
+  /array-uniq/1.0.2:
+    resolution: {integrity: sha512-GVYjmpL05al4dNlKJm53mKE4w9OOLiuVHWorsIA3YVz+Hu0hcn6PtE3Ydl0EqU7v+7ABC4mjjWsnLUxbpno+CA==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
   /array.prototype.flatmap/1.3.1:
     resolution: {integrity: sha512-8UGn9O1FDVvMNB0UlLv4voxRMze7+FpHyF5mSMRjWHUMlpoDViniy05870VlxhfgTnLbpuwTzvD76MTtWxB/mQ==}
     engines: {node: '>= 0.4'}
@@ -6865,6 +6874,10 @@ packages:
 
   /csstype/3.1.1:
     resolution: {integrity: sha512-DJR/VvkAvSZW9bTouZue2sSxDwdTN92uHjqeKVm+0dAqdfNykRzQ95tay8aXMBAAPpUiq4Qcug2L7neoRh2Egw==}
+
+  /customerio-node/3.4.0:
+    resolution: {integrity: sha512-4CsLbJ9OusxfjVvw1JPFUrsfOxN2yyr2YCh1lo+yJyc/OLNTttpkLVyRvJ17h8GuMzxxti1z4RN/W7yILnw15Q==}
+    dev: false
 
   /dash-ast/1.0.0:
     resolution: {integrity: sha512-Vy4dx7gquTeMcQR/hDkYLGUnwVil6vk4FOOct+djUnHOUWt+zJPJAaRIXaAFkPXtJjvlY7o3rfRu0/3hpnwoUA==}
@@ -10438,6 +10451,10 @@ packages:
   /queue-microtask/1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  /randombytes/2.0.3:
+    resolution: {integrity: sha512-lDVjxQQFoCG1jcrP06LNo2lbWp4QTShEXnhActFBwYuHprllQV6VUpwreApsYqCgD+N1mHoqJ/BI/4eV4R2GYg==}
+    dev: false
+
   /randombytes/2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
     dependencies:
@@ -10448,6 +10465,14 @@ packages:
     dependencies:
       randombytes: 2.1.0
       safe-buffer: 5.2.1
+    dev: false
+
+  /randomstring/1.2.3:
+    resolution: {integrity: sha512-3dEFySepTzp2CvH6W/ASYGguPPveBuz5MpZ7MuoUkoVehmyNl9+F9c9GFVrz2QPbM9NXTIHGcmJDY/3j4677kQ==}
+    hasBin: true
+    dependencies:
+      array-uniq: 1.0.2
+      randombytes: 2.0.3
     dev: false
 
   /range-parser/1.2.1:

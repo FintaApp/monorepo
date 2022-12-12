@@ -4,6 +4,7 @@ export enum LogSnagTag {
   ITEM_ID = 'item-id',
   SYNC_LOG_ID = 'sync-log-id',
   DESTINATION_ID = 'destination-id',
+  INTEGRATION = 'integration'
 }
 
 export enum LogSnagChannel {
@@ -15,6 +16,9 @@ export enum LogSnagChannel {
 export enum LogSnagEvent {
   USER_SIGNED_UP = "User Signed Up",
   USER_DELETED = "User Deleted",
+  DESTINATION_CREATED = "Destination Created",
+  DESTINATION_DELETED = "Destination Deleted",
+  NOTION_CONNECTION_ADDED = "Notion Connection Added",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   INSTITUTION_DELETED = "Institution Deleted",
