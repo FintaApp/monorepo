@@ -47,7 +47,7 @@ export default function App({ Component, pageProps }: AppPropsWithPageName) {
         <QueryClientProvider client={queryClient}>
           <ChakraProvider theme = { theme }>
             <LoggerProvider>
-              <AuthProvider>
+              <AuthProvider isProtected = { pageProps.isProtected }>
                 <ColorModeScript />
                 <Layout showNavigation = { pageProps.showNavigation }>
                   <Component {...pageProps} />

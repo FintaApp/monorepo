@@ -7,10 +7,12 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
+  HStack,
   Text,
   VStack
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { SymbolIcon } from "@radix-ui/react-icons";
 
 import { Select } from '~/components/Forms';
 import { useGetAirtableTokensSubscription, useUpdateDestinationMutation } from "~/graphql/frontend";
@@ -33,7 +35,7 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
   const [ isLoading, setIsLoading ] = useState(false);
   const hasToken = airtableTokenData?.airtableTokens.length === 1;
 
-  const { isLoading: isBasesQueryLoading } = useQuery('getAirtableBases', () => getAirtableBases({})
+  const { isLoading: isBasesQueryLoading, refetch, isRefetching } = useQuery('getAirtableBases', () => getAirtableBases({})
     .then(response => setBases(response.bases)), { enabled: hasToken })
 
   const getAuthorizationUrl = () => {
@@ -71,22 +73,25 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
       </VStack>
     )
   }
-
+  
   return (
-    <VStack spacing = '6'>
+    <HStack spacing = '6'>
       <FormControl isInvalid = { !!errorMessage }>
         <FormLabel>Base</FormLabel>
-        <Select 
-          value = { value } 
-          options = { options } 
-          onChange = { onChange } 
-          isLoading = { isBasesQueryLoading }
-          noOptionsMessage = { () => "No bases have been shared with Finta"}
-          placeholder = "Select Base"
-        />
+        <HStack spacing = "4">
+          <Select 
+            value = { value } 
+            options = { options } 
+            onChange = { onChange } 
+            isLoading = { isBasesQueryLoading }
+            noOptionsMessage = { () => "No bases have been shared with Finta"}
+            placeholder = "Select Base"
+          />
+          <Button ml = "2" isLoading = { isRefetching } onClick = { () => refetch() } variant = "icon"><SymbolIcon /></Button>
+          </HStack>
         <FormErrorMessage>{ errorMessage }</FormErrorMessage>
       </FormControl>
-    </VStack>
+    </HStack>
   )
 }
 

@@ -42,7 +42,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
   if ( !nhostSession ) {
     return {
       props: {
-
+        
       },
       redirect: {
         destination: `/login?next=${context.resolvedUrl}`,
@@ -53,7 +53,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
   
   return {
     props: {
-      showNavigation: true
+      showNavigation: true,
+      isProtected: true
     }
   }
 }

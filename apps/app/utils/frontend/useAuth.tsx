@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useGetUserQuery } from "~/graphql/frontend"
 import { FrontendUserModel } from "~/types/frontend";
 import * as analytics from "~/utils/frontend/analytics";
+import { LoadingIndicator } from "~/components/LoadingIndicator";
 
 import { useLogger } from "./useLogger";
 
@@ -17,7 +18,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element => {
+export const AuthProvider = ({ children, isProtected }: { children: ReactNode; isProtected: boolean }): JSX.Element => {
   const [ isUserIdentified, setIsUserIdentified ] = useState(false);
   const logger = useLogger();
   const userId = useUserId();
@@ -26,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
 
   //const action = router.query.action as string;
 
-  const { data: userData, error } = useGetUserQuery({
+  const { data: userData, loading: isDataLoading } = useGetUserQuery({
     variables: { userId },
     skip: !userId
   });
@@ -71,6 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }) as AuthContextType,
     [ parseAuthError, user, isAuthenticated ]
   )
+
+  if ( ( isDataLoading || !userId ) && isProtected  ) {
+    return <LoadingIndicator />
+  }
 
   return <AuthContext.Provider value = { memoedValue }>{ children }</AuthContext.Provider> 
 }

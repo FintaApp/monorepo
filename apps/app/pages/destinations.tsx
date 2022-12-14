@@ -56,7 +56,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
   
   return {
     props: {
-      showNavigation: true
+      showNavigation: true,
+      isProtected: true
     }
   }
 }

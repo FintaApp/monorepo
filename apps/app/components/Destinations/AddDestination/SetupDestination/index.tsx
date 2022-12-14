@@ -99,7 +99,6 @@ export const SetupDestination = ({ integration, onBack, onClose }: SetupDestinat
   }
 
   const onChangeTableConfigs = useCallback((newTableConfigs: TableConfigsType) => {
-    console.log(newTableConfigs)
     setTableConfigs(newTableConfigs)
     isTableConfigsValidated && setIsTableConfigsValidated(false)
   }, [ isTableConfigsValidated ]);
@@ -121,7 +120,7 @@ export const SetupDestination = ({ integration, onBack, onClose }: SetupDestinat
           table_configs: tableConfigs,
           notion_connection_id: integration.id === Integrations_Enum.Notion ? (authentication as NotionAuthentication).bot_id : undefined,
           account_connections: {
-            data: connectedAccountIds.map(accountId => ({ account_id: accountId }))
+            data: connectedAccountIds?.map(accountId => ({ account_id: accountId })) || []
           }
         }
       }
