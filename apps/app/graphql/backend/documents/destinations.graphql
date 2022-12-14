@@ -32,6 +32,7 @@ fragment AllBackendDestinationFields on destinations {
     email
     metadata
     profile {
+      timezone
       stripeData {
         hasAppAccess
         subscription {
@@ -50,8 +51,8 @@ fragment AllBackendDestinationFields on destinations {
   }
 }
 
-query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
-  destination: destinations_by_pk(id: $destination_id) {
+query GetDestination($destinationId: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: destinations_by_pk(id: $destinationId) {
     ...AllBackendDestinationFields
   }
 }
@@ -62,8 +63,8 @@ query GetDestinations($where: destinations_bool_exp!, $account_connections_where
   }
 }
 
-mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
-  destination: update_destinations_by_pk(pk_columns: { id: $destination_id }, _set: $_set ) {
+mutation UpdateDestination($destinationId: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: update_destinations_by_pk(pk_columns: { id: $destinationId }, _set: $_set ) {
     ...AllBackendDestinationFields
   }
 }

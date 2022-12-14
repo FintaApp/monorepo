@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 
 import { exchangeNotionToken } from "~/utils/frontend/functions";
-import { AccessDenied, Success } from "~/components/NotionAuth";
+import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { useAuth } from "~/utils/frontend/useAuth";
@@ -42,8 +42,8 @@ const NotionAuthorize = () => {
     <Center w = "full" maxW = "xl" mx = "auto" flexDir = "column" mt = {{ base: 10, sm: 20, md: 32 }} px = {{ base: 8, md: 'unset' }}>
       <Card shadow = "sm" width = "full" px = { 8 } py = { 8 }>
         <CardBody>
-          { screen === 'access_denied' && <AccessDenied /> }
-          { screen === 'success' && <Success /> }
+          { screen === 'access_denied' && <AccessDenied integrationName = "Notion" /> }
+          { screen === 'success' && <Success integrationName = "Notion" /> }
           { isLoading &&  <LoadingSpinner /> }
         </CardBody>
       </Card>

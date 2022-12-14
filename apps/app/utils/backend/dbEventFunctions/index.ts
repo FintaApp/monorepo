@@ -1,3 +1,4 @@
+export { onInsertAirtableToken } from "./onInsertAirtableToken";
 export { onInsertDestination } from "./onInsertDestination";
 export { onInsertNotionConnection } from "./onInsertNotionConnection";
 export { onInsertPlaidInstitution } from "./onInsertPlaidInstitution";

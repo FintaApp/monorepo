@@ -13,9 +13,8 @@ import {
 import { DeleteIcon } from '@chakra-ui/icons';
 
 import { useUpdateDestinationMutation, useDeleteDestinationAccountsMutation } from "~/graphql/frontend";
-import { DestinationModel } from "~/types/frontend/models";
 
-export const DeleteDestination = ({ destination }: { destination: DestinationModel }) => {
+export const DeleteDestination = ({ destinationId }: { destinationId: string }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef(null);
 
@@ -23,15 +22,8 @@ export const DeleteDestination = ({ destination }: { destination: DestinationMod
   const [ updateDestination, { loading: updateLoading } ] = useUpdateDestinationMutation();
 
   const onDelete = () => {
-    deleteDestinationAccounts({ variables: { where: { destination_id: { _eq: destination.id }}}})
-    .then(() => updateDestination({
-      variables: {
-        destination_id: destination.id,
-        _set: {
-          disabled_at: new Date()
-        }
-      }
-    }))
+    deleteDestinationAccounts({ variables: { where: { destination_id: { _eq: destinationId }}}})
+    .then(() => updateDestination({ variables: { destinationId, _set: { disabled_at: new Date()}}}))
   };
 
   return (
@@ -50,7 +42,7 @@ export const DeleteDestination = ({ destination }: { destination: DestinationMod
             <AlertDialogHeader>Delete Destination</AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure? We'll no longer import new data to this destination. Any previously imported data will remain in the destination.
+              Are you sure? We'll no longer import new data to this destination.
             </AlertDialogBody>
 
             <AlertDialogFooter justifyContent = "space-between">

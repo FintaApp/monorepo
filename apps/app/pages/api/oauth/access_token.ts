@@ -45,7 +45,7 @@ export default wrapper('public', async function handler({ req, logger }) {
     return { status: 500, message: "Internal Error" }
   }
 
-  await graphql.UpdateDestination({ destination_id: destination.id, _set: { is_ready: true }})
+  await graphql.UpdateDestination({ destinationId: destination.id, _set: { is_ready: true }})
     .then(response => logger.info("Destination updated", { response }))
 
   return { status: 200, message: { access_token }}

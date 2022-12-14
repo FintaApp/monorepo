@@ -1,4 +1,5 @@
 export type {
+  DbAirtableTokenFieldsFragment as DBAirtableToken,
   DbDestinationFieldsFragment as DBDestination,
   DbNotionConnectionFieldsFragment as DBNotionConnection,
   DbPlaidAccountFieldsFragment as DBPlaidAccount,

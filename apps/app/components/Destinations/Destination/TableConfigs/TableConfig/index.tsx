@@ -1,50 +1,38 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Box, Button, Divider, Stack, Text, useColorModeValue as mode } from "@chakra-ui/react";
-import * as _ from "lodash";
+import { Box, Button, Divider, Text, useColorModeValue as mode, VStack } from "@chakra-ui/react";
 import { PlusIcon } from "@radix-ui/react-icons";
 
+import { AccordionItem } from "~/components/AccordionItem";
+import { FieldGroup } from "~/components/FieldGroup";
+import { Integrations_Enum } from "~/graphql/frontend";
 import { GetDestinationTablesResponse } from "~/types/shared/functions";
 import { DestinationErrorCode, DestinationTableTypes, TableConfig as TableConfigType, TableConfigFields } from "~/types/shared/models";
-import { AccordionItem } from "~/components/AccordionItem";
-import { EnableSwitch } from "../EnableSwitch";
-import { TableSelection } from "./TableSelection";
-import { ALWAYS_ENABLED_DATA_TYPES, SECURITIES_TABLE_FIELDS, INVESTMENT_TRANSACTIONS_TABLE_FIELDS, HOLDINGS_TABLE_FIELDS, TRANSACTIONS_TABLE_FIELDS, ACCOUNTS_TABLE_FIELDS, INSTITUTION_TABLE_FIELDS, CATEGORIES_TABLE_FIELDS } from "../constants";
-import { Integrations_Enum } from "~/graphql/frontend";
 import { TableConfigErrorType, TableConfigErrorCode } from "~/utils/frontend/validate";
-import { FieldGroup } from "~/components/FieldGroup";
+import { ALWAYS_ENABLED_DATA_TYPES, ALL_DESTINATION_TABLES } from "../constants";
+import { EnableTableSwitch } from "./EnableTableSwitch";
 import { FieldMapping } from "./FieldMapping";
+import { TableSelection } from "./TableSelection";
 
-type TableConfigProps = {
+interface TableConfigProps {
   tableType: DestinationTableTypes;
-  destinationTables: GetDestinationTablesResponse['tables'];
-  tableConfig: TableConfigType
-  refreshTables: () => void;
-  onChange: (tableConfig: TableConfigType) => void;
-  isLoadingTables: boolean;
-  integrationId: Integrations_Enum;
+  tableConfig: TableConfigType;
   errors?: TableConfigErrorType[];
+  onChange: (tableConfig: TableConfigType) => void;
+  isLegacyAirtable: boolean;
+  destinationTables: GetDestinationTablesResponse['tables'];
+  isLoadingTables: boolean;
+  refreshTables: () => void;
+  integrationId: Integrations_Enum;
 }
 
-export const TableConfig = ({ tableType, destinationTables, tableConfig, refreshTables, isLoadingTables, onChange, errors, integrationId }: TableConfigProps) => {
-  const TABLE_FIELDS = useMemo(() => getTableFields(tableType, integrationId)!, [ tableType, integrationId ]);
-  const [ hasSetRequiredFields, setHasSetRequiredFields ] = useState(false);
-
-  useEffect(() => {
-    if ( !hasSetRequiredFields ) {
-      const requiredTableFields = TABLE_FIELDS.filter(tableField => tableField.is_required).map(tableField => ({ field: tableField.field, field_id: "" }));
-      const allTableFields = _.unionWith((tableConfig.fields || []).concat(requiredTableFields), (field1, field2) => field1.field === field2.field);
-      if ( allTableFields.length !== (tableConfig.fields || []).length ) { 
-        onChange({ ...tableConfig, fields: allTableFields });
-        setHasSetRequiredFields(true)
-      }
-    }
-  }, [ TABLE_FIELDS, tableConfig, onChange, hasSetRequiredFields ]);
-
+export const TableConfig = ({ tableType, tableConfig, errors, integrationId, onChange, isLegacyAirtable, destinationTables, isLoadingTables, refreshTables }: TableConfigProps) => {
   const tableOptions = destinationTables.map(table => ({ label: table.name, value: table.tableId }));
-  const fieldOptions = destinationTables
+  const tableFieldOptions = ALL_DESTINATION_TABLES
+    .find(table => table.tableType === tableType).allFields
+    .filter(tableField => !(tableField.hideFor || []).includes(integrationId))
+    .map(tableField => ({ value: tableField.field, label: tableField.label, isRequired: tableField.is_required }))
+  const destinationFieldOptions = destinationTables
     .find(table => table.tableId === tableConfig.table_id)?.fields
     .map(field => ({ label: field.name, value: field.fieldId, type: field.type })) || []
-  const tableFieldOptions = getTableFieldOptions({ tableType, integrationId, fields: tableConfig.fields });
 
   const onChangeIsEnabled = (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...tableConfig, is_enabled: e.target.checked });
   const onChangeTableId = (newTableId: string) => onChange({ ...tableConfig, table_id: newTableId });
@@ -59,56 +47,68 @@ export const TableConfig = ({ tableType, destinationTables, tableConfig, refresh
   }
 
   return (
-    <AccordionItem
+    <AccordionItem 
       buttonLabel = { `${tableType.replaceAll("_", " ")} - ${tableConfig.is_enabled ? "Synced" : "Not Synced"}` }
       buttonChildren = { <></> }
-      buttonLabelProps = {{ textTransform: 'capitalize', opacity: tableConfig.is_enabled ? 1 : 0.6, color: errors && errors.length > 0 ? mode('tomato.light.11', 'tomato.dark.11') : 'unset'  }}
+      buttonLabelProps = {{ 
+        textTransform: 'capitalize', 
+        opacity: tableConfig.is_enabled ? 1 : 0.6, 
+        color: errors && errors.length > 0 && tableConfig.is_enabled ? mode('tomato.light.11', 'tomato.dark.11') : 'unset'  
+      }}
     >
-      <Stack direction = "column" spacing = "2" maxW = "full" mx = "auto">
-        { ALWAYS_ENABLED_DATA_TYPES.includes(tableType) ? <Text>{ getEnabledHelperText(tableType) }</Text> : <EnableSwitch tableType = { tableType } isEnabled = { tableConfig.is_enabled } onChange = { onChangeIsEnabled } /> }
+      <VStack spacing = "2" maxW = "full" mx = "auto">
+        { ALWAYS_ENABLED_DATA_TYPES.includes(tableType)
+          ? <Text>{ getEnabledHelperText(tableType) }</Text>
+          : <EnableTableSwitch tableType = { tableType } isEnabled = { tableConfig.is_enabled } onChange = { onChangeIsEnabled } />
+        }
 
-        <TableSelection 
-          options = { tableOptions }
+        <TableSelection
+          isLegacyAirtable = { isLegacyAirtable }
+          tableOptions = { tableOptions }
           onChange = { onChangeTableId }
           isDisabled = { !tableConfig.is_enabled }
-          isLoading = { isLoadingTables }
+          isLoadingTables = { isLoadingTables }
           refreshTables = { refreshTables }
           integrationId = { integrationId }
-          tableId = { tableConfig.table_id }
           errorMessage = { parseErrorCode(errors?.find(error => error.tableId === tableConfig.table_id && !error.fieldId && !error.fieldType)?.errorCode ) }
+          tableId = { tableConfig.table_id }
         />
 
         <FieldGroup title = "Fields" description = { getFieldsDescription(integrationId) }>
-          <Stack mt = "1" spacing = "2" divider = { <Divider my = "1" borderColor = {{ base: mode('gray.light.8', 'gray.dark.8'), sm: 'transparent' }} /> }>
-            { tableConfig.fields.map((field, index) => (
-              <FieldMapping
-                showFieldIdAs = { integrationId === Integrations_Enum.Airtable ? 'text' : 'select' }
-                key = { field.field }
-                field = { field }
-                tableType = { tableType }
-                tableFieldOptions = { tableFieldOptions }
-                tableFieldValue = { getTableFieldValue({ tableType, integrationId, field })! }
-                fieldOptions = { fieldOptions }
-                isDisabled = { !tableConfig.is_enabled }
-                onChangeField = { onChangeField }
-                errorMessage = { parseErrorCode(errors?.find(error => error.tableId === tableConfig.table_id && (error.fieldType === field.field || error.fieldId === field.field_id))?.errorCode)}
-                index = { index }
-                integrationId = { integrationId }
-              />
-            ))}
-          </Stack>
-          { tableFieldOptions.length > 0 && (
-          <Box mt = "2" display = "flex" width = "full" justifyContent = {{ base: 'stretch', sm: 'flex-end' }}>
-            <Button 
-              width = {{ base: 'full', sm: 'unset'}}
-              isDisabled = { !!tableConfig.fields.find(field => !field.field || !field.field_id )}
-              onClick = { () => onChangeField('insert', { field: "" as TableConfigFields, field_id: "" })} 
-              leftIcon = { <PlusIcon /> }>Add Field</Button>
-          </Box>
-          )}
+          <VStack width = "full" mt = "1" spacing = "2" divider = { <Divider my = "1" borderColor = {{ base: mode('gray.light.8', 'gray.dark.8'), sm: 'transparent' }} /> }>
+            { tableConfig.fields.map((field, index) => {
+              const unavailableTableFields = tableConfig.fields.filter(f => f.field !== field.field).map(f => f.field)
+              return (
+                <FieldMapping
+                  isLegacyAirtable = { isLegacyAirtable }
+                  key = { field.field }
+                  tableType = { tableType }
+                  fintaFieldOptions = { tableFieldOptions.filter(option => !unavailableTableFields.includes(option.value)) }
+                  destinationFieldOptions = { destinationFieldOptions }
+                  isDisabled = { !tableConfig.is_enabled }
+                  onChangeField = { onChangeField }
+                  errorMessage = { parseErrorCode(errors?.find(error => error.tableId === tableConfig.table_id && (error.fieldType === field.field || error.fieldId === field.field_id))?.errorCode)}
+                  index = { index }
+                  integrationId = { integrationId }
+                  field = { field }
+                />
+              )
+            })}
+          </VStack>
 
+          { tableFieldOptions
+            .filter(option => !tableConfig.fields.map(field => field.field).includes(option.value))
+            .length > 0 && (
+            <Box mt = "2" display = "flex" width = "full" justifyContent = {{ base: 'stretch', sm: 'flex-end' }}>
+              <Button 
+                width = {{ base: 'full', sm: 'unset'}}
+                isDisabled = { !!tableConfig.fields.find(field => !field.field) || !tableConfig.is_enabled}
+                onClick = { () => onChangeField('insert', { field: "" as TableConfigFields, field_id: "" })} 
+                leftIcon = { <PlusIcon /> }>Add Field</Button>
+            </Box>
+          )}
         </FieldGroup>
-      </Stack>
+      </VStack>
     </AccordionItem>
   )
 }
@@ -137,36 +137,3 @@ const getFieldsDescription = (integrationId: Integrations_Enum) => {
   if ( integrationId === Integrations_Enum.Notion ) { return "Each field corresponds to a column in your Notion database"};
   return ""
 }
-
-const getTableFields = (tableType: DestinationTableTypes, integrationId: Integrations_Enum): { field: TableConfigFields, label: string, is_required: boolean }[] => {
-  if ( tableType === DestinationTableTypes.INSTITUTIONS ) { return INSTITUTION_TABLE_FIELDS }
-  if ( tableType === DestinationTableTypes.ACCOUNTS ) { return ACCOUNTS_TABLE_FIELDS }
-  if ( tableType === DestinationTableTypes.TRANSACTIONS ) { return TRANSACTIONS_TABLE_FIELDS }
-  if ( tableType === DestinationTableTypes.CATEGORIES ) { return CATEGORIES_TABLE_FIELDS }
-  if ( tableType === DestinationTableTypes.HOLDINGS ) { return HOLDINGS_TABLE_FIELDS.filter(field => !field.hideFor || !field.hideFor.includes(integrationId)) }
-  if ( tableType === DestinationTableTypes.INVESTMENT_TRANSACTIONS ) { return INVESTMENT_TRANSACTIONS_TABLE_FIELDS }
-  return SECURITIES_TABLE_FIELDS
-}
-
-const getTableFieldOptions = ({ tableType, integrationId, fields } : { tableType: DestinationTableTypes, integrationId: Integrations_Enum, fields: TableConfigType['fields'] }) => {
-  if ( integrationId === Integrations_Enum.Coda ) { return [] };
-  const currentFields = fields?.map(field => field.field) || [];
-  if ( tableType === DestinationTableTypes.INSTITUTIONS ) { return INSTITUTION_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label })) };
-  if ( tableType === DestinationTableTypes.ACCOUNTS ) { return ACCOUNTS_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label })) };
-  if ( tableType === DestinationTableTypes.TRANSACTIONS ) { return TRANSACTIONS_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label })) };
-  if ( tableType === DestinationTableTypes.CATEGORIES ) { return CATEGORIES_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label })) };
-  if ( tableType === DestinationTableTypes.HOLDINGS) { return HOLDINGS_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label })) };
-  if ( tableType === DestinationTableTypes.INVESTMENT_TRANSACTIONS) { return INVESTMENT_TRANSACTIONS_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label }))}
-  return SECURITIES_TABLE_FIELDS.filter(tableField => !currentFields.includes(tableField.field)).map(tableField => ({ value: tableField.field, label: tableField.label }))
-}
-
-const getTableFieldValue = ({ tableType, integrationId, field } : { tableType: DestinationTableTypes, integrationId: Integrations_Enum, field: TableConfigType['fields'][0] }) => {
-  if ( integrationId === Integrations_Enum.Coda ) { return { value: "", label: "" } };
-  if ( tableType === DestinationTableTypes.INSTITUTIONS ) { return INSTITUTION_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  if ( tableType === DestinationTableTypes.ACCOUNTS ) { return ACCOUNTS_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  if ( tableType === DestinationTableTypes.TRANSACTIONS ) { return TRANSACTIONS_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  if ( tableType === DestinationTableTypes.CATEGORIES ) { return CATEGORIES_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  if ( tableType === DestinationTableTypes.HOLDINGS) { return HOLDINGS_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  if ( tableType === DestinationTableTypes.INVESTMENT_TRANSACTIONS) { return INVESTMENT_TRANSACTIONS_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field) }
-  return SECURITIES_TABLE_FIELDS.map(tableField => ({ value: tableField.field, label: tableField.label })).find(tableField => tableField.value === field.field)
-} 

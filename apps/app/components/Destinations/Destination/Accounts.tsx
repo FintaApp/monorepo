@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Button,
   ButtonGroup,
@@ -14,53 +14,45 @@ import _ from "lodash";
 
 import { EmptyState } from "~/components/EmptyState";
 import { FieldGroup } from "~/components/FieldGroup";
-import { useDeleteDestinationAccountsMutation, useInsertDestinationAccountsMutation, useGetPlaidItemsSubscription } from "~/graphql/frontend";
+import { useDeleteDestinationAccountsMutation, useInsertDestinationAccountsMutation, useGetPlaidAccountsQuery } from "~/graphql/frontend";
 import { useToast } from "~/utils/frontend/useToast";
-import { DestinationModel } from "~/types/frontend/models";
 
 export interface AccountsTableProps {
-  destination?: DestinationModel;
-  selectedAccountIds?: string[] | null;
-  initiallySelectAll?: boolean;
+  destinationId?: string;
+  selectedAccountIds: string[];
   onChange?: (newAccountIds: string[]) => void;
 }
 
-export const DestinationAccounts = ({ destination, selectedAccountIds: selectedAccountIdsProp, initiallySelectAll = false, onChange }: AccountsTableProps) => {
-  const { data } = useGetPlaidItemsSubscription();
-  const allAccounts = useMemo(() =>  data?.plaidItems
-    .filter(item => !item.disabled_at)
-    .map(item => item.accounts.map(account => ({ ...account, institutionName: item.institution.name })))
-    .reduce((all, curr) => all.concat(curr), [])
-  , [ data ]);
+export const DestinationAccounts = ({ destinationId, selectedAccountIds, onChange }: AccountsTableProps) => {
   const renderToast = useToast();
-  const [ createDestinationAccountsMutation ] = useInsertDestinationAccountsMutation({ refetchQueries: 'all' });
-  const [ deleteDestinationAccountsMutation ] = useDeleteDestinationAccountsMutation({ refetchQueries: 'all' });
+  const [ createDestinationAccountsMutation ] = useInsertDestinationAccountsMutation();
+  const [ deleteDestinationAccountsMutation ] = useDeleteDestinationAccountsMutation();
 
-  const selectedAccountIds = destination?.account_connections.map(da => da.account.id) || selectedAccountIdsProp;
+  const { data } = useGetPlaidAccountsQuery({ pollInterval: 5000 });
+  const allAccounts = useMemo(() => data?.plaidAccounts.map(account => ({
+    institution: account.item.institution.name,
+    name: account.name,
+    mask: account.mask,
+    id: account.id
+  })), [ data ]);
 
-  const onToggle = useCallback(async (accountIds: string[], action: 'add' | 'remove') => {
+  const onToggle = useCallback(async (accountIds: string[], action: 'add' | 'remove' ) => {
     const newAccountIds = action === 'add' ? _.uniq((selectedAccountIds || []).concat(accountIds)) : _.difference((selectedAccountIds || []), accountIds);
     onChange && onChange(newAccountIds);
 
-    if ( destination ) {
+    if ( destinationId ) {
       if ( action === 'add' ) {
-        const destination_accounts = accountIds.map(accountId => ({ destination_id: destination.id, account_id: accountId }));
+        const destination_accounts = accountIds.map(accountId => ({ destinationId, account_id: accountId }));
         await createDestinationAccountsMutation({ variables: { destination_accounts }})
       }
 
-      if ( action === 'remove') {
-        await deleteDestinationAccountsMutation({ variables: { where: { destination_id: { _eq: destination.id }, account_id: { _in: accountIds }}}})
+      if ( action === 'remove' ) {
+        await deleteDestinationAccountsMutation({ variables: { where: { destination_id: { _eq: destinationId }, account_id: { _in: accountIds }}}})
       }
 
       renderToast({ title: `Account${accountIds.length === 1 ? '' : 's'} ${action === 'add' ? 'Added' : "Removed"}`, status: "success" });
     }
-  }, [ renderToast, selectedAccountIds, createDestinationAccountsMutation, deleteDestinationAccountsMutation, destination, onChange ])
-
-  useEffect(() => {
-    if ( allAccounts && initiallySelectAll && selectedAccountIdsProp === null ) {
-      onToggle(allAccounts.map(account => account.id), 'add');
-    }
-  }, [ onToggle, allAccounts, initiallySelectAll, selectedAccountIdsProp ]);
+  }, [ selectedAccountIds, onChange, renderToast, destinationId ])
 
   return (
     <FieldGroup title = "Accounts" description = "Select which accounts you want to sync to this destination.">
@@ -85,14 +77,14 @@ export const DestinationAccounts = ({ destination, selectedAccountIds: selectedA
             </Thead>
 
             <Tbody>
-              { _.sortBy(allAccounts, ['plaid_item_id', 'created_at', 'id'])
+              { _.sortBy(allAccounts, ['institution', 'created_at', 'id'])
               .map(account => {
                 const isLinked = selectedAccountIds?.includes(account.id);
                 
                 return (
                   <Tr key = { account.id } opacity = { isLinked ? 1 : 0.6 }>
                     <Td><Switch onChange = { () => onToggle([account.id], isLinked ? "remove" : "add") } isChecked = { isLinked } /></Td>
-                    <Td>{ account.institutionName }</Td>
+                    <Td>{ account.institution }</Td>
                     <Td>{ account.name }</Td>
                     <Td>{ account.mask }</Td>
                   </Tr>

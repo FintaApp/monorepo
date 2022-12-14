@@ -166,6 +166,247 @@ export enum SyncUpdatesFrequency {
   Yearly = 'yearly'
 }
 
+/** Used to house Airtable access and refresh tokens for users */
+export type AirtableTokens = {
+  __typename?: 'airtableTokens';
+  accessToken: Scalars['String'];
+  accessTokenExpiresAt: Scalars['timestamptz'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  refreshToken: Scalars['String'];
+  refreshTokenExpiresAt: Scalars['timestamptz'];
+  refreshedAt: Scalars['timestamptz'];
+  scope: Scalars['String'];
+  tokenType: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "airtable_tokens" */
+export type AirtableTokens_Aggregate = {
+  __typename?: 'airtableTokens_aggregate';
+  aggregate?: Maybe<AirtableTokens_Aggregate_Fields>;
+  nodes: Array<AirtableTokens>;
+};
+
+/** aggregate fields of "airtable_tokens" */
+export type AirtableTokens_Aggregate_Fields = {
+  __typename?: 'airtableTokens_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AirtableTokens_Max_Fields>;
+  min?: Maybe<AirtableTokens_Min_Fields>;
+};
+
+
+/** aggregate fields of "airtable_tokens" */
+export type AirtableTokens_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "airtable_tokens". All fields are combined with a logical 'AND'. */
+export type AirtableTokens_Bool_Exp = {
+  _and?: InputMaybe<Array<AirtableTokens_Bool_Exp>>;
+  _not?: InputMaybe<AirtableTokens_Bool_Exp>;
+  _or?: InputMaybe<Array<AirtableTokens_Bool_Exp>>;
+  accessToken?: InputMaybe<String_Comparison_Exp>;
+  accessTokenExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshToken?: InputMaybe<String_Comparison_Exp>;
+  refreshTokenExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  refreshedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  scope?: InputMaybe<String_Comparison_Exp>;
+  tokenType?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "airtable_tokens" */
+export enum AirtableTokens_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AirtableTokensPkey = 'airtable_tokens_pkey'
+}
+
+/** input type for inserting data into table "airtable_tokens" */
+export type AirtableTokens_Insert_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AirtableTokens_Max_Fields = {
+  __typename?: 'airtableTokens_max_fields';
+  accessToken?: Maybe<Scalars['String']>;
+  accessTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  refreshToken?: Maybe<Scalars['String']>;
+  refreshTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  refreshedAt?: Maybe<Scalars['timestamptz']>;
+  scope?: Maybe<Scalars['String']>;
+  tokenType?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type AirtableTokens_Min_Fields = {
+  __typename?: 'airtableTokens_min_fields';
+  accessToken?: Maybe<Scalars['String']>;
+  accessTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  refreshToken?: Maybe<Scalars['String']>;
+  refreshTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  refreshedAt?: Maybe<Scalars['timestamptz']>;
+  scope?: Maybe<Scalars['String']>;
+  tokenType?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "airtable_tokens" */
+export type AirtableTokens_Mutation_Response = {
+  __typename?: 'airtableTokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AirtableTokens>;
+};
+
+/** on_conflict condition type for table "airtable_tokens" */
+export type AirtableTokens_On_Conflict = {
+  constraint: AirtableTokens_Constraint;
+  update_columns?: Array<AirtableTokens_Update_Column>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "airtable_tokens". */
+export type AirtableTokens_Order_By = {
+  accessToken?: InputMaybe<Order_By>;
+  accessTokenExpiresAt?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  refreshToken?: InputMaybe<Order_By>;
+  refreshTokenExpiresAt?: InputMaybe<Order_By>;
+  refreshedAt?: InputMaybe<Order_By>;
+  scope?: InputMaybe<Order_By>;
+  tokenType?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: airtable_tokens */
+export type AirtableTokens_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "airtable_tokens" */
+export enum AirtableTokens_Select_Column {
+  /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
+  AccessTokenExpiresAt = 'accessTokenExpiresAt',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenExpiresAt = 'refreshTokenExpiresAt',
+  /** column name */
+  RefreshedAt = 'refreshedAt',
+  /** column name */
+  Scope = 'scope',
+  /** column name */
+  TokenType = 'tokenType',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "airtable_tokens" */
+export type AirtableTokens_Set_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "airtableTokens" */
+export type AirtableTokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AirtableTokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AirtableTokens_Stream_Cursor_Value_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "airtable_tokens" */
+export enum AirtableTokens_Update_Column {
+  /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
+  AccessTokenExpiresAt = 'accessTokenExpiresAt',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenExpiresAt = 'refreshTokenExpiresAt',
+  /** column name */
+  RefreshedAt = 'refreshedAt',
+  /** column name */
+  Scope = 'scope',
+  /** column name */
+  TokenType = 'tokenType',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AirtableTokens_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  where: AirtableTokens_Bool_Exp;
+};
+
 /** columns and relationships of "airtable_configs" */
 export type Airtable_Configs = {
   __typename?: 'airtable_configs';
@@ -4260,6 +4501,10 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** delete single row from the table: "airtable_tokens" */
+  deleteAirtableToken?: Maybe<AirtableTokens>;
+  /** delete data from the table: "airtable_tokens" */
+  deleteAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -4372,6 +4617,10 @@ export type Mutation_Root = {
   delete_sync_logs?: Maybe<Sync_Logs_Mutation_Response>;
   /** delete single row from the table: "sync_logs" */
   delete_sync_logs_by_pk?: Maybe<Sync_Logs>;
+  /** insert a single row into the table: "airtable_tokens" */
+  insertAirtableToken?: Maybe<AirtableTokens>;
+  /** insert data into the table: "airtable_tokens" */
+  insertAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -4484,6 +4733,10 @@ export type Mutation_Root = {
   insert_sync_logs?: Maybe<Sync_Logs_Mutation_Response>;
   /** insert a single row into the table: "sync_logs" */
   insert_sync_logs_one?: Maybe<Sync_Logs>;
+  /** update single row of the table: "airtable_tokens" */
+  updateAirtableToken?: Maybe<AirtableTokens>;
+  /** update data of the table: "airtable_tokens" */
+  updateAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4536,6 +4789,8 @@ export type Mutation_Root = {
   updateUserProfiles?: Maybe<UserProfiles_Mutation_Response>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
+  /** update multiples rows of table: "airtable_tokens" */
+  update_airtableTokens_many?: Maybe<Array<Maybe<AirtableTokens_Mutation_Response>>>;
   /** update data of the table: "airtable_configs" */
   update_airtable_configs?: Maybe<Airtable_Configs_Mutation_Response>;
   /** update single row of the table: "airtable_configs" */
@@ -4652,6 +4907,18 @@ export type Mutation_Root = {
   update_userProfiles_many?: Maybe<Array<Maybe<UserProfiles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAirtableTokensArgs = {
+  where: AirtableTokens_Bool_Exp;
 };
 
 
@@ -4992,6 +5259,20 @@ export type Mutation_RootDelete_Sync_LogsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Sync_Logs_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAirtableTokenArgs = {
+  object: AirtableTokens_Insert_Input;
+  on_conflict?: InputMaybe<AirtableTokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAirtableTokensArgs = {
+  objects: Array<AirtableTokens_Insert_Input>;
+  on_conflict?: InputMaybe<AirtableTokens_On_Conflict>;
 };
 
 
@@ -5388,6 +5669,20 @@ export type Mutation_RootInsert_Sync_Logs_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateAirtableTokenArgs = {
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  pk_columns: AirtableTokens_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAirtableTokensArgs = {
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  where: AirtableTokens_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
@@ -5592,6 +5887,12 @@ export type Mutation_RootUpdateUsersArgs = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AirtableTokens_ManyArgs = {
+  updates: Array<AirtableTokens_Updates>;
 };
 
 
@@ -7981,6 +8282,12 @@ export type Plaid_Items_Updates = {
 
 export type Query_Root = {
   __typename?: 'query_root';
+  /** fetch data from the table: "airtable_tokens" using primary key columns */
+  airtableToken?: Maybe<AirtableTokens>;
+  /** fetch data from the table: "airtable_tokens" */
+  airtableTokens: Array<AirtableTokens>;
+  /** fetch aggregated fields from the table: "airtable_tokens" */
+  airtableTokens_aggregate: AirtableTokens_Aggregate;
   /** fetch data from the table: "airtable_configs" */
   airtable_configs: Array<Airtable_Configs>;
   /** fetch aggregated fields from the table: "airtable_configs" */
@@ -8153,6 +8460,29 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+};
+
+
+export type Query_RootAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAirtableTokensArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Query_RootAirtableTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
 };
 
 
@@ -9178,6 +9508,14 @@ export type StripeWebhookEvents_Updates = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "airtable_tokens" using primary key columns */
+  airtableToken?: Maybe<AirtableTokens>;
+  /** fetch data from the table: "airtable_tokens" */
+  airtableTokens: Array<AirtableTokens>;
+  /** fetch aggregated fields from the table: "airtable_tokens" */
+  airtableTokens_aggregate: AirtableTokens_Aggregate;
+  /** fetch data from the table in a streaming manner: "airtable_tokens" */
+  airtableTokens_stream: Array<AirtableTokens>;
   /** fetch data from the table: "airtable_configs" */
   airtable_configs: Array<Airtable_Configs>;
   /** fetch aggregated fields from the table: "airtable_configs" */
@@ -9402,6 +9740,36 @@ export type Subscription_Root = {
   usersAggregate: Users_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
+};
+
+
+export type Subscription_RootAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAirtableTokensArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAirtableTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAirtableTokens_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AirtableTokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
 };
 
 
@@ -11562,6 +11930,11 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
+export type GetAirtableTokensSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAirtableTokensSubscription = { __typename?: 'subscription_root', airtableTokens: Array<{ __typename?: 'airtableTokens', id: any }> };
+
 export type AllDestinationAccountFieldsFragment = { __typename: 'destination_accounts', account_id: string, destination_id: any };
 
 export type InsertDestinationAccountsMutationVariables = Exact<{
@@ -11598,7 +11971,7 @@ export type GetDestinationsSubscriptionVariables = Exact<{ [key: string]: never;
 export type GetDestinationsSubscription = { __typename?: 'subscription_root', destinations: Array<{ __typename: 'destinations', id: any, created_at: any, integration_id: Integrations_Enum, name: string, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, authentication?: any | null, disabled_at?: any | null, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string } }>, notion_connection?: { __typename?: 'notion_connections', access_token: string, bot_id: string } | null }> };
 
 export type UpdateDestinationMutationVariables = Exact<{
-  destination_id: Scalars['uuid'];
+  destinationId: Scalars['uuid'];
   _set?: InputMaybe<Destinations_Set_Input>;
   _append?: InputMaybe<Destinations_Append_Input>;
 }>;
@@ -11910,6 +12283,35 @@ export const AllFrontendUserProfileFieldsFragmentDoc = gql`
   syncUpdatesFrequency
 }
     `;
+export const GetAirtableTokensDocument = gql`
+    subscription GetAirtableTokens {
+  airtableTokens {
+    id
+  }
+}
+    `;
+
+/**
+ * __useGetAirtableTokensSubscription__
+ *
+ * To run a query within a React component, call `useGetAirtableTokensSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetAirtableTokensSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAirtableTokensSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAirtableTokensSubscription(baseOptions?: Apollo.SubscriptionHookOptions<GetAirtableTokensSubscription, GetAirtableTokensSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetAirtableTokensSubscription, GetAirtableTokensSubscriptionVariables>(GetAirtableTokensDocument, options);
+      }
+export type GetAirtableTokensSubscriptionHookResult = ReturnType<typeof useGetAirtableTokensSubscription>;
+export type GetAirtableTokensSubscriptionResult = Apollo.SubscriptionResult<GetAirtableTokensSubscription>;
 export const InsertDestinationAccountsDocument = gql`
     mutation InsertDestinationAccounts($destination_accounts: [destination_accounts_insert_input!]!) {
   destination_accounts: insert_destination_accounts(
@@ -12083,9 +12485,9 @@ export function useGetDestinationsSubscription(baseOptions?: Apollo.Subscription
 export type GetDestinationsSubscriptionHookResult = ReturnType<typeof useGetDestinationsSubscription>;
 export type GetDestinationsSubscriptionResult = Apollo.SubscriptionResult<GetDestinationsSubscription>;
 export const UpdateDestinationDocument = gql`
-    mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input = {}, $_append: destinations_append_input = {}) {
+    mutation UpdateDestination($destinationId: uuid!, $_set: destinations_set_input = {}, $_append: destinations_append_input = {}) {
   destination: update_destinations_by_pk(
-    pk_columns: {id: $destination_id}
+    pk_columns: {id: $destinationId}
     _set: $_set
     _append: $_append
   ) {
@@ -12108,7 +12510,7 @@ export type UpdateDestinationMutationFn = Apollo.MutationFunction<UpdateDestinat
  * @example
  * const [updateDestinationMutation, { data, loading, error }] = useUpdateDestinationMutation({
  *   variables: {
- *      destination_id: // value for 'destination_id'
+ *      destinationId: // value for 'destinationId'
  *      _set: // value for '_set'
  *      _append: // value for '_append'
  *   },

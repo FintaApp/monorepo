@@ -18,7 +18,7 @@ export const disableUser = async (userId: string) => {
   await Promise.all(plaidItems.map(item => disablePlaidItem(item).catch(() => null)))
 
   await Promise.all(destinations.map(destination => {
-    graphql.UpdateDestination({ destination_id: destination.id, _set: { disabled_at: new Date() }})
+    graphql.UpdateDestination({ destinationId: destination.id, _set: { disabled_at: new Date() }})
     .then(() => {
       graphql.DeleteDestinationAccounts({ where: { destination_id: { _eq: destination.id }}})
     })

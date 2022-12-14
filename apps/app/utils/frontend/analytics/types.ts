@@ -6,6 +6,7 @@ export enum AnalyticsEvent {
 
 export enum AnalyticsPage {
   ACCOUNTS = 'Accounts',
+  AIRTABLE_AUTHORIZE = 'Airtable Authorize',
   DESTINATIONS = 'Destinations',
   LOG_IN = 'Log In',
   LOGS = 'Logs',

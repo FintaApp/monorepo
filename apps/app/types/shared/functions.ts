@@ -1,5 +1,5 @@
 import { Products, LinkTokenCreateResponse, ItemPublicTokenExchangeResponse } from "plaid"
-import { DestinationCredentials, DestinationError, DestinationErrorCode, TableConfig, TableConfigs, DestinationTableTypes, DestinationFieldTypes } from "./models";
+import { DestinationAuthentication, DestinationError, DestinationErrorCode, TableConfig, TableConfigs, DestinationTableTypes, DestinationFieldType } from "./models";
 import { Integrations_Enum } from "~/graphql/frontend";
 
 export type CreateBillingPortalSessionPayload = {
@@ -22,20 +22,9 @@ export type CreateCheckoutPortalSessionResponse = {
   url: string | null;
 }
 
-export type CheckDestinationCredentialsPayload = {
-  integrationId: Integrations_Enum,
-  credentials: DestinationCredentials,
-}
-
-export type CheckDestinationCredentialsResponse = {
-  isValid: boolean;
-  errorCredential?: 'base_id' | 'api_key' | 'access_token';
-  errorCode?: DestinationErrorCode
-}
-
 export type GetDestinationTablesPayload = {
   integrationId: Integrations_Enum;
-  credentials: DestinationCredentials,
+  authentication: DestinationAuthentication,
 }
 
 export type GetDestinationTablesResponse = {
@@ -45,27 +34,25 @@ export type GetDestinationTablesResponse = {
     fields: {
       fieldId: string;
       name: string;
-      type?: DestinationFieldTypes
+      type?: DestinationFieldType
     }[]
   }[]
 }
 
-export type CheckDestinationTableConfigPayload = {
+export type ValidateDestinationTableConfigsPayload = {
   integrationId: Integrations_Enum,
-  credentials: DestinationCredentials,
-  dataType: DestinationTableTypes;
-  tableId: string;
-  fields: TableConfig['fields']
+  authentication: DestinationAuthentication,
+  tableConfigs: TableConfigs
 }
 
-export type CheckDestinationTableConfigResponse = {
+export type ValidateDestinationTableConfigsResponse = {
   isValid: boolean;
-  error?: DestinationError
+  errors?: DestinationError[]
 }
 
 export type GetDestinationTableDefaultConfigPayload = {
   integrationId: Integrations_Enum;
-  credentials: DestinationCredentials,
+  authentication: DestinationAuthentication,
 }
 
 export type GetDestinationTableDefaultConfigResponse = {
@@ -127,3 +114,27 @@ export type ExchangeNotionTokenPayload = {
 }
 
 export type ExchangeNotionTokenResponse = "OK"
+
+export type ValidateDestinationCredentialsPayload = {
+  integrationId: Integrations_Enum,
+  authentication: DestinationAuthentication
+}
+export type ValidateDestinationCredentialsResponse = { isValid: boolean; errorCode?: DestinationErrorCode, message?: string }
+
+export type GetAirtableBasesPayload = {}
+export type GetAirtableBasesResponse = {
+  bases: {
+    id: string;
+    name: string;
+  }[]
+}
+
+export type GetAirtableAuthorizationUrlPayload = {}
+export type GetAirtableAuthorizationUrlResponse = { url: string; }
+
+export type ExchangeAirtableTokenPayload = {
+  state: string;
+  code: string;
+  redirectUri: string;
+}
+export type ExchangeAirtableTokenResponse = "OK"

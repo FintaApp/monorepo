@@ -3,26 +3,30 @@ import {
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 
-import { DestinationModel } from "~/types/frontend";
-import { AirtableCredentials, GoogleSheetsCredentials } from "~/types/shared/models";
+import { DestinationAuthentication, GoogleSheetsAuthentication, AirtableAuthentication } from "~/types/shared/models";
 import { Integrations_Enum } from "~/graphql/frontend";
 
-const getLink = (destination: DestinationModel) => {
-  if ( destination.integration_id === Integrations_Enum.Airtable ) {
-    const { base_id } = destination.authentication as AirtableCredentials;
+interface DestinationLinkProps {
+  authentication: DestinationAuthentication;
+  integrationId: string;
+}
+
+const getLink = ({ authentication, integrationId }: DestinationLinkProps) => {
+  if ( integrationId === Integrations_Enum.Airtable ) {
+    const { base_id } = authentication as AirtableAuthentication
     return `https://airtable.com/${base_id}`
-  } else if ( destination.integration_id === Integrations_Enum.Coda ) {
+  } else if ( integrationId === Integrations_Enum.Coda ) {
     return `https://coda.io`
-  } else if ( destination.integration_id === Integrations_Enum.Google ) {
-    const { spreadsheetId } = destination.authentication as GoogleSheetsCredentials;
+  } else if ( integrationId === Integrations_Enum.Google ) {
+    const { spreadsheetId } = authentication as GoogleSheetsAuthentication;
     return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=0`
-  } else if ( destination.integration_id === Integrations_Enum.Notion ) {
+  } else if ( integrationId === Integrations_Enum.Notion ) {
     return `https://notion.so`
   }
 }
 
-export const DestinationLink = ({ destination }: { destination: DestinationModel }) => {
-  const destinationLink = getLink(destination);
+export const DestinationLink = ({ authentication, integrationId }: DestinationLinkProps) => {
+  const destinationLink = getLink({ authentication, integrationId });
 
   return <IconButton 
     aria-label = "Go to destination"

@@ -58,13 +58,13 @@ export const triggerManualDestinationSync = (props: functionTypes.ManualDestinat
   client.post('/destination/manualSync', props)
   .then(response => response.data as functionTypes.ManualDestinationSyncResponse)
 
-export const checkDestinationCredentials = (props: functionTypes.CheckDestinationCredentialsPayload) =>
-  client.post('/destination/checkCredentials', props)
-  .then(response => response.data as functionTypes.CheckDestinationCredentialsResponse)
+export const validateDestinationAuthentication = (props: functionTypes.ValidateDestinationCredentialsPayload) =>
+  client.post('/destination/validateAuthentication', props)
+  .then(response => response.data as functionTypes.ValidateDestinationCredentialsResponse)
 
-export const checkDestinationTableConfig = (props: functionTypes.CheckDestinationTableConfigPayload) =>
-  client.post('/destination/checkTableConfig', props)
-  .then(response => response.data as functionTypes.CheckDestinationTableConfigResponse)
+export const validateDestinationTableConfigs = (props: functionTypes.ValidateDestinationTableConfigsPayload) =>
+  client.post('/destination/validateTableConfigs', props)
+  .then(response => response.data as functionTypes.ValidateDestinationTableConfigsResponse)
 
 export const getDestinationDefaultConfig = (props: functionTypes.GetDestinationTableDefaultConfigPayload) =>
   client.post('/destination/getDefaultConfig', props)
@@ -81,3 +81,15 @@ export const exchangeNotionToken = (props: functionTypes.ExchangeNotionTokenPayl
 export const createOauthCode = (props: functionTypes.CreateCodePayload) =>
   client.post('/oauth/createCode', props)
   .then(response => response.data as functionTypes.CreateCodeResponse)
+
+export const getAirtableAuthorizationUrl = (props: functionTypes.GetAirtableAuthorizationUrlPayload) =>
+  client.post('/airtable/getAuthorizationUrl', props)
+  .then(response => response.data as functionTypes.GetAirtableAuthorizationUrlResponse)
+
+export const exchangeAirtableToken = (props: functionTypes.ExchangeAirtableTokenPayload) =>
+  client.post('/airtable/exchangeToken', props)
+  .then(response => response.data as functionTypes.ExchangeAirtableTokenResponse)
+
+export const getAirtableBases = (props: functionTypes.GetAirtableBasesPayload) =>
+  client.post('/airtable/getBases', props)
+  .then(response => response.data as functionTypes.GetAirtableBasesResponse)

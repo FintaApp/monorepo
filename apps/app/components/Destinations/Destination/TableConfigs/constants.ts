@@ -1,242 +1,27 @@
-import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints"
-
 import { Integrations_Enum } from "~/graphql/frontend";
-import { InstitutionsTableFields, AccountsTableFields, CategoryTableFields, TransactionsTableFields, HoldingsTableFields, InvestmentTransactionsTableFields, SecurityTableFields, DestinationTableTypes } from "~/types/shared/models"
+import { InstitutionsTableFields, AccountsTableFields, CategoryTableFields, TransactionsTableFields, HoldingsTableFields, InvestmentTransactionsTableFields, SecurityTableFields, DestinationTableTypes, TableConfigFields, AirtableFieldType, NotionPropertyType, INSTITUTION_TABLE_FIELDS, ACCOUNTS_TABLE_FIELDS, TRANSACTIONS_TABLE_FIELDS, HOLDINGS_TABLE_FIELDS, CATEGORIES_TABLE_FIELDS, INVESTMENT_TRANSACTIONS_TABLE_FIELDS, SECURITIES_TABLE_FIELDS } from "~/types/shared/models"
 import { ToastStatusType } from "~/components/Toast";
-
-type NotionPropertyTypes = PropertyItemObjectResponse['type']
 
 export const ALWAYS_ENABLED_DATA_TYPES = [DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.SECURITIES, DestinationTableTypes.CATEGORIES];
 export const SUCCESS_TOAST_CONFIG = { status: 'success' as ToastStatusType, title: 'Table Configuraton Saved' };
 
-export const INSTITUTION_TABLE_FIELDS = [
-  {
-    field: InstitutionsTableFields.ID,
-    label: 'Institution ID',
-    is_required: true
-  }, {
-    field: InstitutionsTableFields.NAME,
-    label: 'Institution Name',
-    is_required: true
-  }, {
-    field: InstitutionsTableFields.LAST_UPDATE,
-    label: "Last Update",
-    is_required: true
-  }, {
-    field: InstitutionsTableFields.ERROR,
-    label: 'Error',
-    is_required: false
-  }
+
+
+export const CODA_DESTINATION_TABLES = [
+  DestinationTableTypes.TRANSACTIONS,
+  DestinationTableTypes.HOLDINGS,
+  DestinationTableTypes.INVESTMENT_TRANSACTIONS
 ]
 
-export const ACCOUNTS_TABLE_FIELDS = [
-  {
-    field: AccountsTableFields.INSTITUTION,
-    label: "Related Institution",
-    is_required: true
-  }, {
-    field: AccountsTableFields.ID,
-    label: "Account ID",
-    is_required: true
-  }, {
-    field: AccountsTableFields.NAME,
-    label: "Account Name",
-    is_required: true
-  }, {
-    field: AccountsTableFields.AVAILABLE,
-    label: "Available Balance",
-    is_required: false
-  }, {
-    field: AccountsTableFields.CURRENT,
-    label: "Current Balance",
-    is_required: false,
-  }, {
-    field: AccountsTableFields.CURRENCY,
-    label: "Account Currency",
-    is_required: false,
-  }, {
-    field: AccountsTableFields.MASK,
-    label: "Account Mask",
-    is_required: false
-  }, {
-    field: AccountsTableFields.TYPE,
-    label: "Account Type",
-    is_required: false
-  }, {
-    field: AccountsTableFields.SUBTYPE,
-    label: "Account Subtype",
-    is_required: false
-  }, {
-    field: AccountsTableFields.LIMIT,
-    label: "Account Limit",
-    is_required: false,
-  }
-]
-
-export const TRANSACTIONS_TABLE_FIELDS = [
-  {
-    field: TransactionsTableFields.ACCOUNT,
-    label: "Related Account",
-    is_required: true
-  }, {
-    field: TransactionsTableFields.ID,
-    label: "Transaction ID",
-    is_required: true
-  }, {
-    field: TransactionsTableFields.DATE,
-    label: "Transaction Date",
-    is_required: true
-  }, {
-    field: TransactionsTableFields.SUMMARY,
-    label: "Transaction Summary",
-    is_required: true
-  }, {
-    field: TransactionsTableFields.AMOUNT,
-    label: "Transaction Amount",
-    is_required: true
-  }, {
-    field: TransactionsTableFields.CURRENCY,
-    label: "Transaction Currency",
-    is_required: false
-  }, {
-    field: TransactionsTableFields.PENDING,
-    label: "Transaction Pending Status",
-    is_required: false
-  }, {
-    field: TransactionsTableFields.CATEGORY,
-    label: "Transaction Category",
-    is_required: false
-  }, {
-    field: TransactionsTableFields.SUB_ACCOUNT,
-    label: "Transaction Sub Account",
-    is_required: false
-  }
-]
-
-export const HOLDINGS_TABLE_FIELDS = [
-  {
-    field: HoldingsTableFields.ACCOUNT,
-    label: "Related Account",
-    is_required: true
-  }, {
-    field: HoldingsTableFields.SECURITY_ID,
-    label: "Related Security",
-    is_required: true
-  }, {
-    field: HoldingsTableFields.SUMMARY,
-    label: "Holding Summary",
-    is_required: true,
-    hideFor: [Integrations_Enum.Google]
-  }, {
-    field: HoldingsTableFields.QUANTITY,
-    label: "Holding Quantity",
-    is_required: true
-  }, {
-    field: HoldingsTableFields.COST_BASIS,
-    label: "Holding Cost Basis",
-    is_required: false
-  }, {
-    field: HoldingsTableFields.CURRENCY,
-    label: "Holding Base Currency",
-    is_required: false
-  }
-]
-
-export const INVESTMENT_TRANSACTIONS_TABLE_FIELDS = [
-  {
-    field: InvestmentTransactionsTableFields.ACCOUNT,
-    label: "Related Account",
-    is_required: true
-  }, {
-    field: InvestmentTransactionsTableFields.ID,
-    label: "Transaction ID",
-    is_required: true
-  }, {
-    field: InvestmentTransactionsTableFields.DATE,
-    label: "Transaction Date",
-    is_required: true
-  }, {
-    field: InvestmentTransactionsTableFields.QUANTITY,
-    label: "Transaction Quantity",
-    is_required: true
-  }, {
-    field: InvestmentTransactionsTableFields.PRICE,
-    label: "Security Price",
-    is_required: true
-  }, {
-    field: InvestmentTransactionsTableFields.AMOUNT,
-    label: "Transaction Amount",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.FEES,
-    label: "Transaction Fees",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.CURRENCY,
-    label: "Transaction Base Currency",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.SUMMARY,
-    label: "Transaction Summary",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.TYPE,
-    label: "Transaction Type",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.SUBTYPE,
-    label: "Transaction Subtype",
-    is_required: false
-  }, {
-    field: InvestmentTransactionsTableFields.SECURITY_ID,
-    label: "Related Security",
-    is_required: false
-  }
-]
-
-export const SECURITIES_TABLE_FIELDS = [
-  {
-    field: SecurityTableFields.ID,
-    label: "Security ID",
-    is_required: true
-  }, {
-    field: SecurityTableFields.SYMBOL,
-    label: "Security Symbol",
-    is_required: true
-  }, {
-    field: SecurityTableFields.NAME,
-    label: "Security Name",
-    is_required: false
-  }, {
-    field: SecurityTableFields.CLOSE_PRICE,
-    label: "Close Price",
-    is_required: false
-  }, {
-    field: SecurityTableFields.CLOSE_PRICE_AS_OF,
-    label: "Close Price As Of",
-    is_required: false
-  }, {
-    field: SecurityTableFields.TYPE,
-    label: "Security Type",
-    is_required: false
-  },
-]
-
-export const CATEGORIES_TABLE_FIELDS = [
-  {
-    field: CategoryTableFields.ID,
-    label: "Category ID",
-    is_required: true
-  }, {
-    field: CategoryTableFields.NAME,
-    label: "Category Name",
-    is_required: true
-  }, {
-    field: CategoryTableFields.CATEGORY_GROUP,
-    label: "Category Group",
-    is_required: false
-  }
-]
+export const ALL_DESTINATION_TABLES = [
+  { tableType: DestinationTableTypes.INSTITUTIONS, allFields: INSTITUTION_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.ACCOUNTS, allFields: ACCOUNTS_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.TRANSACTIONS, allFields: TRANSACTIONS_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.CATEGORIES, allFields: CATEGORIES_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.HOLDINGS, allFields: HOLDINGS_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.INVESTMENT_TRANSACTIONS, allFields: INVESTMENT_TRANSACTIONS_TABLE_FIELDS },
+  { tableType: DestinationTableTypes.SECURITIES, allFields: SECURITIES_TABLE_FIELDS },
+] as { tableType: DestinationTableTypes, allFields: { field: TableConfigFields, label: string, is_required: boolean; hideFor?: Integrations_Enum[]}[]}[]
 
 export const fieldHelperText = {
   notion: {
@@ -247,5 +32,19 @@ export const fieldHelperText = {
     'number': "Field must have the type: 'Number'",
     'select': "Field must have the type: 'Select'",
     'relation': "Field must have the type: 'Relation'"
+  },
+  airtable: {
+    'primary': "Field must be the primary field for the table",
+    'checkbox': "Field must have the type: 'Checkbox'",
+    'currency': "Field must have the type: 'Currency'",
+    'date': "Field must have the type: 'Date'",
+    'dateTime': "Field must have the type: 'DateTime'",
+    'multipleRecordLinks': "Field must have the type: 'Relation'",
+    'multilineText': "Field must have the type: 'Multiline Text'",
+    'multipleSelects': "Field must have the type: 'Multiple Selects'",
+    'number': "Field must have the type: 'Number'",
+    'richText': "Field must have the type: 'Rich Text'",
+    'singleLineText': "Field must have the type: 'Singleline Text'",
+    'singleSelect': "Field must have the type: 'Single Select'"
   }
-} as { notion: Record<NotionPropertyTypes, string>}
+} as { notion: Record<NotionPropertyType, string>, airtable: Record<AirtableFieldType, string>}

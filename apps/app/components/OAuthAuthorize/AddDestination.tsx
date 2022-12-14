@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import moment from "moment-timezone";
 
-import { Header as IntegrationHeader } from "~/components/Destinations/AddDestinationComponents/Header";
+import { Header as IntegrationHeader } from "~/components/Destinations/AddDestination/SetupDestination/Header";
 import {
   DestinationName,
   SyncStartDate,
@@ -18,7 +18,7 @@ import {
 import { DividerWithText } from "~/components/DividerWithText";
 import { createOauthCode } from "~/utils/frontend/functions";
 import { Integrations_Enum, useInsertDestinationMutation } from "~/graphql/frontend";
-import { TableConfigs as TableConfigsType, DestinationCredentials } from "~/types/shared/models";
+import { TableConfigs as TableConfigsType, DestinationAuthentication } from "~/types/shared/models";
 import { TableConfigs } from "~/components/Destinations/Destination/TableConfigs";
 
 import { IntegrationModel, OauthClientModel } from "~/types/frontend/models";
@@ -75,19 +75,14 @@ export const AddDestination = ({ oauthClient, state }: AddDestinationProps) => {
         <VStack>
           <VStack maxW = {{ base: "full", md: "3xl" }} spacing = "6">
             <IntegrationHeader integration = { oauthClient.integration as IntegrationModel } />
-            <DestinationName.Create value = { destinationName } onChange = { setDestinationName } />
+            <DestinationName value = { destinationName } onChange = { setDestinationName } />
             <SyncStartDate value = { syncStartDate } onChange = { setSyncStartDate } />
-            <DestinationAccounts 
-              selectedAccountIds = { connectedAccounts }
-              onChange = { setConnectedAccounts }
-              initiallySelectAll = { true }
-            />
+            <DestinationAccounts selectedAccountIds = { connectedAccounts } onChange = { setConnectedAccounts } />
 
             <DividerWithText text = "Table Configurations" />
             <TableConfigs 
               onChange = {setTableConfigs}
               tableConfigs = { tableConfigs }
-              credentials = {{} as DestinationCredentials}
               integrationId = { oauthClient.integration.id as Integrations_Enum }
             /> 
             <Text maxW = "4xl" fontSize = "sm" textAlign = "center">By clicking "Grant Access", you are allowing { oauthClient.name } to have access to the financial data of the accounts selected above. These settings can be changed at any time by visiting the Finta dashboard.</Text>

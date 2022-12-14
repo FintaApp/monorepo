@@ -166,6 +166,247 @@ export enum SyncUpdatesFrequency {
   Yearly = 'yearly'
 }
 
+/** Used to house Airtable access and refresh tokens for users */
+export type AirtableTokens = {
+  __typename?: 'airtableTokens';
+  accessToken: Scalars['String'];
+  accessTokenExpiresAt: Scalars['timestamptz'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  refreshToken: Scalars['String'];
+  refreshTokenExpiresAt: Scalars['timestamptz'];
+  refreshedAt: Scalars['timestamptz'];
+  scope: Scalars['String'];
+  tokenType: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "airtable_tokens" */
+export type AirtableTokens_Aggregate = {
+  __typename?: 'airtableTokens_aggregate';
+  aggregate?: Maybe<AirtableTokens_Aggregate_Fields>;
+  nodes: Array<AirtableTokens>;
+};
+
+/** aggregate fields of "airtable_tokens" */
+export type AirtableTokens_Aggregate_Fields = {
+  __typename?: 'airtableTokens_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AirtableTokens_Max_Fields>;
+  min?: Maybe<AirtableTokens_Min_Fields>;
+};
+
+
+/** aggregate fields of "airtable_tokens" */
+export type AirtableTokens_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "airtable_tokens". All fields are combined with a logical 'AND'. */
+export type AirtableTokens_Bool_Exp = {
+  _and?: InputMaybe<Array<AirtableTokens_Bool_Exp>>;
+  _not?: InputMaybe<AirtableTokens_Bool_Exp>;
+  _or?: InputMaybe<Array<AirtableTokens_Bool_Exp>>;
+  accessToken?: InputMaybe<String_Comparison_Exp>;
+  accessTokenExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshToken?: InputMaybe<String_Comparison_Exp>;
+  refreshTokenExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  refreshedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  scope?: InputMaybe<String_Comparison_Exp>;
+  tokenType?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "airtable_tokens" */
+export enum AirtableTokens_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AirtableTokensPkey = 'airtable_tokens_pkey'
+}
+
+/** input type for inserting data into table "airtable_tokens" */
+export type AirtableTokens_Insert_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AirtableTokens_Max_Fields = {
+  __typename?: 'airtableTokens_max_fields';
+  accessToken?: Maybe<Scalars['String']>;
+  accessTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  refreshToken?: Maybe<Scalars['String']>;
+  refreshTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  refreshedAt?: Maybe<Scalars['timestamptz']>;
+  scope?: Maybe<Scalars['String']>;
+  tokenType?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type AirtableTokens_Min_Fields = {
+  __typename?: 'airtableTokens_min_fields';
+  accessToken?: Maybe<Scalars['String']>;
+  accessTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  refreshToken?: Maybe<Scalars['String']>;
+  refreshTokenExpiresAt?: Maybe<Scalars['timestamptz']>;
+  refreshedAt?: Maybe<Scalars['timestamptz']>;
+  scope?: Maybe<Scalars['String']>;
+  tokenType?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "airtable_tokens" */
+export type AirtableTokens_Mutation_Response = {
+  __typename?: 'airtableTokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AirtableTokens>;
+};
+
+/** on_conflict condition type for table "airtable_tokens" */
+export type AirtableTokens_On_Conflict = {
+  constraint: AirtableTokens_Constraint;
+  update_columns?: Array<AirtableTokens_Update_Column>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "airtable_tokens". */
+export type AirtableTokens_Order_By = {
+  accessToken?: InputMaybe<Order_By>;
+  accessTokenExpiresAt?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  refreshToken?: InputMaybe<Order_By>;
+  refreshTokenExpiresAt?: InputMaybe<Order_By>;
+  refreshedAt?: InputMaybe<Order_By>;
+  scope?: InputMaybe<Order_By>;
+  tokenType?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: airtable_tokens */
+export type AirtableTokens_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "airtable_tokens" */
+export enum AirtableTokens_Select_Column {
+  /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
+  AccessTokenExpiresAt = 'accessTokenExpiresAt',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenExpiresAt = 'refreshTokenExpiresAt',
+  /** column name */
+  RefreshedAt = 'refreshedAt',
+  /** column name */
+  Scope = 'scope',
+  /** column name */
+  TokenType = 'tokenType',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "airtable_tokens" */
+export type AirtableTokens_Set_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "airtableTokens" */
+export type AirtableTokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AirtableTokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AirtableTokens_Stream_Cursor_Value_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  accessTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  refreshedAt?: InputMaybe<Scalars['timestamptz']>;
+  scope?: InputMaybe<Scalars['String']>;
+  tokenType?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "airtable_tokens" */
+export enum AirtableTokens_Update_Column {
+  /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
+  AccessTokenExpiresAt = 'accessTokenExpiresAt',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenExpiresAt = 'refreshTokenExpiresAt',
+  /** column name */
+  RefreshedAt = 'refreshedAt',
+  /** column name */
+  Scope = 'scope',
+  /** column name */
+  TokenType = 'tokenType',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AirtableTokens_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  where: AirtableTokens_Bool_Exp;
+};
+
 /** columns and relationships of "airtable_configs" */
 export type Airtable_Configs = {
   __typename?: 'airtable_configs';
@@ -4260,6 +4501,10 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** delete single row from the table: "airtable_tokens" */
+  deleteAirtableToken?: Maybe<AirtableTokens>;
+  /** delete data from the table: "airtable_tokens" */
+  deleteAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -4372,6 +4617,10 @@ export type Mutation_Root = {
   delete_sync_logs?: Maybe<Sync_Logs_Mutation_Response>;
   /** delete single row from the table: "sync_logs" */
   delete_sync_logs_by_pk?: Maybe<Sync_Logs>;
+  /** insert a single row into the table: "airtable_tokens" */
+  insertAirtableToken?: Maybe<AirtableTokens>;
+  /** insert data into the table: "airtable_tokens" */
+  insertAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -4484,6 +4733,10 @@ export type Mutation_Root = {
   insert_sync_logs?: Maybe<Sync_Logs_Mutation_Response>;
   /** insert a single row into the table: "sync_logs" */
   insert_sync_logs_one?: Maybe<Sync_Logs>;
+  /** update single row of the table: "airtable_tokens" */
+  updateAirtableToken?: Maybe<AirtableTokens>;
+  /** update data of the table: "airtable_tokens" */
+  updateAirtableTokens?: Maybe<AirtableTokens_Mutation_Response>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4536,6 +4789,8 @@ export type Mutation_Root = {
   updateUserProfiles?: Maybe<UserProfiles_Mutation_Response>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
+  /** update multiples rows of table: "airtable_tokens" */
+  update_airtableTokens_many?: Maybe<Array<Maybe<AirtableTokens_Mutation_Response>>>;
   /** update data of the table: "airtable_configs" */
   update_airtable_configs?: Maybe<Airtable_Configs_Mutation_Response>;
   /** update single row of the table: "airtable_configs" */
@@ -4652,6 +4907,18 @@ export type Mutation_Root = {
   update_userProfiles_many?: Maybe<Array<Maybe<UserProfiles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAirtableTokensArgs = {
+  where: AirtableTokens_Bool_Exp;
 };
 
 
@@ -4992,6 +5259,20 @@ export type Mutation_RootDelete_Sync_LogsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Sync_Logs_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAirtableTokenArgs = {
+  object: AirtableTokens_Insert_Input;
+  on_conflict?: InputMaybe<AirtableTokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAirtableTokensArgs = {
+  objects: Array<AirtableTokens_Insert_Input>;
+  on_conflict?: InputMaybe<AirtableTokens_On_Conflict>;
 };
 
 
@@ -5388,6 +5669,20 @@ export type Mutation_RootInsert_Sync_Logs_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateAirtableTokenArgs = {
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  pk_columns: AirtableTokens_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAirtableTokensArgs = {
+  _set?: InputMaybe<AirtableTokens_Set_Input>;
+  where: AirtableTokens_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
@@ -5592,6 +5887,12 @@ export type Mutation_RootUpdateUsersArgs = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AirtableTokens_ManyArgs = {
+  updates: Array<AirtableTokens_Updates>;
 };
 
 
@@ -7981,6 +8282,12 @@ export type Plaid_Items_Updates = {
 
 export type Query_Root = {
   __typename?: 'query_root';
+  /** fetch data from the table: "airtable_tokens" using primary key columns */
+  airtableToken?: Maybe<AirtableTokens>;
+  /** fetch data from the table: "airtable_tokens" */
+  airtableTokens: Array<AirtableTokens>;
+  /** fetch aggregated fields from the table: "airtable_tokens" */
+  airtableTokens_aggregate: AirtableTokens_Aggregate;
   /** fetch data from the table: "airtable_configs" */
   airtable_configs: Array<Airtable_Configs>;
   /** fetch aggregated fields from the table: "airtable_configs" */
@@ -8153,6 +8460,29 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+};
+
+
+export type Query_RootAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAirtableTokensArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Query_RootAirtableTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
 };
 
 
@@ -9178,6 +9508,14 @@ export type StripeWebhookEvents_Updates = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "airtable_tokens" using primary key columns */
+  airtableToken?: Maybe<AirtableTokens>;
+  /** fetch data from the table: "airtable_tokens" */
+  airtableTokens: Array<AirtableTokens>;
+  /** fetch aggregated fields from the table: "airtable_tokens" */
+  airtableTokens_aggregate: AirtableTokens_Aggregate;
+  /** fetch data from the table in a streaming manner: "airtable_tokens" */
+  airtableTokens_stream: Array<AirtableTokens>;
   /** fetch data from the table: "airtable_configs" */
   airtable_configs: Array<Airtable_Configs>;
   /** fetch aggregated fields from the table: "airtable_configs" */
@@ -9402,6 +9740,36 @@ export type Subscription_Root = {
   usersAggregate: Users_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
+};
+
+
+export type Subscription_RootAirtableTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAirtableTokensArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAirtableTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AirtableTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AirtableTokens_Order_By>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAirtableTokens_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AirtableTokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<AirtableTokens_Bool_Exp>;
 };
 
 
@@ -11562,6 +11930,32 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
+export type AllBackendAirtableTokenFieldsFragment = { __typename?: 'airtableTokens', id: any, createdAt: any, updatedAt: any, userId: any, accessToken: string, refreshToken: string, tokenType: string, scope: string, refreshedAt: any, accessTokenExpiresAt: any, refreshTokenExpiresAt: any };
+
+export type DbAirtableTokenFieldsFragment = { __typename?: 'airtableTokens', id: any, user_id: any };
+
+export type GetAirtableTokenQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetAirtableTokenQuery = { __typename?: 'query_root', airtableTokens: Array<{ __typename?: 'airtableTokens', id: any, createdAt: any, updatedAt: any, userId: any, accessToken: string, refreshToken: string, tokenType: string, scope: string, refreshedAt: any, accessTokenExpiresAt: any, refreshTokenExpiresAt: any }> };
+
+export type UpdateAirtableTokenMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  _set: AirtableTokens_Set_Input;
+}>;
+
+
+export type UpdateAirtableTokenMutation = { __typename?: 'mutation_root', airtableToken?: { __typename?: 'airtableTokens', id: any, createdAt: any, updatedAt: any, userId: any, accessToken: string, refreshToken: string, tokenType: string, scope: string, refreshedAt: any, accessTokenExpiresAt: any, refreshTokenExpiresAt: any } | null };
+
+export type InsertAirtableTokenMutationVariables = Exact<{
+  token: AirtableTokens_Insert_Input;
+}>;
+
+
+export type InsertAirtableTokenMutation = { __typename?: 'mutation_root', airtableToken?: { __typename?: 'airtableTokens', id: any, createdAt: any, updatedAt: any, userId: any, accessToken: string, refreshToken: string, tokenType: string, scope: string, refreshedAt: any, accessTokenExpiresAt: any, refreshTokenExpiresAt: any } | null };
+
 export type AllDestinationAccountFieldsFragment = { __typename: 'destination_accounts', account_id: string, destination_id: any };
 
 export type DeleteDestinationAccountsMutationVariables = Exact<{
@@ -11575,15 +11969,15 @@ export type DbDestinationFieldsFragment = { __typename?: 'destinations', id: any
 
 export type AllBackendIntegrationFieldsFragment = { __typename?: 'integrations', id: string, name: string };
 
-export type AllBackendDestinationFieldsFragment = { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null };
+export type AllBackendDestinationFieldsFragment = { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', timezone?: string | null, stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null };
 
 export type GetDestinationQueryVariables = Exact<{
-  destination_id: Scalars['uuid'];
+  destinationId: Scalars['uuid'];
   account_connections_where?: InputMaybe<Destination_Accounts_Bool_Exp>;
 }>;
 
 
-export type GetDestinationQuery = { __typename?: 'query_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
+export type GetDestinationQuery = { __typename?: 'query_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', timezone?: string | null, stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
 
 export type GetDestinationsQueryVariables = Exact<{
   where: Destinations_Bool_Exp;
@@ -11591,16 +11985,16 @@ export type GetDestinationsQueryVariables = Exact<{
 }>;
 
 
-export type GetDestinationsQuery = { __typename?: 'query_root', destinations: Array<{ __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null }> };
+export type GetDestinationsQuery = { __typename?: 'query_root', destinations: Array<{ __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', timezone?: string | null, stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null }> };
 
 export type UpdateDestinationMutationVariables = Exact<{
-  destination_id: Scalars['uuid'];
+  destinationId: Scalars['uuid'];
   _set: Destinations_Set_Input;
   account_connections_where?: InputMaybe<Destination_Accounts_Bool_Exp>;
 }>;
 
 
-export type UpdateDestinationMutation = { __typename?: 'mutation_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
+export type UpdateDestinationMutation = { __typename?: 'mutation_root', destination?: { __typename: 'destinations', id: any, name: string, authentication?: any | null, sync_start_date: string, should_sync_transactions: boolean, should_sync_investments: boolean, should_override_transaction_name: boolean, table_configs: any, integration: { __typename?: 'integrations', id: string, name: string }, account_connections: Array<{ __typename?: 'destination_accounts', account: { __typename?: 'plaidAccounts', id: string, plaid_item_id: string } }>, user: { __typename?: 'users', id: any, email?: any | null, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', timezone?: string | null, stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, subscription?: { __typename?: 'StripeSubscription', status: SubscriptionStatus } | null } } }, notion_connection?: { __typename?: 'notion_connections', access_token: string } | null } | null };
 
 export type AllNotionConnectionFieldsFragment = { __typename?: 'notion_connections', bot_id: string, access_token: string, workspace_id: string, workspace_name?: string | null, workspace_icon?: string | null };
 
@@ -11808,11 +12202,33 @@ export type UpdateUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
   _set?: InputMaybe<Users_Set_Input>;
   _append?: InputMaybe<Users_Append_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
 }>;
 
 
 export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
 
+export const AllBackendAirtableTokenFields = gql`
+    fragment AllBackendAirtableTokenFields on airtableTokens {
+  id
+  createdAt
+  updatedAt
+  userId
+  accessToken
+  refreshToken
+  tokenType
+  scope
+  refreshedAt
+  accessTokenExpiresAt
+  refreshTokenExpiresAt
+}
+    `;
+export const DbAirtableTokenFields = gql`
+    fragment DBAirtableTokenFields on airtableTokens {
+  id
+  user_id: userId
+}
+    `;
 export const AllDestinationAccountFields = gql`
     fragment AllDestinationAccountFields on destination_accounts {
   __typename
@@ -11857,6 +12273,7 @@ export const AllBackendDestinationFields = gql`
     email
     metadata
     profile {
+      timezone
       stripeData {
         hasAppAccess
         subscription {
@@ -12072,6 +12489,27 @@ export const AllBackendUserFields = gql`
   }
 }
     `;
+export const GetAirtableToken = gql`
+    query GetAirtableToken($userId: uuid!) {
+  airtableTokens(where: {userId: {_eq: $userId}}) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFields}`;
+export const UpdateAirtableToken = gql`
+    mutation UpdateAirtableToken($id: uuid!, $_set: airtableTokens_set_input!) {
+  airtableToken: updateAirtableToken(pk_columns: {id: $id}, _set: $_set) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFields}`;
+export const InsertAirtableToken = gql`
+    mutation InsertAirtableToken($token: airtableTokens_insert_input!) {
+  airtableToken: insertAirtableToken(object: $token) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFields}`;
 export const DeleteDestinationAccounts = gql`
     mutation DeleteDestinationAccounts($where: destination_accounts_bool_exp!) {
   delete_destination_accounts(where: $where) {
@@ -12080,8 +12518,8 @@ export const DeleteDestinationAccounts = gql`
 }
     `;
 export const GetDestination = gql`
-    query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
-  destination: destinations_by_pk(id: $destination_id) {
+    query GetDestination($destinationId: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: destinations_by_pk(id: $destinationId) {
     ...AllBackendDestinationFields
   }
 }
@@ -12094,9 +12532,9 @@ export const GetDestinations = gql`
 }
     ${AllBackendDestinationFields}`;
 export const UpdateDestination = gql`
-    mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
+    mutation UpdateDestination($destinationId: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
   destination: update_destinations_by_pk(
-    pk_columns: {id: $destination_id}
+    pk_columns: {id: $destinationId}
     _set: $_set
   ) {
     ...AllBackendDestinationFields
@@ -12328,12 +12766,38 @@ export const GetUser = gql`
 }
     ${AllBackendUserFields}`;
 export const UpdateUser = gql`
-    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}) {
-  updateUser(pk_columns: {id: $userId}, _set: $_set, _append: $_append) {
+    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}, $_delete_key: users_delete_key_input = {}) {
+  updateUser(
+    pk_columns: {id: $userId}
+    _set: $_set
+    _append: $_append
+    _delete_key: $_delete_key
+  ) {
     ...AllBackendUserFields
   }
 }
     ${AllBackendUserFields}`;
+export const AllBackendAirtableTokenFieldsFragmentDoc = gql`
+    fragment AllBackendAirtableTokenFields on airtableTokens {
+  id
+  createdAt
+  updatedAt
+  userId
+  accessToken
+  refreshToken
+  tokenType
+  scope
+  refreshedAt
+  accessTokenExpiresAt
+  refreshTokenExpiresAt
+}
+    `;
+export const DbAirtableTokenFieldsFragmentDoc = gql`
+    fragment DBAirtableTokenFields on airtableTokens {
+  id
+  user_id: userId
+}
+    `;
 export const AllDestinationAccountFieldsFragmentDoc = gql`
     fragment AllDestinationAccountFields on destination_accounts {
   __typename
@@ -12378,6 +12842,7 @@ export const AllBackendDestinationFieldsFragmentDoc = gql`
     email
     metadata
     profile {
+      timezone
       stripeData {
         hasAppAccess
         subscription {
@@ -12593,6 +13058,27 @@ export const AllBackendUserFieldsFragmentDoc = gql`
   }
 }
     `;
+export const GetAirtableTokenDocument = gql`
+    query GetAirtableToken($userId: uuid!) {
+  airtableTokens(where: {userId: {_eq: $userId}}) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFieldsFragmentDoc}`;
+export const UpdateAirtableTokenDocument = gql`
+    mutation UpdateAirtableToken($id: uuid!, $_set: airtableTokens_set_input!) {
+  airtableToken: updateAirtableToken(pk_columns: {id: $id}, _set: $_set) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFieldsFragmentDoc}`;
+export const InsertAirtableTokenDocument = gql`
+    mutation InsertAirtableToken($token: airtableTokens_insert_input!) {
+  airtableToken: insertAirtableToken(object: $token) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+    ${AllBackendAirtableTokenFieldsFragmentDoc}`;
 export const DeleteDestinationAccountsDocument = gql`
     mutation DeleteDestinationAccounts($where: destination_accounts_bool_exp!) {
   delete_destination_accounts(where: $where) {
@@ -12601,8 +13087,8 @@ export const DeleteDestinationAccountsDocument = gql`
 }
     `;
 export const GetDestinationDocument = gql`
-    query GetDestination($destination_id: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
-  destination: destinations_by_pk(id: $destination_id) {
+    query GetDestination($destinationId: uuid!, $account_connections_where: destination_accounts_bool_exp = {}) {
+  destination: destinations_by_pk(id: $destinationId) {
     ...AllBackendDestinationFields
   }
 }
@@ -12615,9 +13101,9 @@ export const GetDestinationsDocument = gql`
 }
     ${AllBackendDestinationFieldsFragmentDoc}`;
 export const UpdateDestinationDocument = gql`
-    mutation UpdateDestination($destination_id: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
+    mutation UpdateDestination($destinationId: uuid!, $_set: destinations_set_input!, $account_connections_where: destination_accounts_bool_exp = {}) {
   destination: update_destinations_by_pk(
-    pk_columns: {id: $destination_id}
+    pk_columns: {id: $destinationId}
     _set: $_set
   ) {
     ...AllBackendDestinationFields
@@ -12849,8 +13335,13 @@ export const GetUserDocument = gql`
 }
     ${AllBackendUserFieldsFragmentDoc}`;
 export const UpdateUserDocument = gql`
-    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}) {
-  updateUser(pk_columns: {id: $userId}, _set: $_set, _append: $_append) {
+    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}, $_delete_key: users_delete_key_input = {}) {
+  updateUser(
+    pk_columns: {id: $userId}
+    _set: $_set
+    _append: $_append
+    _delete_key: $_delete_key
+  ) {
     ...AllBackendUserFields
   }
 }
@@ -12863,6 +13354,15 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    GetAirtableToken(variables: GetAirtableTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetAirtableTokenQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetAirtableTokenQuery>(GetAirtableTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetAirtableToken', 'query');
+    },
+    UpdateAirtableToken(variables: UpdateAirtableTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateAirtableTokenMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAirtableTokenMutation>(UpdateAirtableTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateAirtableToken', 'mutation');
+    },
+    InsertAirtableToken(variables: InsertAirtableTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertAirtableTokenMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertAirtableTokenMutation>(InsertAirtableTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertAirtableToken', 'mutation');
+    },
     DeleteDestinationAccounts(variables: DeleteDestinationAccountsMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteDestinationAccountsMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteDestinationAccountsMutation>(DeleteDestinationAccountsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'DeleteDestinationAccounts', 'mutation');
     },

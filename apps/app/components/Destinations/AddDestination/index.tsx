@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import {
+import { useState, useEffect } from "react";
+import { 
   Button,
   Modal,
   ModalBody,
@@ -7,83 +7,60 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  SimpleGrid,
-  Text,
-  useDisclosure,
-  Tooltip
+  Tooltip,
+  useDisclosure 
 } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 
-import { IntegrationLogo } from "~/components/IntegrationLogo";
-import { LargeIconButton } from "~/components/LargeIconButton";
-import { IntegrationModel } from "~/types/frontend/models";
-
-import { AddDestinationModal } from "./AddDestinationModal";
-import { useGetIntegrationsQuery } from "~/graphql/frontend";
 import { useAuth } from "~/utils/frontend/useAuth";
+import { useLogger } from "~/utils/frontend/useLogger";
+
+import { SelectIntegration } from "./SelectIntegration";
+import { SetupDestination } from "./SetupDestination";
+import { IntegrationModel } from "~/types/frontend/models";
 
 export const AddDestination = () => {
   const { user } = useAuth();
-  const router = useRouter();
-  const { mode, integration } = router.query;
+  const logger = useLogger();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const { isOpen, onClose, onOpen } = useDisclosure();
   const [ selectedIntegration, setSelectedIntegration ] = useState(null as IntegrationModel | null);
-  const { data } = useGetIntegrationsQuery();
-  const integrations = useMemo(() => data?.integrations as IntegrationModel[] || [], [data]);
-  const onOpenIntegrationComponent = (integration: IntegrationModel) => {
-    onClose();
-    setSelectedIntegration(integration);
-  }
+  
+  useEffect(() => { isOpen && setSelectedIntegration(null); }, [ isOpen ]);
 
-  useEffect(() => {
-    if ( mode === 'setup' && !!integration ) {
-      setSelectedIntegration(integrations.find(i => i.id === integration) || null)
-    }
-  }, [ integrations, mode, integration ]);
+  const canAddDestination = user?.profile.stripeData.hasAppAccess
 
-  const onCloseIntegrationComponent = () => setSelectedIntegration(null);
-
-  const disableAddDestination = !user || !user.profile.stripeData.hasAppAccess;
   return (
     <>
-      <Tooltip shouldWrapChildren isDisabled = { !disableAddDestination } label = "Please reactivate your subscription on the settings page to add a new destination">
+      <Tooltip
+        isDisabled = { canAddDestination }
+        label = "Please activate your subscription on the settings page to add a new destination"
+      >
         <Button
           variant = "primary"
           onClick = { onOpen }
-          isDisabled = { disableAddDestination }
+          isDisabled = { !canAddDestination }
         >Add Destination</Button>
       </Tooltip>
 
-      <Modal isOpen = { isOpen } onClose = { onClose } size = "2xl">
+      <Modal
+        isOpen = { isOpen }
+        onClose = { onClose }
+        variant = { selectedIntegration ? 'fullscreen' : 'unset' }
+        size = { selectedIntegration ? 'unset' : '2xl' }
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Add Destination</ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb = "4">
-            <Text mb = "2">Send your financial data to any of these integrations.</Text>
-            <SimpleGrid spacing = "2" columns = {{ base: 1, sm: 2 }}>
-              { integrations
-                .map(integration => (
-                  <LargeIconButton 
-                    key = { integration.id }
-                    label = { integration.name }
-                    Icon = { () => <IntegrationLogo width = {{ base: '40px', sm: '50px' }} height = "auto" integration = { integration } />}
-                    onClick = { () => onOpenIntegrationComponent(integration) }
-                    description = ""
-                    size = "sm"
-                  />
-              ))}
-            </SimpleGrid>
+
+          <ModalBody>
+            { selectedIntegration 
+              ? <SetupDestination onClose = { onClose } integration = { selectedIntegration } onBack = { () => setSelectedIntegration(null) } /> 
+              : <SelectIntegration onSelectIntegration = { setSelectedIntegration } />
+            }
           </ModalBody>
         </ModalContent>
       </Modal>
-
-      <AddDestinationModal
-        integration = { selectedIntegration }
-        onBack = { () => { onCloseIntegrationComponent(); onOpen(); } }
-        onClose = { onCloseIntegrationComponent }
-      />
     </>
   )
 }

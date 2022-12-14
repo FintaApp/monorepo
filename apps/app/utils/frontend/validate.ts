@@ -1,4 +1,5 @@
-import { TableConfigs, DestinationTableTypes, DestinationErrorCode, TableConfig, TableConfigFields } from "~/types/shared/models";
+import { Integrations_Enum } from "~/graphql/frontend";
+import { TableConfigs, DestinationTableTypes, DestinationErrorCode, TableConfig, TableConfigFields, GoogleSheetsAuthentication, NotionAuthentication, DestinationAuthentication, AirtableAuthentication } from "~/types/shared/models";
 
 export enum TableConfigErrorCode {
   DUPLICATE_TABLE = 'duplicate_table',
@@ -17,7 +18,13 @@ export type TableConfigErrorType = {
 
 export function password(password: string): boolean { return password.length >= 8 };
 
-export function tableConfigs(tableConfigs: TableConfigs): TableConfigErrorType[] {
+export function isDestinationAuthenticationFrontendValid({ integrationId, authentication = {} }: { integrationId: Integrations_Enum, authentication?: DestinationAuthentication | {} }) {
+  if ( integrationId === Integrations_Enum.Google ) { return (authentication as GoogleSheetsAuthentication).spreadsheetId?.length > 0 }
+  if ( integrationId === Integrations_Enum.Airtable ) { return (authentication as AirtableAuthentication).base_id?.length > 0 }
+  if ( integrationId === Integrations_Enum.Notion ) { return (authentication as NotionAuthentication).access_token?.length > 0 }
+}
+
+export function isDestinationTableConfigsFrontendValid({ tableConfigs }: { tableConfigs: TableConfigs }): TableConfigErrorType[] {
   let errors = [] as TableConfigErrorType[];
 
   const enabledTableConfigs = Object.entries(tableConfigs).filter(([_, config]) => config.is_enabled) as [DestinationTableTypes, TableConfig][];

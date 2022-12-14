@@ -3,16 +3,21 @@ import { Button, Stack } from "@chakra-ui/react";
 import { Cross1Icon, CheckIcon } from "@radix-ui/react-icons";
 
 import { NotionConnection } from "~/components/NotionConnection";
-import {NotionCredentials, DestinationErrorCode } from "~/types/shared/models";
-import { DestinationModel } from "~/types/frontend";
-import { checkDestinationCredentials } from "~/utils/frontend/functions";
+import { NotionAuthentication, DestinationErrorCode } from "~/types/shared/models";
+import { validateDestinationAuthentication } from "~/utils/frontend/functions";
 import { useToast } from "~/utils//frontend/useToast";
 import { Integrations_Enum, useUpdateDestinationMutation } from "~/graphql/frontend";
 
-export const Notion = ({ destination }: { destination: DestinationModel }) => {
+interface NotionProps {
+  destinationId?: string; 
+  authentication: NotionAuthentication;
+  errorMessage?: string;
+  onChange?: (newAuthentication: NotionAuthentication) => void;
+}
+
+export const Notion = ({ destinationId, authentication, errorMessage, onChange: onChangeProp }: NotionProps) => {
   const [ isCheckLoading, setIsCheckLoading ] = useState(false);
-  const credentials = destination.authentication as NotionCredentials;
-  const [ newCredentials, setNewCredentials ] = useState(credentials);
+  const [ newAuthentication, setNewAuthentication ] = useState(authentication);
   const [ error, setError ] = useState({ field: "", message: "" });
   const renderToast = useToast();
   const [ updateDestination, { loading: isUpdateLoading } ] = useUpdateDestinationMutation()
@@ -21,15 +26,10 @@ export const Notion = ({ destination }: { destination: DestinationModel }) => {
     setError({ field: "", message: "" });
     setIsCheckLoading(true);
 
-    checkDestinationCredentials({ integrationId: Integrations_Enum.Notion, credentials: newCredentials })
+    validateDestinationAuthentication({ integrationId: Integrations_Enum.Notion, authentication: newAuthentication })
     .then(({ isValid, errorCode }) => {
       if ( isValid ) {
-        updateDestination({
-          variables: {
-            destination_id: destination.id,
-            _set: { authentication: newCredentials, notion_connection_id: newCredentials.bot_id }
-          }
-        })
+        updateDestination({ variables: { destinationId, _set: { authentication: newAuthentication, notion_connection_id: newAuthentication.bot_id }}})
         .then(() => {
           renderToast({
             title: "Notion Workspace Updated",
@@ -47,15 +47,18 @@ export const Notion = ({ destination }: { destination: DestinationModel }) => {
     .finally(() => setIsCheckLoading(false))
   }
 
-  const onCancel = () => setNewCredentials(credentials);
+  const onCancel = () => setNewAuthentication(authentication);
 
-  const onChange = (item: any) => setNewCredentials({ bot_id: item.value, access_token: item.access_token })
+  const onChange = (item: any) => {
+    onChangeProp && onChangeProp({ bot_id: item.value, access_token: item.access_token })
+    setNewAuthentication({ bot_id: item.value, access_token: item.access_token })
+  }
 
   return (
     <Stack direction = 'column' spacing = '2' mt = '2'>
-      <NotionConnection notionConnectionId = { newCredentials.bot_id } onChange = { onChange } isInvalid = { !!error.message } errorMessage = { error.message } />
+      <NotionConnection notionConnectionId = { newAuthentication.bot_id } onChange = { onChange } isInvalid = { !!error.message || !!errorMessage } errorMessage = { error.message || errorMessage} />
 
-      { credentials.bot_id !== newCredentials.bot_id && (
+      { authentication.bot_id !== newAuthentication.bot_id && !!destinationId && (
         <Stack justifyContent = {{ base: 'stretch', md: 'flex-end' }} spacing = '1' direction = {{ base: 'column-reverse', md: 'row' }} width = 'full'>
           <Button leftIcon = {<Cross1Icon /> } onClick = { onCancel }>Cancel</Button>
           <Button 

@@ -245,6 +245,15 @@ export class Logger {
     })
   }
 
+  async logAirtableTokenAdded({ userId }: { userId: string }) {
+    return this.logsnagPublish({
+      channel: LogSnagChannel.ACTIVITY,
+      event: LogSnagEvent.AIRTABLE_TOKEN_ADDED,
+      icon: '🗺',
+      tags: { [LogSnagTag.USER_ID]: userId }
+    })
+  }
+
   async logDestinationCreated({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) {
     return this.logsnagPublish({
       channel: LogSnagChannel.ACTIVITY,

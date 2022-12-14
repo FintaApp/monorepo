@@ -34,17 +34,21 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, asAdmin,
   ({ success, hasUnhandledError } = await Promise.all(filteredDestinations.map(async destination => {
     const destinationAccounts = destination.account_connections.map(ac => ac.account.id);
 
-    const Destination = getDestinationObject({ destination })!;
+    const Destination = getDestinationObject({ userId: destination.user.id, integrationId: destination.integration.id, authentication: destination.authentication, logger })!;
     await Destination.init();
-    const destinationCheck = await Destination.validate({ tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.HOLDINGS, DestinationTableTypes.SECURITIES ] });
+    
+    const destinationCheck = await Destination.validate({ tableConfigs: destination.table_configs, tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.HOLDINGS, DestinationTableTypes.SECURITIES ] });
 
     if ( destinationCheck.isValid ) {
-      await Destination.load();
+      await Destination.load({ tableTypes: [
+        DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.HOLDINGS, DestinationTableTypes.SECURITIES
+      ], tableConfigs: destination.table_configs });
       const results = await Destination.syncData({
         item,
         accounts: accounts.filter(account => destinationAccounts.includes(account.account_id)),
         holdings: holdings.filter(holding => destinationAccounts.includes(holding.account_id)),
-        securities
+        securities,
+        timezone: destination.user.profile.timezone
       })
 
       return graphql.InsertDestinationSyncLog({

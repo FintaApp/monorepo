@@ -10,9 +10,8 @@ import { RepeatIcon } from "@chakra-ui/icons";
 import { triggerManualDestinationSync } from "~/utils/frontend/functions";
 import { useToast } from "~/utils/frontend/useToast";
 import moment from "moment-timezone";
-import { DestinationModel } from "~/types/frontend/models";
 
-export const RefreshDestination = ({ destination }: { destination: DestinationModel }) => {
+export const RefreshDestination = ({ destinationId, syncStartDate }: { destinationId: string; syncStartDate: string }) => {
   const toast = useToast();
   const [ isRefreshing, toggleIsRefreshing ] = useState(false);
 
@@ -23,7 +22,7 @@ export const RefreshDestination = ({ destination }: { destination: DestinationMo
       status: "info"
     })
 
-    triggerManualDestinationSync({ destinationId: destination.id, startDate: destination.sync_start_date, endDate: moment.utc().format("YYYY-MM-DD") })
+    triggerManualDestinationSync({ destinationId, startDate: syncStartDate, endDate: moment.utc().format("YYYY-MM-DD") })
     .then(({ has_error }) => {
       toggleIsRefreshing(false);      
       if ( has_error ) {

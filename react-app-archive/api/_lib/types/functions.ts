@@ -94,9 +94,6 @@ export type CreateCheckoutPortalSessionResponse = CustomResponse<shared.CreateCh
 export type CheckDestinationCredentialsRequest = CustomRequest<shared.CheckDestinationCredentialsPayload<Integrations_Enum>>;
 export type CheckDestinationCredentialsResponse = CustomResponse<shared.CheckDestinationCredentialsResponse>;
 
-export type CheckDestinationTableConfigRequest = CustomRequest<shared.CheckDestinationTableConfigPayload<Integrations_Enum>>;
-export type CheckDestinationTableConfigResponse = CustomResponse<shared.CheckDestinationTableConfigResponse>;
-
 export type GetDestinationTableDefaultConfigRequest = CustomRequest<shared.GetDestinationTableDefaultConfigPayload<Integrations_Enum>>;
 export type GetDestinationTableDefaultConfigResponse = CustomResponse<shared.GetDestinationTableDefaultConfigResponse>;
 

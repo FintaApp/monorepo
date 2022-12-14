@@ -14,6 +14,7 @@ export enum LogSnagChannel {
 }
 
 export enum LogSnagEvent {
+  AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
   USER_SIGNED_UP = "User Signed Up",
   USER_DELETED = "User Deleted",
   DESTINATION_CREATED = "Destination Created",

@@ -50,6 +50,7 @@
     "react-dom": "latest",
     "react-icons": "^4.7.1",
     "react-plaid-link": "^3.3.2",
+    "react-query": "^3.39.2",
     "react-select": "^5.7.0",
     "stripe": "^11.3.0",
     "winston": "^3.8.2"
@@ -62,6 +63,7 @@
     "@graphql-codegen/typescript-graphql-request": "^4.5.8",
     "@graphql-codegen/typescript-operations": "^2.5.10",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
+    "@types/google-spreadsheet": "^3.3.0",
     "@types/lodash": "^4.14.191",
     "@types/node": "^17.0.38",
     "@types/react": "^18.0.26",

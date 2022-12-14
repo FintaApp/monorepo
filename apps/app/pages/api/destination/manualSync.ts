@@ -11,10 +11,11 @@ import * as plaid from "~/utils/backend/plaid";
 import * as segment from "~/utils/backend/analytics";
 import { getItemActiveAccounts } from "~/utils/backend/getItemActiveAccounts";
 import { DestinationModel } from "~/types/backend/models";
+import { ManualDestinationSyncPayload } from "~/types/shared/functions";
 
 export default wrapper('client', async function handler({ req, user, logger }) {
-  const { destinationId, startDate, endDate } = req.body;
-  const destination = await graphql.GetDestination({ destination_id: destinationId }).then(response => response.destination as DestinationModel);
+  const { destinationId, startDate, endDate } = req.body as ManualDestinationSyncPayload;
+  const destination = await graphql.GetDestination({ destinationId }).then(response => response.destination as DestinationModel);
   if ( !destination ) { return { status: 404, message: "Destination not found" }}
 
   const newSyncStartDate = moment.min(moment(startDate), moment(destination.sync_start_date)).format("YYYY-MM-DD");
@@ -26,10 +27,11 @@ export default wrapper('client', async function handler({ req, user, logger }) {
     include_removed_transactions: true,
     date: newSyncStartDate
   }).then(response => response.plaidItems.filter(item => item.error !== 'ITEM_LOGIN_REQUIRED'))
+  logger.info("Available Plaid Items", { count: plaidItems })
   // Can't use _neq in filter because field is nullable
 
   if ( destination.integration.id === Integrations_Enum.Coda || plaidItems.length === 0 ) {
-    await graphql.UpdateDestination({ destination_id: destination.id, _set: { sync_start_date: newSyncStartDate }});
+    await graphql.UpdateDestination({ destinationId, _set: { sync_start_date: newSyncStartDate }});
     return { status: 200, message: { sync_start_date: newSyncStartDate } }
   }
 
@@ -42,12 +44,13 @@ export default wrapper('client', async function handler({ req, user, logger }) {
   let syncLogError: { error_code: 'internal_error' } | undefined
   let destinationLogError = undefined as DestinationError;
 
-  const Destination = getDestinationObject({ destination })!;
+  const Destination = getDestinationObject({ userId: user.id, integrationId: destination.integration.id, logger, authentication: destination.authentication })!;
   await Destination.init();
-
-  const tableTypes = getDestinationTableTypes({ destination });
-  const destinationCheck = await Destination.validate({ tableTypes });
   
+  const tableTypes = getDestinationTableTypes({ destination });
+  const destinationCheck = await Destination.validate({ tableTypes, tableConfigs: destination.table_configs });
+  logger.info("Destination check complete", { destinationCheck });
+
   if ( !destinationCheck.isValid ) {
     Promise.all([
       logger.logDestinationErrorTriggered({
@@ -71,9 +74,9 @@ export default wrapper('client', async function handler({ req, user, logger }) {
   }
 
   if ( destinationCheck.isValid ) {
-    await Destination.load();
     ({ success, hasUnhandledError } = await Promise.all(plaidItems.map(async item => {
       const getItemActiveAccountsResponse = await getItemActiveAccounts(item, logger);
+      logger.info("Retrieved item active accounts", { plaidItemId: item.id, response: getItemActiveAccountsResponse })
       if ( item.error === 'ITEM_LOGIN_REQUIRED' || getItemActiveAccountsResponse.hasAuthError ) {
         return graphql.InsertPlaidItemSyncLog({
           plaid_item_sync_log: {
@@ -86,8 +89,13 @@ export default wrapper('client', async function handler({ req, user, logger }) {
       }
   
       const accountIds = getItemActiveAccountsResponse.accountIds.filter(accountId => destination.account_connections.map(ac => ac.account.id).includes(accountId));
+      logger.info("Total account ids", { plaidItemId: item.id, count: accountIds.length })
       if ( accountIds.length === 0 ) { return ({ success: true })};
       
+      await Destination.load({ tableTypes: [
+        DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.TRANSACTIONS, DestinationTableTypes.CATEGORIES, 
+        DestinationTableTypes.INVESTMENT_TRANSACTIONS, DestinationTableTypes.HOLDINGS, DestinationTableTypes.SECURITIES
+      ], tableConfigs: destination.table_configs });
       const { accounts, transactions, categories, removedTransactions, holdings, investmentTransactions, securities } = await getPlaidData({ item, accountIds, tableTypes, startDate: newSyncStartDate, endDate })
       const results = await Destination.syncData({
         item,
@@ -97,8 +105,11 @@ export default wrapper('client', async function handler({ req, user, logger }) {
         holdings,
         investmentTransactions,
         securities,
-        categories
+        categories,
+        timezone: destination.user.profile.timezone,
+        shouldOverrideTransactionName: destination.should_override_transaction_name
       });
+      logger.info("Sync results", { results, plaidItemId: item.id })
 
       return graphql.InsertPlaidItemSyncLog({
         plaid_item_sync_log: {
@@ -143,12 +154,12 @@ export default wrapper('client', async function handler({ req, user, logger }) {
       institutionsSynced: plaidItems.length,
       syncLogId: syncLog.id,
       destinationId: destination.id,
-      error: destinationLogError.errorCode
+      error: destinationLogError?.errorCode
     })
   ]);
 
   if ( success ) {
-    await graphql.UpdateDestination({ destination_id: destination.id, _set: { sync_start_date: newSyncStartDate }})
+    await graphql.UpdateDestination({ destinationId, _set: { sync_start_date: newSyncStartDate }})
   }
 
   if ( success ) {

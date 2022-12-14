@@ -1,22 +1,29 @@
 import { Integrations_Enum } from "~/graphql/frontend";
-import { DestinationModel } from "~/types/frontend";
 
-import { AirtableAuthentication } from "./AirtableAuthentication";
+import { Airtable } from "./Airtable";
 import { Google } from "./Google";
 import { Notion } from "./Notion";
+import { DestinationAuthentication as DestinationAuthenticationType, AirtableAuthentication, GoogleSheetsAuthentication, NotionAuthentication } from "~/types/shared/models";
 
-export const DestinationAuthentication = ({ destination }: { destination: DestinationModel }) => {
-  const integrationId = destination.integration_id;
+interface DestinationAuthenticationProps { 
+  integrationId: Integrations_Enum; 
+  destinationId?: string; 
+  authentication: DestinationAuthenticationType; 
+  onChange?: (newAuthentication: DestinationAuthenticationType) => void; 
+  errorMessage?: string;
+}
+
+export const DestinationAuthentication = ({ destinationId, authentication, integrationId, onChange, errorMessage }: DestinationAuthenticationProps) => {
   if ( integrationId === Integrations_Enum.Airtable ) {
-    return <AirtableAuthentication destination = { destination } />
+    return <Airtable destinationId = { destinationId } authentication = { authentication as AirtableAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
   }
 
   if ( integrationId === Integrations_Enum.Google ) {
-    return <Google destination = { destination } />
+    return <Google destinationId = { destinationId } authentication = { authentication as GoogleSheetsAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
   }
 
   if ( integrationId === Integrations_Enum.Notion ) {
-    return <Notion destination = { destination } />
+    return <Notion destinationId = { destinationId } authentication = { authentication as NotionAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
   }
   
   return <></>;

@@ -19,7 +19,7 @@ export const NotionConnection = ({ notionConnectionId, isInvalid, errorMessage, 
     startPolling(1000)
     const refreshToken = nhost.auth.getSession()?.refreshToken!;
     const data = {
-      client_id: process.env.REACT_APP_NOTION_OAUTH_CLIENT_ID!,
+      client_id: process.env.NEXT_PUBLIC_NOTION_OAUTH_CLIENT_ID!,
       redirect_uri: `${window.location.origin}/auth/notion`,
       response_type: 'code',
       owner: 'user',

@@ -68,18 +68,23 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
   ({ success, hasUnhandledError } = await Promise.all(filteredDestinations.map(async destination => {
     const destinationAccounts = destination.account_connections.map(ac => ac.account.id);
 
-    const Destination = getDestinationObject({ destination })!;
+    const Destination = getDestinationObject({ userId: destination.user.id, integrationId: destination.integration.id, authentication: destination.authentication, logger })!;
     await Destination.init();
-    const destinationCheck = await Destination.validate({ tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.TRANSACTIONS] });
+    
+    const destinationCheck = await Destination.validate({ tableConfigs: destination.table_configs, tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.TRANSACTIONS] });
 
     if ( destinationCheck.isValid ) {
-      await Destination.load();
+      await Destination.load({ tableTypes: [
+        DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.TRANSACTIONS, DestinationTableTypes.CATEGORIES
+      ], tableConfigs: destination.table_configs });
       const results = await Destination.syncData({
         item,
         accounts: accounts.filter(account => destinationAccounts.includes(account.account_id)),
         transactions: transactions.filter(transaction => destinationAccounts.includes(transaction.account_id) && transaction.date >= destination.sync_start_date),
         removedTransactions: removed as string[],
-        categories
+        categories,
+        timezone: destination.user.profile.timezone,
+        shouldOverrideTransactionName: destination.should_override_transaction_name
       });
 
       return graphql.InsertDestinationSyncLog({

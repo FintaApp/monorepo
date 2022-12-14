@@ -7,6 +7,7 @@
 - "!include auth_user_security_keys.yaml"
 - "!include auth_users.yaml"
 - "!include public_airtable_configs.yaml"
+- "!include public_airtable_tokens.yaml"
 - "!include public_coda_configs.yaml"
 - "!include public_destination_accounts.yaml"
 - "!include public_destination_sync_logs.yaml"

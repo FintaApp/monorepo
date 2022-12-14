@@ -38,17 +38,21 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
   ({ success, hasUnhandledError } = await Promise.all(filteredDestinations.map(async destination => {
     const destinationAccounts = destination.account_connections.map(ac => ac.account.id);
 
-    const Destination = getDestinationObject({ destination })!;
+    const Destination = getDestinationObject({ userId: destination.user.id, integrationId: destination.integration.id, authentication: destination.authentication, logger })!;
     await Destination.init();
-    const destinationCheck = await Destination.validate({ tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.INVESTMENT_TRANSACTIONS, DestinationTableTypes.SECURITIES ] });
+    
+    const destinationCheck = await Destination.validate({ tableConfigs: destination.table_configs, tableTypes: [DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.INVESTMENT_TRANSACTIONS, DestinationTableTypes.SECURITIES ] });
 
     if ( destinationCheck.isValid ) {
-      await Destination.load();
+      await Destination.load({ tableTypes: [
+        DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.INVESTMENT_TRANSACTIONS, DestinationTableTypes.SECURITIES
+      ], tableConfigs: destination.table_configs });
       const results = await Destination.syncData({
         item,
         accounts: accounts.filter(account => destinationAccounts.includes(account.account_id)),
         investmentTransactions: investmentTransactions.filter(transaction => destinationAccounts.includes(transaction.account_id) && transaction.date >= destination.sync_start_date),
-        securities
+        securities,
+        timezone: destination.user.profile.timezone
       })
 
       return graphql.InsertDestinationSyncLog({
