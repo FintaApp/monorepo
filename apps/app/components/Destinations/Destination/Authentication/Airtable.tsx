@@ -34,7 +34,7 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
   const hasToken = airtableTokenData?.airtableTokens.length === 1;
 
   const { isLoading: isBasesQueryLoading } = useQuery('getAirtableBases', () => getAirtableBases({})
-    .then(response => setBases(response.bases)), { enabled: hasToken && !bases })
+    .then(response => setBases(response.bases)), { enabled: hasToken })
 
   const getAuthorizationUrl = () => {
     setIsLoading(true);
