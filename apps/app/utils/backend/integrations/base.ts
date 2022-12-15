@@ -171,19 +171,44 @@ export class IntegrationBase {
   async syncData({ item, accounts, transactions, holdings, securities, investmentTransactions, removedTransactions, categories, shouldOverrideTransactionName, timezone }: SyncDataFuncProps): Promise<SyncDataFuncResponse> {
     // Upsert Institution
     const institutionRecord = await this.upsertItem({ item });
+    this.logger.info("Institution record upserted", { record: institutionRecord })
 
     // Upsert Accounts, Securities, and Categories
     const [{ records: accountRecords, results: accountResults }, categoryRecords, securityRecords ] = await Promise.all([
-      this.upsertAccounts({ accounts, institutionRecord }),
-      this.upsertCategories({ categories }),
+      this.upsertAccounts({ accounts, institutionRecord })
+        .then(response => {
+          this.logger.info("Account records upserted", { records: response.records, results: response.results });
+          return response;
+        }),
+      this.upsertCategories({ categories })
+        .then(response => {
+          this.logger.info("Categories records upserted", { records: response });
+          return response;
+        }),
       this.upsertSecurities({ securities })
+        .then(response => {
+          this.logger.info("Securities records upserted", { records: response });
+          return response;
+        })
     ])
 
     // Upsert Transactions, Holdings, and Investment Transactions
     const [ transactionResults, holdingsResults, investmentTransactionResults ] = await Promise.all([
-      this.upsertTransaction({ transactions, removedTransactions, accountRecords, categoryRecords, shouldOverrideTransactionName }),
-      this.upsertHoldings({ holdings, securityRecords, accountRecords }),
+      this.upsertTransaction({ transactions, removedTransactions, accountRecords, categoryRecords, shouldOverrideTransactionName })
+        .then(response => {
+          this.logger.info("Transaction records upserted", { results: response });
+          return response;
+        }),
+      this.upsertHoldings({ holdings, securityRecords, accountRecords })
+        .then(response => {
+          this.logger.info("Holdings records upserted", { results: response });
+          return response;
+        }),
       this.upsertInvestmentTransactions({ investmentTransactions, accountRecords, securityRecords })
+        .then(response => {
+          this.logger.info("Investment transactions upserted", { results: response });
+          return response;
+        })
     ])
 
     // Update Last Update timestamp for Institution
@@ -195,6 +220,8 @@ export class IntegrationBase {
       }],
       tableConfigFields: this.config.institutions.fields
     })
+
+    this.logger.info("Institution record updated");
 
     return {
       accounts: accountResults,

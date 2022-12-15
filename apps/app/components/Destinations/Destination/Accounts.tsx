@@ -42,7 +42,7 @@ export const DestinationAccounts = ({ destinationId, selectedAccountIds, onChang
 
     if ( destinationId ) {
       if ( action === 'add' ) {
-        const destination_accounts = accountIds.map(accountId => ({ destinationId, account_id: accountId }));
+        const destination_accounts = accountIds.map(accountId => ({ destination_id: destinationId, account_id: accountId }));
         await createDestinationAccountsMutation({ variables: { destination_accounts }})
       }
 
