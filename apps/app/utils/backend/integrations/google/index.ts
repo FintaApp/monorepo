@@ -40,7 +40,7 @@ export class Google extends IntegrationBase {
       return { isValid: false, errorCode: DestinationErrorCode.TEMPLATE_DESTINATION, message: "You cannot setup a destination with the template's spreadsheet ID" }
     }
 
-    this.sheets.spreadsheets.get({ spreadsheetId })
+    return this.sheets.spreadsheets.get({ spreadsheetId })
       .then(async response => {
         this.logger.info("Get spreadsheet response", { response: response.data });
         return this.drive.permissions.list({ fileId: spreadsheetId, supportsAllDrives: true })
