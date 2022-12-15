@@ -144,8 +144,9 @@ export class Airtable extends IntegrationBase {
 
   async queryTable({ tableId, tableConfigFields }: { tableId: string; tableConfigFields: { field: TableConfigFields; field_id: string; }[]; }): Promise<IntegrationRecord[]> {
     const returnFieldsByFieldId = tableConfigFields.filter(field => !field.field_id.startsWith('fld')).length === 0;
+    const params = returnFieldsByFieldId ? { returnFieldsByFieldId } : {}
     this.logger.info("Querying table", { returnFieldsByFieldId })
-    const records = await this.base(tableId).select({ returnFieldsByFieldId }).all()
+    const records = await this.base(tableId).select(params).all()
     return records.map(record => ({ 
       id: record.id, 
       object: record, 
@@ -155,12 +156,13 @@ export class Airtable extends IntegrationBase {
 
   async createRecords({ tableId, data, tableConfigFields }: { tableId: string; data: Record<string, any>[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> {
     const returnFieldsByFieldId = tableConfigFields.filter(field => !field.field_id.startsWith('fld')).length === 0;
+    const params = returnFieldsByFieldId ? { typecast: true, returnFieldsByFieldId } : { typecast: true }
     if ( data.length === 0 ) { return [] };
     return Promise.all(
       _.chunk(data, 10)
         .map(async dataChunk => {
           // @ts-ignore
-          return this.base(tableId).create(dataChunk.map(fields => ({ fields })), { typecast: true, returnFieldsByFieldId })
+          return this.base(tableId).create(dataChunk.map(fields => ({ fields })), params)
             .then(records => records.map(record => ({ id: record.id, object: record, properties: parseRecordProperties({ record, tableConfigFields })})))
         })
     )
