@@ -15,12 +15,13 @@ const OauthAuthorize = () => {
   const hasActiveSubscription = !!user?.profile.stripeData.hasAppAccess;
 
   const { client_id: clientId, state } = router.query;
+
   const { data: oauthClientData, loading } = useGetOAuthClientQuery({ 
     variables: { client_id: clientId }, 
-    skip: !clientId }
+    skip: !clientId || !user }
   )
   const oauthClient = oauthClientData?.oauth_client;
-  
+
   return (
     <>
       { loading ? <LoadingSpinner /> : (
@@ -48,7 +49,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
   
   return {
     props: {
-      showNavigation: true
+      showNavigation: true,
+      isProtected: true
     }
   }
 }
