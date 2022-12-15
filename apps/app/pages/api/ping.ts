@@ -1,10 +1,12 @@
-import { withAxiom, AxiomRequest } from 'next-axiom'
+import { AxiomRequest, withAxiom } from "next-axiom";
 
-export const config = { runtime: 'experimental-edge' };
+export const config = { runtime: 'experimental-edge'};
 
-async function handler(req: AxiomRequest) {
-  //req.log.info("Pong", { headers: req.headers });
-  req.log.info("Headers: " + JSON.stringify(req.headers), { headers: JSON.parse(JSON.stringify(req.headers))})
+const handler = async (req: AxiomRequest ) => {
+  const route = req.nextUrl.pathname;
+  req.log.info(`${route} request started`, { headers: req.headers, route: req.nextUrl, req });  
+  req.log.info("Pong")
+  req.log.info(`${route} request finished`, { status: 200, message: "Pong" });
   return new Response("Pong")
 }
 
