@@ -161,9 +161,11 @@ export class IntegrationBase {
   }
 
   async load({ tableTypes, tableConfigs }: { tableTypes: DestinationTableTypes[]; tableConfigs: TableConfigs }): Promise<void> {
+    this.logger.info("Loading data", { tableTypes })
     this.config = Object.fromEntries(await Promise.all(Object.entries(tableConfigs).map(async ([ tableType, { is_enabled: isEnabled, table_id: tableId, fields }]) => {
       if ( !isEnabled || !tableId || !tableTypes.includes(tableType as DestinationTableTypes) ) { return [ tableType, { tableId, fields, isEnabled, records: [] }]};
       const records = await this.queryTable({ tableId, tableConfigFields: fields });
+      this.logger.info("Initial load complete", { totalRecords: records.length, exampleRecord: records[0] })
       return [ tableType, { tableId, fields, records, isEnabled }]
     })))
   }

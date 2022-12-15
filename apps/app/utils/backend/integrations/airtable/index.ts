@@ -144,6 +144,7 @@ export class Airtable extends IntegrationBase {
 
   async queryTable({ tableId, tableConfigFields }: { tableId: string; tableConfigFields: { field: TableConfigFields; field_id: string; }[]; }): Promise<IntegrationRecord[]> {
     const returnFieldsByFieldId = tableConfigFields.filter(field => !field.field_id.startsWith('fld')).length === 0;
+    this.logger.info("Querying table", { returnFieldsByFieldId })
     const records = await this.base(tableId).select({ returnFieldsByFieldId }).all()
     return records.map(record => ({ 
       id: record.id, 
