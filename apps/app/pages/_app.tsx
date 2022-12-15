@@ -1,3 +1,4 @@
+export { reportWebVitals } from 'next-axiom';
 import { NextPage } from 'next';
 import { AppProps } from "next/app";
 import { useEffect } from "react";

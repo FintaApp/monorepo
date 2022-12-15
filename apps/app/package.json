@@ -43,6 +43,7 @@
     "logsnag": "^0.1.6",
     "moment-timezone": "^0.5.39",
     "next": "latest",
+    "next-axiom": "^0.16.0",
     "plaid": "^12.0.0",
     "randomstring": "^1.2.3",
     "react": "latest",

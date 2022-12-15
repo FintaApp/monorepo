@@ -1,4 +1,6 @@
-module.exports = {
+const { withAxiom } = require('next-axiom');
+
+module.exports = withAxiom({
   async redirects() {
     return [
       {
@@ -8,4 +10,4 @@ module.exports = {
       },
     ]
   }
-};
+});
