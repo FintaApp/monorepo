@@ -1,6 +1,7 @@
 import { Integrations_Enum } from "~/graphql/frontend";
 
 import { Airtable } from "./Airtable";
+import { Coda } from "./Coda";
 import { Google } from "./Google";
 import { Notion } from "./Notion";
 import { DestinationAuthentication as DestinationAuthenticationType, AirtableAuthentication, GoogleSheetsAuthentication, NotionAuthentication } from "~/types/shared/models";
@@ -26,5 +27,7 @@ export const DestinationAuthentication = ({ destinationId, authentication, integ
     return <Notion destinationId = { destinationId } authentication = { authentication as NotionAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
   }
   
-  return <></>;
+  if ( integrationId === Integrations_Enum.Coda ) {
+    return <Coda />
+  }
 }
