@@ -7,6 +7,7 @@ import { LogSnag, PublishOptions as LogSnagPublishOptions } from 'logsnag';
 import { LogSnagChannel, LogSnagTag, LogSnagEvent } from './types';
 import { DestinationError } from "~/types/shared/models";
 import { Integrations_Enum } from "~/graphql/backend/sdk";
+import { Logger as AxiomLogger } from "next-axiom";
 
 const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN!, { batchInterval: 1000 });
 
@@ -28,6 +29,25 @@ const logsnag = new LogSnag({
   token: process.env.LOGSNAG_TOKEN!,
   project: 'finta'
 });
+
+const logsnagPublish = async ({ options, logger }: { options: PublishOptions; logger: AxiomLogger }): Promise<any>  => {
+  if ( !shouldMockLogsnag ) { 
+    return logger.info("Mocking Logsnag publish", { options });
+  }
+  return logsnag.publish(options).then(() => logger.info("Published to Logsnag", { options }))
+}
+
+export const logError = ({ error, logger, requestId }: { error: Error; logger: AxiomLogger; requestId: string }) => logsnagPublish({
+  options: {
+    channel: LogSnagChannel.ERRORS,
+      description: `[View Logs](https://cloud.axiom.co/finta-dv39/stream/vercel?caseSensitive=0&ig=&q=%7B%22op%22%3A%22or%22%2C%22field%22%3A%22%22%2C%22children%22%3A%5B%7B%22op%22%3A%22or%22%2C%22field%22%3A%22%22%2C%22children%22%3A%5B%7B%22field%22%3A%22fields.requestId%22%2C%22op%22%3A%22contains%22%2C%22value%22%3A%22${requestId}%22%7D%2C%7B%22field%22%3A%22request.id%22%2C%22op%22%3A%22%3D%3D%22%2C%22value%22%3A%22${requestId}%22%7D%5D%7D%5D%7D`,
+      icon: '❌',
+      event: error.toString(),
+      notify: true,
+      parser: 'markdown'
+  },
+  logger
+})
 
 export { logsnag, LogSnagChannel, LogSnagTag, LogSnagEvent }
 
