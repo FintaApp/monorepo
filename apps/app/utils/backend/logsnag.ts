@@ -14,7 +14,7 @@ const logsnag = new LogSnag({
 });
 
 const logsnagPublish = async ({ options, logger }: { options: PublishOptions; logger: Logger }): Promise<any>  => {
-  if ( !shouldMockLogsnag ) { 
+  if ( shouldMockLogsnag ) { 
     return logger.info("Mocking Logsnag publish", { options });
   }
   return logsnag.publish(options).then(() => logger.info("Published to Logsnag", { options }))
