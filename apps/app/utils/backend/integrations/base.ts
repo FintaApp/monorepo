@@ -140,7 +140,6 @@ export class IntegrationBase {
       return { isValid: true }
     }))
     .then(responses => {
-      console.log(responses);
       const invalidResponses = responses.filter(response => !response.isValid)
       return { isValid: invalidResponses.length === 0, errors: invalidResponses.map(response => response.error)}
     })
@@ -152,6 +151,8 @@ export class IntegrationBase {
 
     const tableCheck = await this.validateTableConfigs({ tableTypes, tableConfigs });
     if ( !tableCheck.isValid ) { return { isValid: false, error: tableCheck.errors[0] }};
+
+    return { isValid: true, error: null }
   }
 
   async getDefaultConfig(): Promise<TableConfigs> {
