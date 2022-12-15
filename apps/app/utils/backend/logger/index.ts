@@ -99,7 +99,8 @@ export class Logger {
     return logsnag.publish(options).then(async () => await this.info("Published to Logsnag", { options }))
   }
 
-  async error(message: any, context = {}) {
+  async error(message: Error, context = {}) {
+    if ( useConsole ) { console.log(message.stack); console.error(message) }
     const requestId = this.logger.defaultMeta.requestId;
     this._error(message, context);
     return this.logsnagPublish({

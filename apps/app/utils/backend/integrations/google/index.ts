@@ -18,6 +18,7 @@ export class Google extends IntegrationBase {
   constructor({ authentication, logger, userId }: IntegrationBaseProps) { 
     super({ authentication, userId, logger }); 
     this.integration = Integrations_Enum.Google;
+    this.isGoogle = true;
   }
 
   formatter = formatter;
@@ -123,12 +124,13 @@ export class Google extends IntegrationBase {
   async updateRecords({ tableId, data, tableConfigFields }: { tableId: string, data: { fields: Record<string, any>, record: IntegrationRecord }[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> { 
     const sheet = this.doc.sheetsById[tableId];
 
-    for ( const { record, fields } of data ) {
-      const row = record.object as GoogleSpreadsheetRow;
-      for ( const key in Object.keys(fields) ) {
-        row[key] = fields[key]
-      }
-    }
+    return Promise.all(data.map(async ({ record, fields }) => {
+      const row = record.object;
+      for ( const [ key, value ] of Object.entries(fields) ) {
+        if ( value ) { row[key] = value }
+      };
+      return (row as GoogleSpreadsheetRow).save().then(() => record );
+    }))
     
     //     return this.sheets.spreadsheets.values.batchUpdate({
     //       spreadsheetId: this.spreadsheetId,
@@ -141,9 +143,6 @@ export class Google extends IntegrationBase {
     //       }
     //     })
     //   }
-
-    await sheet.saveUpdatedCells();
-    return data.map(d => d.record)
   }
 
   async deleteRecords({ records }: { tableId: string; records: IntegrationRecord[]}): Promise<void> {

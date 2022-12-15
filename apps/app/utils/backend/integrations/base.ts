@@ -1,6 +1,6 @@
 import { FieldSet, Record as AirtableRecord } from "airtable";
 import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { GoogleSpreadsheetRow } from "google-spreadsheet";
+import { GoogleSpreadsheetRow, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
 import { Integrations_Enum } from "~/graphql/backend/sdk";
 import { GetDestinationTablesResponse, ValidateDestinationCredentialsResponse, ValidateDestinationTableConfigsResponse } from "~/types/shared/functions";
 import { AccountsTableFields, CategoryTableFields, DestinationAuthentication, DestinationError, DestinationErrorCode, DestinationTableTypes, fieldToTypeMapping, HoldingsTableFields, InstitutionsTableFields, InvestmentTransactionsTableFields, SecurityTableFields, TableConfig, TableConfigFields, TableConfigs, TransactionsTableFields } from "~/types/shared/models"
@@ -27,6 +27,10 @@ type IntegrationConfig = Record<DestinationTableTypes, {
   records: IntegrationRecord[];
   isEnabled: boolean;
 }>
+
+const recordWithoutObject = (record?: IntegrationRecord) => {
+  if ( record ) { return { id: record.id, properties: record.properties }}
+}
 
 export type ValidateTableConfigResponse = { isValid: boolean; error?: DestinationError}
 
@@ -68,12 +72,14 @@ export class IntegrationBase {
   integration: Integrations_Enum;
   isLegacy: boolean;
   config: IntegrationConfig
+  isGoogle: boolean;
 
   constructor({ authentication, userId, logger }: IntegrationBaseProps) {
     this.authentication = authentication;
     this.userId = userId;
     this.logger = logger;
     this.isLegacy = false;
+    this.isGoogle = false;
   }
 
   async validateTableConfigs({ tableTypes, tableConfigs }: ValidateFuncProps): Promise<ValidateDestinationTableConfigsResponse> {
@@ -165,7 +171,7 @@ export class IntegrationBase {
     this.config = Object.fromEntries(await Promise.all(Object.entries(tableConfigs).map(async ([ tableType, { is_enabled: isEnabled, table_id: tableId, fields }]) => {
       if ( !isEnabled || !tableId || !tableTypes.includes(tableType as DestinationTableTypes) ) { return [ tableType, { tableId, fields, isEnabled, records: [] }]};
       const records = await this.queryTable({ tableId, tableConfigFields: fields });
-      await this.logger.info("Initial load complete", { totalRecords: records.length, exampleRecord: records[0], tableType })
+      await this.logger.info("Initial load complete", { totalRecords: records.length, exampleRecord: recordWithoutObject(records[0]), tableType })
       return [ tableType, { tableId, fields, records, isEnabled }]
     })))
   }
@@ -173,23 +179,23 @@ export class IntegrationBase {
   async syncData({ item, accounts, transactions, holdings, securities, investmentTransactions, removedTransactions, categories, shouldOverrideTransactionName, timezone }: SyncDataFuncProps): Promise<SyncDataFuncResponse> {
     // Upsert Institution
     const institutionRecord = await this.upsertItem({ item });
-    this.logger.info("Institution record upserted", { record: institutionRecord })
+    this.logger.info("Institution record upserted", { record: recordWithoutObject(institutionRecord) })
 
     // Upsert Accounts, Securities, and Categories
     const [{ records: accountRecords, results: accountResults }, categoryRecords, securityRecords ] = await Promise.all([
       this.upsertAccounts({ accounts, institutionRecord })
         .then(response => {
-          this.logger.info("Account records upserted", { records: response.records, results: response.results });
+          this.logger.info("Account records upserted", { records: response.records.map(recordWithoutObject), results: response.results });
           return response;
         }),
       this.upsertCategories({ categories })
         .then(response => {
-          this.logger.info("Categories records upserted", { records: response });
+          this.logger.info("Categories records upserted", { records: response.map(recordWithoutObject) });
           return response;
         }),
       this.upsertSecurities({ securities })
         .then(response => {
-          this.logger.info("Securities records upserted", { records: response });
+          this.logger.info("Securities records upserted", { records: response.map(recordWithoutObject) });
           return response;
         })
     ])
@@ -252,7 +258,7 @@ export class IntegrationBase {
       .filter(account => !recordAccountIds.includes(account.account_id))
       .map(account => this.formatter.account.new({ 
         account, 
-        itemRecordId: this.integration === Integrations_Enum.Google ? institutionRecord.properties[InstitutionsTableFields.ID] : institutionRecord.id,
+        itemRecordId: this.isGoogle ? institutionRecord.properties[InstitutionsTableFields.ID] : institutionRecord.id,
         tableConfigFields: fields
       }));
 
@@ -339,8 +345,8 @@ export class IntegrationBase {
         const categoryRecord = categoryRecords.find(record => record.properties[CategoryTableFields.ID] === transaction.category_id);
         return this.formatter.transaction.new({ 
           transaction, 
-          accountRecordId: this.integration === Integrations_Enum.Google ? transaction.account_id : accountRecord.id as string,
-          categoryRecordId: this.integration === Integrations_Enum.Google ? transaction.category_id : categoryRecord?.id as string,
+          accountRecordId: this.isGoogle ? transaction.account_id : accountRecord.id as string,
+          categoryRecordId: this.isGoogle ? transaction.category_id : categoryRecord?.id as string,
           tableConfigFields: fields
         })
       })
@@ -380,16 +386,16 @@ export class IntegrationBase {
       const accountRecord = accountRecords.find(record => record.properties[AccountsTableFields.ID] === holding.account_id);
       const securityRecord = securityRecords.find(record => record.properties[SecurityTableFields.ID] === holding.security_id);
       const holdingRecord = records.find(record => record.properties[HoldingsTableFields.ACCOUNT] === holding.account_id && record.properties[HoldingsTableFields.SECURITY_ID] === holding.security_id);
-      const shouldUpdate = holdingRecord.properties[HoldingsTableFields.COST_BASIS] !== holding.cost_basis
-        || holdingRecord.properties[HoldingsTableFields.CURRENCY] !== holding.iso_currency_code
-        || holdingRecord.properties[HoldingsTableFields.QUANTITY] !== holding.quantity;
+      const shouldUpdate = holdingRecord && (holdingRecord?.properties[HoldingsTableFields.COST_BASIS] !== holding.cost_basis
+        || holdingRecord?.properties[HoldingsTableFields.CURRENCY] !== holding.iso_currency_code
+        || holdingRecord?.properties[HoldingsTableFields.QUANTITY] !== holding.quantity);
       return { shouldUpdate, accountRecord, securityRecord, record: holdingRecord, holding }
     });
     const holdingsToCreate = mappedHoldings.filter(mh => !mh.record)
       .map(({ holding, accountRecord, securityRecord }) => this.formatter.holding.new({ 
         holding, 
-        accountRecordId: this.integration === Integrations_Enum.Google ? holding.account_id : accountRecord?.id as string, 
-        securityRecordId: this.integration === Integrations_Enum.Google ? holding.security_id : securityRecord?.id as string, 
+        accountRecordId: this.isGoogle ? holding.account_id : accountRecord?.id as string, 
+        securityRecordId: this.isGoogle ? holding.security_id : securityRecord?.id as string, 
         tableConfigFields: fields,
         symbol: securityRecord ? securityRecord.properties[SecurityTableFields.SYMBOL] : ""
       }))
@@ -418,8 +424,8 @@ export class IntegrationBase {
         const securityRecord = securityRecords.find(record => record.properties[SecurityTableFields.ID] === transaction.security_id);
         return this.formatter.investmentTransaction.new({ 
           investmentTransaction: transaction, 
-          accountRecordId: this.integration === Integrations_Enum.Google ? transaction.account_id : accountRecord?.id as string,
-          securityRecordId: this.integration === Integrations_Enum.Google ? transaction.security_id : securityRecord?.id as string, 
+          accountRecordId: this.isGoogle ? transaction.account_id : accountRecord?.id as string,
+          securityRecordId: this.isGoogle ? transaction.security_id : securityRecord?.id as string, 
           tableConfigFields: fields
         })
       })

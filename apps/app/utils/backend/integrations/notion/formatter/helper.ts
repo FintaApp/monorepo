@@ -17,6 +17,9 @@ export const parsePageProperties = ({ page, tableConfigFields }: { page: PageObj
   return Object.fromEntries(Object.values(page.properties)
     .map(property => {
       const field = tableConfigFields.find(f => f.field_id === property.id);
+      if ( !field ) { return; }
       return [ field.field, getValueFromProperty(property) ]
-    })) as Record<TableConfigFields, any>
+    })
+    .filter(x => !!x)
+  ) as Record<TableConfigFields, any>
 }

@@ -12840,12 +12840,7 @@ export type GetStripePricesLazyQueryHookResult = ReturnType<typeof useGetStripeP
 export type GetStripePricesQueryResult = Apollo.QueryResult<GetStripePricesQuery, GetStripePricesQueryVariables>;
 export const GetSyncLogsDocument = gql`
     query GetSyncLogs($offset: Int!) {
-  sync_logs(
-    limit: 10
-    offset: $offset
-    order_by: {created_at: desc_nulls_last}
-    where: {_not: {metadata: {_contains: {asAdmin: true}}}}
-  ) {
+  sync_logs(limit: 10, offset: $offset, order_by: {created_at: desc_nulls_last}) {
     ...AllFrontendSyncLogFields
   }
   count: sync_logs_aggregate {

@@ -46,7 +46,7 @@ fragment AllFrontendSyncLogFields on sync_logs {
 }
 
 query GetSyncLogs($offset: Int!) {
-  sync_logs(limit: 10, offset: $offset, order_by: {created_at: desc_nulls_last}, where: {_not: {metadata: {_contains: { asAdmin: true }}}}) {
+  sync_logs(limit: 10, offset: $offset, order_by: {created_at: desc_nulls_last}) {
     ...AllFrontendSyncLogFields
   }
 

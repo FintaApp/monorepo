@@ -124,7 +124,8 @@ async function retryWrapper<T extends Array<any>, U>(func: () => Promise<U>): Pr
     ({ didProcess, response } = await func()
       .then(response => ({ didProcess: true, response }))
       .catch(async err => {
-        if ( ['rate_limited', 'conflict_error', 'notionhq_client_response_error' ].includes(err.code)) {
+        if ( ['rate_limited' ].includes(err.code)) {
+          console.log("HIT RATE LIMIT!", err)
           return { didProcess: false, response: null }
         } else {
           await logUnhandledEvent(`Unhandled Notion API error: ${JSON.stringify(err)}`);
