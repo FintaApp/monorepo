@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model AuthAccount {
+  id                String      @id @default(uuid())
+  userId            String      @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String      @map("provider_account_id")
+  refreshToken      String?     @db.Text @map("refresh_token")
+  accessToken       String?     @db.Text @map("access_token")
+  expiresAt         DateTime?   @map("expires_at")
+  tokenType         String?     @map("token_type")
+  scope             String
+  idToken           String?     @db.Text @map("id_token")
+  sessionState      String?     @map("session_state")
+
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_accounts")
+  @@index([userId])
+}
+
+model AuthSession {
+  id                String      @id @default(uuid())
+  sessionToken      String      @unique @map("session_token")
+  userId            String      @map("user_id")
+  expiresAt         DateTime    @map("expires_at")
+
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions") 
+  @@index([userId])
+}
+
+model User {
+  id                String      @id @default(uuid())
+  name              String?
+  email             String?     @unique
+  emailVerifiedAt   DateTime?   @map("email_verified_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime?   @updatedAt @map("updated_at")
+  accounts          AuthAccount[]
+  sessions          AuthSession[]
+  
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier        String
+  token             String      @unique
+  expiresAt         DateTime    @map("expires_at")
+
+  @@map("verification_tokens")
+}
