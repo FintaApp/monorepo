@@ -8,6 +8,22 @@ fragment DBUserFields on users {
   email
 }
 
+fragment AllBaseUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
+}
+
+query GetBaseUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBaseUserFields
+  }
+}
+
 fragment AllBackendUserFields on users {
   __typename
   id

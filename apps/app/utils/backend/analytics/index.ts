@@ -176,7 +176,12 @@ export enum SegmentEvent {
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
   SYNC_COMPLETED = "Sync Completed",
   USER_UPDATED = "User Updated",
-  USER_PROFILE_UPDATED = "User Profile Updated"
+  USER_PROFILE_UPDATED = "User Profile Updated",
+  SUBSCRIPTION_STARTED = "Subscription Started",
+  SUBSCRIPTION_ENDED = "Subscription Ended",
+  SUBSCRIPTION_RESUMED = "Subscription Resumed",
+  SUBSCRIPTION_CANCELED = "Subscription Canceled",
+  SUBSCRIPTION_INVOICE_PAID = "Subscription Invoice Paid"
 }
 
 interface SegmentTrackProps {
@@ -262,4 +267,44 @@ export const identify = ({ userId, traits = {}, timestamp }: {
         resolve(true)
       }
     })
+  })
+
+  export const trackSubscriptionStarted = ({ userId, plan, remainingTrialDays, timestamp }: { userId: string; plan: string; timestamp: Date; remainingTrialDays?: number }) => 
+  track({
+    userId,
+    event: SegmentEvent.SUBSCRIPTION_STARTED,
+    properties: { plan, remaining_trial_days: remainingTrialDays },
+    timestamp
+  })
+
+  export const trackSubscriptionEnded = ({ userId, plan, timestamp }: { userId: string; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: SegmentEvent.SUBSCRIPTION_ENDED,
+    properties: { plan },
+    timestamp
+  })
+
+  export const trackSubscriptionCanceled = ({ userId, plan, remainingDays, timestamp }: { userId: string; plan: string; remainingDays: number; timestamp: Date }) =>
+  track({
+    userId,
+    event: SegmentEvent.SUBSCRIPTION_CANCELED,
+    properties: { plan, remaining_days: remainingDays },
+    timestamp
+  })
+
+  export const trackSubscriptionResumed = ({ userId, plan, timestamp }: { userId: string; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: SegmentEvent.SUBSCRIPTION_RESUMED,
+    properties: { plan },
+    timestamp
+  })
+
+  export const trackSubscriptionInvoicePaid = ({ userId, revenue, plan, timestamp }: { userId: string; revenue: number; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: SegmentEvent.SUBSCRIPTION_INVOICE_PAID,
+    properties: { revenue, plan },
+    timestamp
   })

@@ -1,0 +1,24 @@
+fragment AllWebhookEventFields on stripeWebhookEvents {
+  __typename
+  id
+  event
+  state
+}
+
+mutation InsertStripeWebhookEvent($webhookEvent: stripeWebhookEvents_insert_input!) {
+  webhookEvent: insertStripeWebhookEvent(object: $webhookEvent, on_conflict: {constraint: stripe_webhook_events_pkey, update_columns: [state, createdAt]}) {
+    ...AllWebhookEventFields
+  }
+}
+
+query GetStripeWebhookEvent($webhookEventId: String!) {
+  webhookEvent: stripeWebhookEvent(id: $webhookEventId) {
+    ...AllWebhookEventFields
+  }
+}
+
+mutation UpdateStripeWebhookEvent($webhookEventId: String!, $_set: stripeWebhookEvents_set_input!) {
+  webhookEvent: updateStripeWebhookEvent(pk_columns: { id: $webhookEventId }, _set: $_set ) {
+    ...AllWebhookEventFields
+  }
+}

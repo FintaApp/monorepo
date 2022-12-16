@@ -12094,6 +12094,30 @@ export type UpdatePlaidItemMutationVariables = Exact<{
 
 export type UpdatePlaidItemMutation = { __typename?: 'mutation_root', plaid_item?: { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
 
+export type AllWebhookEventFieldsFragment = { __typename: 'stripeWebhookEvents', id: string, event: string, state: string };
+
+export type InsertStripeWebhookEventMutationVariables = Exact<{
+  webhookEvent: StripeWebhookEvents_Insert_Input;
+}>;
+
+
+export type InsertStripeWebhookEventMutation = { __typename?: 'mutation_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
+
+export type GetStripeWebhookEventQueryVariables = Exact<{
+  webhookEventId: Scalars['String'];
+}>;
+
+
+export type GetStripeWebhookEventQuery = { __typename?: 'query_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
+
+export type UpdateStripeWebhookEventMutationVariables = Exact<{
+  webhookEventId: Scalars['String'];
+  _set: StripeWebhookEvents_Set_Input;
+}>;
+
+
+export type UpdateStripeWebhookEventMutation = { __typename?: 'mutation_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
+
 export type DbSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, ended_at?: any | null, error?: any | null, trigger: string, is_success: boolean };
 
 export type AllSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null };
@@ -12158,21 +12182,28 @@ export type GetUserSyncLogsQuery = { __typename?: 'query_root', sync_logs: Array
 
 export type DbUserProfileFieldsFragment = { __typename?: 'userProfiles', timezone?: string | null, sync_updates_frequency?: Frequencies_Enum | null, is_subscribed_sync_updates: boolean, is_subscribed_general: boolean, user_id: any, sync_updates_job_id?: string | null, stripe_customer_id?: string | null };
 
-export type AllUserProfileFieldsFragment = { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null };
+export type AllUserProfileFieldsFragment = { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null };
+
+export type UpsertUserProfileMutationVariables = Exact<{
+  userProfile: UserProfiles_Insert_Input;
+}>;
+
+
+export type UpsertUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
 
 export type GetUserProfileQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type GetUserProfileQuery = { __typename?: 'query_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null } | null };
+export type GetUserProfileQuery = { __typename?: 'query_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
 
 export type InsertUserProfileMutationVariables = Exact<{
   userProfile: UserProfiles_Insert_Input;
 }>;
 
 
-export type InsertUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null } | null };
+export type InsertUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
 
 export type UpdateUserProfileMutationVariables = Exact<{
   userId: Scalars['uuid'];
@@ -12180,9 +12211,25 @@ export type UpdateUserProfileMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null } | null };
+export type UpdateUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
+
+export type GetUserByCustomerIdQueryVariables = Exact<{
+  customerId: Scalars['String'];
+}>;
+
+
+export type GetUserByCustomerIdQuery = { __typename?: 'query_root', userProfiles: Array<{ __typename?: 'userProfiles', user: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } }> };
 
 export type DbUserFieldsFragment = { __typename?: 'users', id: any, metadata?: any | null, disabled: boolean, email?: any | null, display_name: string, created_at: any, password_hash?: string | null };
+
+export type AllBaseUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any };
+
+export type GetBaseUserQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetBaseUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any } | null };
 
 export type AllBackendUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
 
@@ -12381,6 +12428,14 @@ export const AllBackendPlaidItemFields = gql`
   plaid_sync_cursor_added_at
 }
     ${AllBackendAccountFields}`;
+export const AllWebhookEventFields = gql`
+    fragment AllWebhookEventFields on stripeWebhookEvents {
+  __typename
+  id
+  event
+  state
+}
+    `;
 export const DbSyncLogFields = gql`
     fragment DBSyncLogFields on sync_logs {
   id
@@ -12442,6 +12497,7 @@ export const AllUserProfileFields = gql`
   isSubscribedSyncUpdates
   syncUpdatesFrequency
   syncUpdatesJobId
+  stripeCustomerId
 }
     `;
 export const DbUserFields = gql`
@@ -12453,6 +12509,17 @@ export const DbUserFields = gql`
   created_at: createdAt
   password_hash: passwordHash
   email
+}
+    `;
+export const AllBaseUserFields = gql`
+    fragment AllBaseUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
 }
     `;
 export const AllBackendUserFields = gql`
@@ -12627,6 +12694,33 @@ export const UpdatePlaidItem = gql`
   }
 }
     ${AllBackendPlaidItemFields}`;
+export const InsertStripeWebhookEvent = gql`
+    mutation InsertStripeWebhookEvent($webhookEvent: stripeWebhookEvents_insert_input!) {
+  webhookEvent: insertStripeWebhookEvent(
+    object: $webhookEvent
+    on_conflict: {constraint: stripe_webhook_events_pkey, update_columns: [state, createdAt]}
+  ) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFields}`;
+export const GetStripeWebhookEvent = gql`
+    query GetStripeWebhookEvent($webhookEventId: String!) {
+  webhookEvent: stripeWebhookEvent(id: $webhookEventId) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFields}`;
+export const UpdateStripeWebhookEvent = gql`
+    mutation UpdateStripeWebhookEvent($webhookEventId: String!, $_set: stripeWebhookEvents_set_input!) {
+  webhookEvent: updateStripeWebhookEvent(
+    pk_columns: {id: $webhookEventId}
+    _set: $_set
+  ) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFields}`;
 export const InsertSyncLog = gql`
     mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
   sync_log: insert_sync_logs_one(object: $sync_log) {
@@ -12724,6 +12818,16 @@ export const GetUserSyncLogs = gql`
   }
 }
     `;
+export const UpsertUserProfile = gql`
+    mutation UpsertUserProfile($userProfile: userProfiles_insert_input!) {
+  userProfile: insertUserProfile(
+    object: $userProfile
+    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [stripeCustomerId]}
+  ) {
+    ...AllUserProfileFields
+  }
+}
+    ${AllUserProfileFields}`;
 export const GetUserProfile = gql`
     query GetUserProfile($userId: uuid!) {
   userProfile(userId: $userId) {
@@ -12748,6 +12852,26 @@ export const UpdateUserProfile = gql`
   }
 }
     ${AllUserProfileFields}`;
+export const GetUserByCustomerId = gql`
+    query GetUserByCustomerId($customerId: String!) {
+  userProfiles(
+    where: {stripeCustomerId: {_eq: $customerId}}
+    limit: 1
+    order_by: {user: {createdAt: desc}}
+  ) {
+    user {
+      ...AllBackendUserFields
+    }
+  }
+}
+    ${AllBackendUserFields}`;
+export const GetBaseUser = gql`
+    query GetBaseUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBaseUserFields
+  }
+}
+    ${AllBaseUserFields}`;
 export const GetUserFromToken = gql`
     query GetUserFromToken {
   users {
@@ -12950,6 +13074,14 @@ export const AllBackendPlaidItemFieldsFragmentDoc = gql`
   plaid_sync_cursor_added_at
 }
     ${AllBackendAccountFieldsFragmentDoc}`;
+export const AllWebhookEventFieldsFragmentDoc = gql`
+    fragment AllWebhookEventFields on stripeWebhookEvents {
+  __typename
+  id
+  event
+  state
+}
+    `;
 export const DbSyncLogFieldsFragmentDoc = gql`
     fragment DBSyncLogFields on sync_logs {
   id
@@ -13011,6 +13143,7 @@ export const AllUserProfileFieldsFragmentDoc = gql`
   isSubscribedSyncUpdates
   syncUpdatesFrequency
   syncUpdatesJobId
+  stripeCustomerId
 }
     `;
 export const DbUserFieldsFragmentDoc = gql`
@@ -13022,6 +13155,17 @@ export const DbUserFieldsFragmentDoc = gql`
   created_at: createdAt
   password_hash: passwordHash
   email
+}
+    `;
+export const AllBaseUserFieldsFragmentDoc = gql`
+    fragment AllBaseUserFields on users {
+  __typename
+  id
+  email
+  displayName
+  metadata
+  disabled
+  createdAt
 }
     `;
 export const AllBackendUserFieldsFragmentDoc = gql`
@@ -13196,6 +13340,33 @@ export const UpdatePlaidItemDocument = gql`
   }
 }
     ${AllBackendPlaidItemFieldsFragmentDoc}`;
+export const InsertStripeWebhookEventDocument = gql`
+    mutation InsertStripeWebhookEvent($webhookEvent: stripeWebhookEvents_insert_input!) {
+  webhookEvent: insertStripeWebhookEvent(
+    object: $webhookEvent
+    on_conflict: {constraint: stripe_webhook_events_pkey, update_columns: [state, createdAt]}
+  ) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFieldsFragmentDoc}`;
+export const GetStripeWebhookEventDocument = gql`
+    query GetStripeWebhookEvent($webhookEventId: String!) {
+  webhookEvent: stripeWebhookEvent(id: $webhookEventId) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFieldsFragmentDoc}`;
+export const UpdateStripeWebhookEventDocument = gql`
+    mutation UpdateStripeWebhookEvent($webhookEventId: String!, $_set: stripeWebhookEvents_set_input!) {
+  webhookEvent: updateStripeWebhookEvent(
+    pk_columns: {id: $webhookEventId}
+    _set: $_set
+  ) {
+    ...AllWebhookEventFields
+  }
+}
+    ${AllWebhookEventFieldsFragmentDoc}`;
 export const InsertSyncLogDocument = gql`
     mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
   sync_log: insert_sync_logs_one(object: $sync_log) {
@@ -13293,6 +13464,16 @@ export const GetUserSyncLogsDocument = gql`
   }
 }
     `;
+export const UpsertUserProfileDocument = gql`
+    mutation UpsertUserProfile($userProfile: userProfiles_insert_input!) {
+  userProfile: insertUserProfile(
+    object: $userProfile
+    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [stripeCustomerId]}
+  ) {
+    ...AllUserProfileFields
+  }
+}
+    ${AllUserProfileFieldsFragmentDoc}`;
 export const GetUserProfileDocument = gql`
     query GetUserProfile($userId: uuid!) {
   userProfile(userId: $userId) {
@@ -13317,6 +13498,26 @@ export const UpdateUserProfileDocument = gql`
   }
 }
     ${AllUserProfileFieldsFragmentDoc}`;
+export const GetUserByCustomerIdDocument = gql`
+    query GetUserByCustomerId($customerId: String!) {
+  userProfiles(
+    where: {stripeCustomerId: {_eq: $customerId}}
+    limit: 1
+    order_by: {user: {createdAt: desc}}
+  ) {
+    user {
+      ...AllBackendUserFields
+    }
+  }
+}
+    ${AllBackendUserFieldsFragmentDoc}`;
+export const GetBaseUserDocument = gql`
+    query GetBaseUser($userId: uuid!) {
+  user(id: $userId) {
+    ...AllBaseUserFields
+  }
+}
+    ${AllBaseUserFieldsFragmentDoc}`;
 export const GetUserFromTokenDocument = gql`
     query GetUserFromToken {
   users {
@@ -13405,6 +13606,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     UpdatePlaidItem(variables: UpdatePlaidItemMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidItemMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidItemMutation>(UpdatePlaidItemDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidItem', 'mutation');
     },
+    InsertStripeWebhookEvent(variables: InsertStripeWebhookEventMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertStripeWebhookEventMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertStripeWebhookEventMutation>(InsertStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertStripeWebhookEvent', 'mutation');
+    },
+    GetStripeWebhookEvent(variables: GetStripeWebhookEventQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetStripeWebhookEventQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetStripeWebhookEventQuery>(GetStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetStripeWebhookEvent', 'query');
+    },
+    UpdateStripeWebhookEvent(variables: UpdateStripeWebhookEventMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateStripeWebhookEventMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateStripeWebhookEventMutation>(UpdateStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateStripeWebhookEvent', 'mutation');
+    },
     InsertSyncLog(variables: InsertSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertSyncLogMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertSyncLogMutation>(InsertSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertSyncLog', 'mutation');
     },
@@ -13426,6 +13636,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     GetUserSyncLogs(variables: GetUserSyncLogsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserSyncLogsQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserSyncLogsQuery>(GetUserSyncLogsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserSyncLogs', 'query');
     },
+    UpsertUserProfile(variables: UpsertUserProfileMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpsertUserProfileMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpsertUserProfileMutation>(UpsertUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpsertUserProfile', 'mutation');
+    },
     GetUserProfile(variables: GetUserProfileQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserProfileQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserProfileQuery>(GetUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserProfile', 'query');
     },
@@ -13434,6 +13647,12 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     UpdateUserProfile(variables: UpdateUserProfileMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserProfileMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserProfileMutation>(UpdateUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserProfile', 'mutation');
+    },
+    GetUserByCustomerId(variables: GetUserByCustomerIdQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserByCustomerIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserByCustomerIdQuery>(GetUserByCustomerIdDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserByCustomerId', 'query');
+    },
+    GetBaseUser(variables: GetBaseUserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetBaseUserQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetBaseUserQuery>(GetBaseUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetBaseUser', 'query');
     },
     GetUserFromToken(variables?: GetUserFromTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserFromTokenQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserFromTokenQuery>(GetUserFromTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserFromToken', 'query');
