@@ -2,7 +2,7 @@ import * as coda from "@codahq/packs-sdk";
 
 import * as format from "./format";
 import * as schemas from "./schemas";
-import { OauthGetDestinationResponse, OauthGetInstitutionsResponse, OauthGetAccountsResponse, OauthGetHoldingsResponse, OauthGetInvestmentTransactionsResponse, OauthGetTransactionsResponse } from "@finta/types";
+import { OauthGetDestinationResponse, OauthGetInstitutionsResponse, OauthGetAccountsResponse, OauthGetHoldingsResponse, OauthGetInvestmentTransactionsResponse, OauthGetTransactionsResponse } from "@finta/shared";
 
 const baseUrl = "https://app.finta.io";
 const apiUrlPart = "/api/oauth"

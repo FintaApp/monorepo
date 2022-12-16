@@ -1,0 +1,32 @@
+fragment AllBackendAccountFields on plaidAccounts {
+  __typename
+  id
+  name
+  mask
+  is_closed
+}
+
+fragment DBPlaidAccountFields on plaidAccounts {
+  id
+  plaid_item_id
+  name
+}
+
+mutation UpdatePlaidAccounts($_set: plaidAccounts_set_input!, $where: plaidAccounts_bool_exp!) {
+  plaidAccounts: updatePlaidAccounts(where: $where, _set: $_set) {
+    returning {
+      ...AllBackendAccountFields
+    }
+  }
+}
+
+query GetPlaidAccount($plaidAccountId: String!) {
+  plaidAccount(id: $plaidAccountId) {
+    id
+    item {
+      user {
+        id
+      }
+    }
+  }
+}

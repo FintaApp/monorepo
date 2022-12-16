@@ -1,0 +1,22 @@
+fragment AllNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+}
+
+fragment DBNotionConnectionFields on notion_connections {
+  bot_id
+  access_token
+  workspace_id
+  workspace_name
+  workspace_icon
+  user_id
+}
+
+mutation InsertNotionConnection($notion_connection: notion_connections_insert_input!) {
+  notion_connection: insert_notion_connections_one(object: $notion_connection, on_conflict: {constraint: notion_connections_pkey, update_columns: [access_token, workspace_icon]}){
+    ...AllNotionConnectionFields
+  }
+}

@@ -4,6 +4,7 @@
     "apps/*",
     "packages/*"
   ],
+  "packageManager": "pnpm@7.17.1",
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo run clean",

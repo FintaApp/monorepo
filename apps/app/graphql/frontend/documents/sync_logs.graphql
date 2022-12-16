@@ -1,0 +1,58 @@
+fragment AllFrontendSyncLogFields on sync_logs {
+  id
+  created_at
+  ended_at
+  trigger
+  is_success
+  error,
+  metadata,
+  destination_sync_logs {
+    destination {
+      id
+      name
+      integration {
+        id
+        name
+      }
+    }
+    error
+    accounts
+    holdings
+    transactions
+    investment_transactions
+  }
+  plaid_item_sync_logs {
+    plaid_item {
+      __typename
+      id
+      institution {
+        logo_file {
+          id
+        }
+        name
+      }
+      accounts {
+        __typename
+        id
+        name
+      }
+    }
+    error
+    accounts
+    holdings
+    transactions
+    investment_transactions
+  }
+}
+
+query GetSyncLogs($offset: Int!) {
+  sync_logs(limit: 10, offset: $offset, order_by: {created_at: desc_nulls_last}) {
+    ...AllFrontendSyncLogFields
+  }
+
+  count: sync_logs_aggregate {
+    aggregate {
+      count
+    }
+  }
+}

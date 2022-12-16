@@ -1,0 +1,92 @@
+table:
+  name: plaid_accounts
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_name: plaidAccounts
+  custom_root_fields:
+    delete: deletePlaidAccounts
+    delete_by_pk: deletePlaidAccount
+    insert: insertPlaidAccounts
+    insert_one: insertPlaidAccount
+    select: plaidAccounts
+    select_by_pk: plaidAccount
+    update: updatePlaidAccounts
+    update_by_pk: updatePlaidAccount
+object_relationships:
+  - name: item
+    using:
+      foreign_key_constraint_on: plaid_item_id
+array_relationships:
+  - name: destination_connections
+    using:
+      foreign_key_constraint_on:
+        column: account_id
+        table:
+          name: destination_accounts
+          schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        item:
+          user_id:
+            _eq: X-Hasura-User-Id
+      columns:
+        - id
+        - mask
+        - name
+        - plaid_item_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - mask
+        - name
+        - plaid_item_id
+      filter:
+        item:
+          user_id:
+            _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - name
+      filter:
+        item:
+          user_id:
+            _eq: X-Hasura-User-Id
+      check:
+        item:
+          user_id:
+            _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        item:
+          user_id:
+            _eq: X-Hasura-User-Id
+event_triggers:
+  - name: onUpdatePlaidAccount
+    definition:
+      enable_manual: false
+      update:
+        columns:
+          - name
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{API_BASE_URL}}/db/events'
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: false
+      clear_older_than: 168
+      paused: true
+      schedule: 0 0 * * *
+      timeout: 60

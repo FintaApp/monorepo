@@ -1,0 +1,44 @@
+fragment AllFrontendPlaidAccountFields on plaidAccounts {
+  __typename
+  id
+  plaid_item_id
+  created_at
+  mask
+  name
+  destination_connections {
+    destination {
+      id
+      integration {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation DeletePlaidAccounts($where: plaidAccounts_bool_exp!) {
+  deletePlaidAccounts(where: $where) {
+    returning {
+      ...AllFrontendPlaidAccountFields
+    }
+  }
+}
+
+mutation UpdatePlaidAccount($plaidAccountId: String!, $_set: plaidAccounts_set_input!) {
+  plaidAccount: updatePlaidAccount(pk_columns: { id: $plaidAccountId }, _set: $_set ) {
+    ...AllFrontendPlaidAccountFields
+  }
+}
+
+query GetPlaidAccounts {
+  plaidAccounts(where: {item: {disabled_at: {_is_null: true}}}) {
+    id
+    name
+    mask
+    item {
+      institution {
+        name
+      }
+    }
+  }
+}

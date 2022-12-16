@@ -1,0 +1,44 @@
+fragment AllFrontendDestinationFields on destinations {
+  __typename,
+  id
+  created_at
+  integration_id
+  integration {
+    id
+    name
+  }
+  name,
+  sync_start_date
+  should_sync_transactions
+  should_sync_investments
+  authentication
+  disabled_at
+  table_configs
+  account_connections {
+    account {
+      id
+    }
+  }
+  notion_connection {
+    access_token
+    bot_id
+  }
+}
+
+mutation InsertDestination($destination: destinations_insert_input!) {
+  destination: insert_destinations_one(object: $destination ) {
+    ...AllFrontendDestinationFields
+  }
+}
+
+subscription GetDestinations {
+  destinations(where: {disabled_at: {_is_null: true}}, order_by: { created_at: asc }) {
+    ...AllFrontendDestinationFields
+  }
+}
+
+mutation UpdateDestination($destinationId: uuid!, $_set: destinations_set_input = {}, $_append: destinations_append_input = {}) {
+  destination: update_destinations_by_pk(pk_columns: { id: $destinationId }, _set: $_set, _append: $_append ) {
+    ...AllFrontendDestinationFields
+  }
+}

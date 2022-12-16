@@ -1,0 +1,8 @@
+query GetStripePrices {
+  stripePrices {
+    id
+    interval
+    unitAmount
+    productId
+  }
+}

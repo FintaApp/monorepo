@@ -1,0 +1,128 @@
+table:
+  name: plaid_items
+  schema: public
+configuration:
+  column_config:
+    access_token:
+      custom_name: accessToken
+    consent_expires_at:
+      custom_name: consentExpiresAt
+  custom_column_names:
+    access_token: accessToken
+    consent_expires_at: consentExpiresAt
+  custom_root_fields:
+    insert_one: insertPlaidItem
+    select: plaidItems
+    select_by_pk: plaidItem
+object_relationships:
+  - name: institution
+    using:
+      foreign_key_constraint_on: institution_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+array_relationships:
+  - name: accounts
+    using:
+      foreign_key_constraint_on:
+        column: plaid_item_id
+        table:
+          name: plaid_accounts
+          schema: public
+  - name: plaid_item_sync_logs
+    using:
+      foreign_key_constraint_on:
+        column: plaid_item_id
+        table:
+          name: plaid_item_sync_logs
+          schema: public
+  - name: removed_transactions
+    using:
+      foreign_key_constraint_on:
+        column: plaid_item_id
+        table:
+          name: removed_plaid_transactions
+          schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+        - access_token
+        - consent_expires_at
+        - error
+        - id
+        - institution_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - access_token
+        - consent_expires_at
+        - created_at
+        - disabled_at
+        - error
+        - id
+        - institution_id
+        - is_historical_update_complete
+        - is_initial_update_complete
+        - synced_at
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - consent_expires_at
+        - disabled_at
+        - error
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+event_triggers:
+  - name: onInsertPlaidItem
+    definition:
+      enable_manual: true
+      insert:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{API_BASE_URL}}/db/events'
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: false
+      clear_older_than: 168
+      paused: true
+      schedule: 0 0 * * *
+      timeout: 60
+  - name: onUpdatePlaidItem
+    definition:
+      enable_manual: false
+      update:
+        columns:
+          - consent_expires_at
+          - disabled_at
+          - error
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{API_BASE_URL}}/db/events'
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: false
+      clear_older_than: 168
+      paused: true
+      schedule: 0 0 * * *
+      timeout: 60

@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@codahq/packs-sdk": "^1.2.1",
-    "@finta/types": "*"
+    "@finta/shared": "*"
   },
   "devDependencies": {
     "@types/chai": "^4.3.1",

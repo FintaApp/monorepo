@@ -1,0 +1,36 @@
+fragment AllBackendAirtableTokenFields on airtableTokens {
+  id
+  createdAt
+  updatedAt
+  userId
+  accessToken
+  refreshToken
+  tokenType
+  scope
+  refreshedAt
+  accessTokenExpiresAt
+  refreshTokenExpiresAt
+}
+
+fragment DBAirtableTokenFields on airtableTokens {
+  id
+  user_id: userId
+}
+
+query GetAirtableToken($userId: uuid!) {
+  airtableTokens(where: { userId: { _eq: $userId }}) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+
+mutation UpdateAirtableToken($id: uuid!, $_set: airtableTokens_set_input!) {
+  airtableToken: updateAirtableToken(pk_columns: { id: $id }, _set: $_set) {
+    ...AllBackendAirtableTokenFields
+  }
+}
+
+mutation InsertAirtableToken($token: airtableTokens_insert_input!) {
+  airtableToken: insertAirtableToken(object: $token) {
+    ...AllBackendAirtableTokenFields
+  }
+}

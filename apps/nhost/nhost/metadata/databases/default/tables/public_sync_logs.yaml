@@ -1,0 +1,60 @@
+table:
+  name: sync_logs
+  schema: public
+array_relationships:
+  - name: destination_sync_logs
+    using:
+      foreign_key_constraint_on:
+        column: sync_log_id
+        table:
+          name: destination_sync_logs
+          schema: public
+  - name: plaid_item_sync_logs
+    using:
+      foreign_key_constraint_on:
+        column: sync_log_id
+        table:
+          name: plaid_item_sync_logs
+          schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - ended_at
+        - error
+        - id
+        - is_success
+        - metadata
+        - trigger
+      filter:
+        _or:
+          - destination_sync_logs:
+              destination:
+                user_id:
+                  _eq: X-Hasura-User-Id
+          - plaid_item_sync_logs:
+              plaid_item:
+                user_id:
+                  _eq: X-Hasura-User-Id
+      allow_aggregations: true
+event_triggers:
+  - name: onUpsertSyncLog
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+      update:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{API_BASE_URL}}/db/events'
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: false
+      clear_older_than: 168
+      paused: true
+      schedule: 0 0 * * *
+      timeout: 60

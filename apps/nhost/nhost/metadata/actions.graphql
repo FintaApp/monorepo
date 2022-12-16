@@ -1,0 +1,6 @@
+type SetupUserResponse {
+  ok: Boolean!
+}
+
+scalar uuid
+
