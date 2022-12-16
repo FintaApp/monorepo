@@ -128,7 +128,9 @@ async function retryWrapper<T extends Array<any>, U>(func: () => Promise<U>): Pr
           console.log("HIT RATE LIMIT!", err)
           return { didProcess: false, response: null }
         } else {
-          await logUnhandledEvent(`Unhandled Notion API error: ${JSON.stringify(err)}`);
+          if ( !err.body.message.includes('ancestor') ) {
+            await logUnhandledEvent(`Unhandled Notion API error: ${JSON.stringify(err)}`)
+          }
           return { didProcess: true, response: null }
         }
       }));
