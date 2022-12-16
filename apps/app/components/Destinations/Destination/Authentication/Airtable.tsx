@@ -1,8 +1,4 @@
 import {
-  useQuery,
-} from 'react-query'
-import {
-  Box,
   Button,
   FormControl,
   FormErrorMessage,
@@ -11,7 +7,7 @@ import {
   Text,
   VStack
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SymbolIcon } from "@radix-ui/react-icons";
 
 import { Select } from '~/components/Forms';
@@ -34,9 +30,17 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
   const { data: airtableTokenData } = useGetAirtableTokensSubscription();
   const [ isLoading, setIsLoading ] = useState(false);
   const hasToken = airtableTokenData?.airtableTokens.length === 1;
+  const [ isLoadingBases, setIsLoadingBases ] = useState(false);
+  const [ hasLoadedBases, setHasLoadedBases ] = useState(false);
 
-  const { isLoading: isBasesQueryLoading, refetch, isRefetching } = useQuery('getAirtableBases', () => getAirtableBases({})
-    .then(response => setBases(response.bases)), { enabled: hasToken })
+  const fetchBases = useCallback(() => {
+    if ( !isLoadingBases && hasToken ) {
+      setIsLoadingBases(true);
+      getAirtableBases({})
+      .then(({ bases }) => setBases(bases))
+      .finally(() => { setIsLoadingBases(false); setHasLoadedBases(true) })
+    }
+  }, [ isLoadingBases, hasToken ])
 
   const getAuthorizationUrl = () => {
     setIsLoading(true);
@@ -83,11 +87,11 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
             value = { value } 
             options = { options } 
             onChange = { onChange } 
-            isLoading = { isBasesQueryLoading }
-            noOptionsMessage = { () => "No bases have been shared with Finta"}
-            placeholder = "Select Base"
+            isLoading = { isLoadingBases }
+            noOptionsMessage = { () => hasLoadedBases ? "No bases have been shared with Finta" : "Hit the refresh button to fetch your Airtable Bases"}
+            placeholder = { hasLoadedBases ? "Select Base" : "Hit the refresh button to fetch your Airtable Bases" }
           />
-          <Button ml = "2" isLoading = { isRefetching } onClick = { () => refetch() } variant = "icon"><SymbolIcon /></Button>
+          <Button ml = "2" isLoading = { isLoadingBases } onClick = { fetchBases } variant = "icon"><SymbolIcon /></Button>
           </HStack>
         <FormErrorMessage>{ errorMessage }</FormErrorMessage>
       </FormControl>

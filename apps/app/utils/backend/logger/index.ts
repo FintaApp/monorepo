@@ -120,7 +120,7 @@ export class Logger {
   }
 
   async error(message: Error, context = {}) {
-    if ( useConsole ) { console.log(message.stack); console.error(message) }
+    if ( useConsole ) { console.log(message.stack); console.error(message); return }
     const requestId = this.logger.defaultMeta.requestId;
     this._error(message, context);
     return this.logsnagPublish({

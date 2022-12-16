@@ -125,7 +125,7 @@ async function retryWrapper<T extends Array<any>, U>(func: () => Promise<U>): Pr
       .then(response => ({ didProcess: true, response }))
       .catch(async err => {
         if ( ['rate_limited' ].includes(err.code)) {
-          console.log("HIT RATE LIMIT!", err)
+          console.log("HIT RATE LIMIT!", err);
           return { didProcess: false, response: null }
         } else {
           if ( !err.body.message.includes('ancestor') ) {
