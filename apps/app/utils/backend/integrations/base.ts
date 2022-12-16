@@ -335,7 +335,7 @@ export class IntegrationBase {
     const { tableId, fields, records, isEnabled } = this.config.transactions;
     if ( !tableId || !isEnabled ) { return { added: 0, updated: 0, removed: 0 }};
 
-    const recordTransactionIds = records.map(record => record.properties[TransactionsTableFields.ID]);
+    const recordTransactionIds = records.map(record => record.properties[TransactionsTableFields.ID] as string);
     const pendingTransactionIds = transactions.filter(transaction => !!transaction.pending_transaction_id).map(transaction => transaction.pending_transaction_id)
     const nonPendingRemovedTransactions = _.difference((removedTransactions || []), pendingTransactionIds);
 
@@ -352,7 +352,7 @@ export class IntegrationBase {
       })
     const transactionsToUpdate = transactions.filter(transaction => recordTransactionIds.includes(transaction.pending_transaction_id))
       .map(transaction => {
-        const record = recordTransactionIds.find(rec => rec.properties[TransactionsTableFields.ID] === transaction.pending_transaction_id)!;
+        const record = records.find(rec => rec.properties[TransactionsTableFields.ID] === transaction.pending_transaction_id)!;
         return { 
           fields: this.formatter.transaction.updated({ 
             transaction, 
