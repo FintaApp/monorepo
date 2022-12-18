@@ -40,7 +40,7 @@ export const SignupForm = () => {
             return;
           }
           
-          alias({ userId: session.user.id })
+          alias({ userId: session?.user.id || "" })
 
           router.push('/');
         })

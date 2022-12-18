@@ -8,13 +8,6 @@ const analytics = new segment(process.env.SEGMENT_KEY!, { flushAt: 1 });
 
 export const flushAnalytics = () => analytics.flush();
 
-export const trackUserSignedUp = ({ userId, createdAt }: { userId: string; createdAt: string; }) => 
-  track({
-    userId,
-    event: SegmentEvent.USER_SIGNED_UP,
-    timestamp: new Date(createdAt)
-  })
-
 export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; field: string }) =>
   track({
     userId,
@@ -160,7 +153,6 @@ export const trackSyncCompleted = ({ userId, trigger, isSuccess, integration, in
 // Types
 export enum SegmentEvent {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
-  USER_SIGNED_UP = "User Signed Up",
   USER_DELETED = "User Deleted",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
   PLAID_ACCOUNT_UPDATED = "Plaid Account Updated",

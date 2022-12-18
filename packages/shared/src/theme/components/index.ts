@@ -4,6 +4,7 @@ export { Badge } from './Badge';
 export { Button } from './Button'; 
 export { Card } from "./Card";
 export { Checkbox } from './Checkbox';
+export { Divider } from "./Divider";
 export { Editable } from "./Editable";
 export { FormError } from "./FormError";
 export { FormLabel } from "./FormLabel";
