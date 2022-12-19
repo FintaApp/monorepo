@@ -2,7 +2,7 @@ import { AnalyticsBrowser } from '@segment/analytics-next';
 
 import { AnalyticsEvent, AnalyticsPage, AliasParams, IdentifyParams, PageParams, TrackParams } from "./types";
 
-const analytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY });
+const analytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY || "" });
 
 export { AnalyticsEvent as EventNames, AnalyticsPage }
 

@@ -16,6 +16,7 @@ export const UserAuthForm = () => {
   const renderToast = useToast();
   const { register, handleSubmit, formState, getValues } = useForm<IEmailAuthSchema>({ resolver: zodResolver(emailAuthSchema) });
   const [ isLoading, setIsLoading ] = useState(false);
+  const [ isEmailSent, setIsEmailSent ] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -36,6 +37,7 @@ export const UserAuthForm = () => {
       })
     }
 
+    setIsEmailSent(true);
     return renderToast({
       status: 'success',
       title: "Check your email",
@@ -64,8 +66,8 @@ export const UserAuthForm = () => {
             isLoading = { isLoading } 
             type = "submit"
             width = "full"
-            isDisabled = { !formState.isValid }
-          >Sign In with Email</Button>
+            isDisabled = { !formState.isValid || isEmailSent }
+          >{ isEmailSent ? "Link sent" : "Get Magic Link" }</Button>
         </VStack>
       </form>
 

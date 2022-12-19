@@ -1,54 +1,56 @@
 import { Box, HStack, Switch, FormControl, FormHelperText, FormLabel, VStack } from "@chakra-ui/react";
+import { Frequency } from "@prisma/client";
+import { useEffect, useState } from "react";
 
 import { Select } from "~/components/Forms/Select";
-import { Frequencies_Enum } from "~/graphql/frontend";
-import { useToast } from "~/utils/frontend/useToast";
-import { useUpdateUserProfileMutation } from "~/graphql/frontend";
 
-export const EmailSubscriptions = ({ userId, isSubscribedGeneral, isSubscribedSyncUpdates, syncUpdatesFrequency }: {
-  userId: string;
-  isSubscribedGeneral: boolean;
-  isSubscribedSyncUpdates: boolean;
-  syncUpdatesFrequency?: Frequencies_Enum | null
-}) => {
-  const [ updateUserProfile ] = useUpdateUserProfileMutation({ refetchQueries: ['GetUserProfile']});
+import { useToast } from "~/lib/context/useToast";
+import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
+
+export const EmailSubscriptions = () => {
+  const { user, refetchUser } = useUser();
+  const { mutateAsync } = trpc.users.updateUser.useMutation({ onSuccess: refetchUser });
   const renderToast = useToast();
 
-  const syncFrequenciesOptions = [
-    { label: 'Daily', value: Frequencies_Enum.Daily },
-    { label: 'Weekly', value: Frequencies_Enum.Weekly },
-    { label: 'Monthly', value: Frequencies_Enum.Monthly },
-    { label: 'Quarterly', value: Frequencies_Enum.Quarterly },
-    { label: 'Yearly', value: Frequencies_Enum.Yearly },
-  ]
-  const syncFrequencyValue = syncUpdatesFrequency ? syncFrequenciesOptions.find(option => option.value === syncUpdatesFrequency) : null;
+  const [ preferences, setPreferences ] = useState({
+    periodicUpdatesFrequency: user?.periodicUpdatesFrequency,
+    isSubsribedGeneral: user?.isSubsribedGeneral,
+    isSubscribedPeriodicUpdates: user?.isSubscribedPeriodicUpdates
+  });
 
-  const onChangeSyncUpdateFrequency = (newFrequency: Frequencies_Enum) => {
-    if ( newFrequency !== syncUpdatesFrequency ) {
-      updateUserProfile({ variables: {
-        userId,
-        _set: { syncUpdatesFrequency: newFrequency }
-      }})
-      .then(() => {
-        renderToast({
-          status: "success",
-          title: "Sync Update Frequency Updated"
-        });
-      })
+  useEffect(() => {
+    setPreferences({
+      periodicUpdatesFrequency: user?.periodicUpdatesFrequency,
+      isSubsribedGeneral: user?.isSubsribedGeneral,
+      isSubscribedPeriodicUpdates: user?.isSubscribedPeriodicUpdates
+    })
+  }, [ user ]);
+
+  if ( !user ) { return <></> }
+
+  const syncFrequenciesOptions = [
+    { label: 'Daily', value: Frequency.daily },
+    { label: 'Weekly', value: Frequency.weekly },
+    { label: 'Monthly', value: Frequency.monthly },
+    { label: 'Quarterly', value: Frequency.quarterly },
+    { label: 'Yearly', value: Frequency.yearly },
+  ]
+  const frequencyValue =  syncFrequenciesOptions.find(option => option.value === preferences.periodicUpdatesFrequency);
+
+  const onChangeSyncUpdateFrequency = (newFrequency: Frequency) => {
+    if ( newFrequency !== preferences.periodicUpdatesFrequency ) {
+      setPreferences(prev => ({ ...prev, periodicUpdatesFrequency: newFrequency }))
+      mutateAsync({ periodicUpdatesFrequency: newFrequency })
+      .then(() => renderToast({ status: "success", title: "Sync Update Frequency Updated"}))
     }
   }
 
-  const onChangeSubscription = (subscription: 'is_subscribed_general' | 'is_subscribed_sync_updates', isEnabled: boolean ) => {
-    updateUserProfile({ variables: {
-      userId,
-      _set: { [subscription]: isEnabled }
-    }})
-    .then(() => {
-      renderToast({
-        status: "success",
-        title: "Email Preference Updated"
-      });
-    })
+  const onChangeSubscription = (subscription: 'general' | 'periodicUpdates', isEnabled: boolean ) => {
+    const field = subscription === 'general' ? 'isSubsribedGeneral' : 'isSubscribedPeriodicUpdates';
+    setPreferences(prev => ({ ...prev, [field]: isEnabled }))
+    mutateAsync({ [field]: isEnabled })
+      .then(() => renderToast({ status: "success", title: "Email Preference Updated"}))
   }
 
   return (
@@ -57,8 +59,8 @@ export const EmailSubscriptions = ({ userId, isSubscribedGeneral, isSubscribedSy
         <HStack alignItems = 'center'>
           <Switch 
             id = 'general' 
-            isChecked = { isSubscribedGeneral } 
-            onChange = {e => onChangeSubscription('is_subscribed_general', e.target.checked) }
+            isChecked = { preferences.isSubsribedGeneral } 
+            onChange = {e => onChangeSubscription('general', e.target.checked) }
           />
           <FormLabel ml = '2' htmlFor = 'general' mb = '0'>Subscribe to general Finta updates</FormLabel>
         </HStack>
@@ -68,8 +70,8 @@ export const EmailSubscriptions = ({ userId, isSubscribedGeneral, isSubscribedSy
         <HStack alignItems = 'center'>
           <Switch 
             id = 'sync-updates' 
-            isChecked = { isSubscribedSyncUpdates }
-            onChange = {e => onChangeSubscription('is_subscribed_sync_updates', e.target.checked) }
+            isChecked = { preferences.isSubscribedPeriodicUpdates }
+            onChange = {e => onChangeSubscription('periodicUpdates', e.target.checked) }
           />
           <FormLabel ml = '2' htmlFor = 'sync-updates' mb = '0'>Subscribe to sync updates</FormLabel>
         </HStack>
@@ -81,10 +83,10 @@ export const EmailSubscriptions = ({ userId, isSubscribedGeneral, isSubscribedSy
           <Box maxW = {{ base: 'none', md: 'lg'}}>
             <Select 
               options = { syncFrequenciesOptions } 
-              value = { syncFrequencyValue } 
+              value = { frequencyValue } 
               onChange = {(item: any) => onChangeSyncUpdateFrequency(item.value) } 
               placeholder = "Sync Update Frequency"
-              isDisabled = { !isSubscribedSyncUpdates }
+              isDisabled = { !preferences.isSubscribedPeriodicUpdates }
             />
           </Box>
       </FormControl>

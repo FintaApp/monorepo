@@ -3,16 +3,13 @@ import { NextPage } from 'next';
 import { AppProps, AppType } from "next/app";
 import { useEffect } from "react";
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
-import { QueryClient, QueryClientProvider } from 'react-query'
 import { SessionProvider } from 'next-auth/react';
 
 import { theme } from "@finta/shared";
 import { page as trackPageView, AnalyticsPage } from "~/utils/frontend/analytics";
-import { nhost } from "~/utils/nhost";
-import { LoggerProvider } from '~/utils/frontend/useLogger';
-import { AuthProvider } from '~/utils/frontend/useAuth';
 import { Layout } from '~/components/Layout';
 
+import { UserProvider } from "~/lib/context/useUser";
 import { trpc } from '~/lib/trpc';
 
 import "./index.css";
@@ -26,14 +23,8 @@ type AppPropsWithPageName = AppProps & {
   Component: NextPageWithPageName;
 };
 
-const queryClient = new QueryClient()
-
 // const App: AppType = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithPageName) => {
 //   const analyticsPageName = Component.analyticsPageName;
-
-//   useEffect(() => {
-//     analyticsPageName && trackPageView({ name: analyticsPageName })
-//    }, [ analyticsPageName ])
 
 //   return (
 //     <SessionProvider session = { session }>
@@ -54,12 +45,22 @@ const queryClient = new QueryClient()
 // };
 
 const App: AppType = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithPageName) => {
+  const analyticsPageName = Component.analyticsPageName;
+
+  useEffect(() => {
+    analyticsPageName && trackPageView({ name: analyticsPageName })
+   }, [ analyticsPageName ])
 
   return (
     <SessionProvider session = { session }>
-      <ChakraProvider theme = { theme }>
-        <Component {...pageProps} />
-      </ChakraProvider>
+      <UserProvider isProtectedRoute = { pageProps.isProtected }>
+        <ChakraProvider theme = { theme }>
+          <ColorModeScript />
+          <Layout showNavigation = { pageProps.showNavigation }>
+            <Component {...pageProps} />
+          </Layout>
+        </ChakraProvider>
+      </UserProvider>
     </SessionProvider>
   )
 };

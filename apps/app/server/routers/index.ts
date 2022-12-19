@@ -1,10 +1,11 @@
-import { z } from 'zod';
 import { router } from "../trpc";
 
-import { authRouter } from './authRouter';
+import { stripeRouter } from "./stripeRouter";
+import { userRouter } from './userRouter';
 
 export const appRouter = router({
-  auth: authRouter
-});
+  stripe: stripeRouter,
+  users: userRouter
+})
 
 export type AppRouter = typeof appRouter;

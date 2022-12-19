@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useGetUserQuery } from "~/graphql/frontend"
 import { FrontendUserModel } from "~/types/frontend";
 import * as analytics from "~/utils/frontend/analytics";
-import { LoadingIndicator } from "~/components/LoadingIndicator";
+import { LoadingIndicator } from "~/components/Common/LoadingIndicator";
 
 import { useLogger } from "./useLogger";
 

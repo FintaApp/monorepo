@@ -1,6 +1,6 @@
 import { Center, keyframes, useColorModeValue as mode } from "@chakra-ui/react";
 
-import { Logo } from "./Logo";
+import { Logo } from "../Logo";
 
 const pulse = keyframes({
   '0%': { transform: 'scale(1)' },

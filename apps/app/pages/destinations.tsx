@@ -11,13 +11,13 @@ import { EmptyState } from "~/components/EmptyState";
 import { Destination, AddDestination } from "~/components/Destinations";
 
 const Destinations = () => {
-  const { isAuthenticated } = useAuth();
-  const { data } = useGetDestinationsSubscription({ skip: !isAuthenticated });
-  const destinations = data?.destinations as DestinationModel[] || [];
+  // const { isAuthenticated } = useAuth();
+  // const { data } = useGetDestinationsSubscription({ skip: !isAuthenticated });
+  // const destinations = data?.destinations as DestinationModel[] || [];
 
   return (
     <>
-      <PageHeader title = "Destinations"><AddDestination /></PageHeader>
+      {/* <PageHeader title = "Destinations"><AddDestination /></PageHeader>
 
       <Fade in = { isAuthenticated && !!destinations }>
         { destinations?.length === 0 
@@ -34,25 +34,24 @@ const Destinations = () => {
               </Accordion>
             )
         }
-      </Fade>
+      </Fade> */}
     </>
   )
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
+  // const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
+  // if ( !nhostSession ) {
+  //   return {
+  //     props: {
 
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
+  //     },
+  //     redirect: {
+  //       destination: `/login?next=${context.resolvedUrl}`,
+  //       permanent: false
+  //     }
+  //   }
+  // }
   
   return {
     props: {
