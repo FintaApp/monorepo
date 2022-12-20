@@ -30,6 +30,49 @@ export const logUserSignedUp = ({ name, email, userId }: { name?: string; email:
     }
   })
 
+export const logInstitutionCreated = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
+  logsnagPublish({
+    options: {
+      channel: Channel.ACTIVITY,
+      event: Event.INSTITUTION_CREATED,
+      icon: "🏦",
+      tags: {
+        [Tag.INSTITUTION ]: institution, 
+        [Tag.USER_ID]: userId,
+        [Tag.ITEM_ID]: itemId
+      }
+    }
+  })
+
+export const logInstitutionReconnected = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
+  logsnagPublish({
+    options: {
+      channel: Channel.ACTIVITY,
+      event: Event.INSTITUTION_RECONNECTED,
+      icon: "🏦",
+      tags: {
+        [Tag.INSTITUTION ]: institution, 
+        [Tag.USER_ID]: userId,
+        [Tag.ITEM_ID]: itemId
+      }
+    }
+  })
+
+export const logInstitutionDeleted = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) => {
+  logsnagPublish({
+    options: {
+      channel: Channel.ACTIVITY,
+      event: Event.INSTITUTION_DELETED,
+      icon: "🏦",
+      tags: {
+        [Tag.INSTITUTION ]: institution, 
+        [Tag.USER_ID]: userId,
+        [Tag.ITEM_ID]: itemId
+      }
+    }
+  })
+};
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -38,9 +81,17 @@ enum Channel {
 }
 
 enum Event {
-  USER_SIGNED_UP = "User Signed Up"
+  USER_SIGNED_UP = "User Signed Up",
+  INSTITUTION_CREATED = "Institution Created",
+  INSTITUTION_DELETED = "Institution Deleted",
+  INSTITUTION_RECONNECTED = "Institution Reconnected",
 }
 
 enum Tag {
-  USER_ID = 'user-id'
+  USER_ID = 'user-id',
+  INSTITUTION = 'institution',
+  ITEM_ID = 'item-id',
+  SYNC_LOG_ID = 'sync-log-id',
+  DESTINATION_ID = 'destination-id',
+  INTEGRATION = 'integration'
 }

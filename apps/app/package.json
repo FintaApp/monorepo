@@ -16,6 +16,7 @@
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@finta/shared": "workspace:*",
+    "@google-cloud/storage": "^6.8.0",
     "@graphql-yoga/node": "^2.13.13",
     "@hookform/resolvers": "^2.9.10",
     "@logtail/js": "^0.1.14",

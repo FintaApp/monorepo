@@ -1,5 +1,3 @@
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { Stack } from "@chakra-ui/react";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";

@@ -60,8 +60,10 @@ model User {
   periodicUpdatesFrequency    Frequency   @default(weekly) @map("periodic_updates_frequency")
   periodicUpdatesJobId        String?     @map("periodic_updates_job_id")
 
+  linkTokens        LinkToken[]
   accounts          Account[]
   sessions          Session[]
+  plaidItems        PlaidItem[]
 
   @@map("users")
 }
@@ -92,4 +94,66 @@ enum Integration {
   notion
 
   @@map("integrations")
+}
+
+model PlaidInstitution {
+  id                          String      @id
+  name                        String
+  logoUrl                     String?     @map("logo_url")
+
+  items                       PlaidItem[]
+
+  @@map("plaid_institutions")
+}
+
+model PlaidItem {
+  id                          String      @id
+  institutionId               String      @map("institution_id")
+  userId                      String      @map("user_id")
+  isInitialUpdateComplete     Boolean     @default(false) @map("is_initial_update_complete")
+  isHistoricalUpdateComplete  Boolean     @default(false) @map("is_historical_update_complete")
+  error                       String?     
+  accessToken                 String      @map("access_token")
+  plaidSyncCursor             String?     @map("plaid_sync_cursor")
+  availableProducts           Json        @map("available_products")
+  billedProducts              Json        @map("billed_products")
+  lastSyncedAt                DateTime?   @map("last_synced_at")
+  consentExpiresAt            DateTime?   @map("consent_expires_at")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  disabledAt                  DateTime?   @map("disabled_at")
+
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution     PlaidInstitution        @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+
+  accounts                    PlaidAccount[]
+
+  @@map("plaid_items")
+  @@index([userId])
+  @@index([institutionId])
+}
+
+model PlaidAccount {
+  id                          String      @id
+  plaidItemId                 String      @map("plaid_item_id")
+  name                        String
+  mask                        String?
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+
+  item                        PlaidItem   @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+
+  @@map("plaid_accounts")
+  @@index([plaidItemId])
+}
+
+model LinkToken {
+  id                          String      @id @default(uuid())
+  token                       String      @unique
+  userId                      String      @map("user_id") @unique
+
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+
+  @@map("link_tokens")
+  @@index([userId])
 }

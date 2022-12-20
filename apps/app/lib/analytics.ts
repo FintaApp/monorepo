@@ -30,6 +30,41 @@ export const trackUserUpdated = ({ userId, field }: { userId: string; field: str
     properties: { field }
   })
 
+export const trackPlaidLinkInitiated = ({ userId, mode }: { userId: string; mode: 'create' | 'reconnect' | 'addAccounts' }) =>
+  track({
+    userId,
+    event: Event.PLAID_LINK_INITIATED,
+    properties: { mode }
+  })
+
+export const trackInstitutionCreated = ({ userId, institution, itemId }: { userId: string; institution: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_CREATED,
+    properties: { institution, plaidItemId: itemId }
+  })
+
+export const trackInstitutionReconnected = ({ userId, itemId }: { userId: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_RECONNECTED,
+    properties: { plaidItemId: itemId }
+  })
+
+export const trackInstitutionAccountsUpdated = ({ userId, itemId, accountsCreated, accountsDeleted }: { userId: string; itemId: string; accountsCreated: number; accountsDeleted: number }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_ACCOUNTS_UPDATED,
+    properties: { plaidItemId: itemId, accountsCreated, accountsDeleted }
+  })
+
+export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_DELETED,
+    properties: { plaidItemId: itemId }
+  })
+
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
@@ -43,14 +78,28 @@ export const frontendIdentify = ({ userId }: { userId: string }) => {
   browserAnalytics.identify(userId);
 }
 
+export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; field: 'name' }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_ACCOUNT_UPDATED,
+    properties: { field }
+  })
+
 // Types
 enum Event {
+  INSTITUTION_ACCOUNT_UPDATED = "Plaid Account Updated",
+  INSTITUTION_CREATED = "Institution Created",
+  INSTITUTION_DELETED = "Institution Deleted",
+  INSTITUTION_RECONNECTED = "Institution Reconnected",
+  INSTITUTION_ACCOUNTS_UPDATED = "Institution Accounts Updated",
+  PLAID_LINK_INITIATED = "Plaid Link Initiated",
   USER_SIGNED_IN = "User Signed In",
   USER_SIGNED_UP = "User Signed Up",
   USER_UPDATED = "User Updated",
 }
 
 export enum AnalyticsPage {
+  ACCOUNTS = 'Accounts',
   LOG_IN = 'Log In',
   SIGN_UP = 'Sign Up'
 }
@@ -71,6 +120,7 @@ type UserTraits = {
   periodic_updates_frequency?: Frequency
   lifetime_revenue?: number;
   deleted_at?: Date;
+  institutions_count?: number;
 }
 
 // Helpers

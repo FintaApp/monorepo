@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { 
   AlertDialog,
   AlertDialogBody,
@@ -14,27 +14,25 @@ import {
 } from "@chakra-ui/react";
 import { TrashIcon } from "@radix-ui/react-icons";
 
-import { disablePlaidItem } from "~/utils/frontend/functions";
-import { PlaidItemModel } from "~/types/frontend/models";
 import { useLogger } from "~/utils/frontend/useLogger";
 import { Integrations_Enum } from "~/graphql/frontend";
+import { usePlaidItem } from "./context";
+import { trpc } from "~/lib/trpc";
 
-export const RemovePlaidItem = ({ plaidItem }: { plaidItem: PlaidItemModel }) => {
+export const RemovePlaidItem = () => {
+  const { plaidItem, onRemove } = usePlaidItem();
+  const { mutateAsync: removeItem, isLoading } = trpc.plaid.removePlaidItem.useMutation();
+
   const logger = useLogger();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef(null);
 
-  const [ isLoading, toggleIsLoading ] = useState(false);
-
   const onDelete = () => {
-    toggleIsLoading(true);
-    disablePlaidItem({ plaidItemId: plaidItem.id })
-    .then(onClose)
-    .catch(error => logger.error(error, { plaidItemId: plaidItem.id }, true))
-    .finally(() => toggleIsLoading(false))
+    removeItem({ plaidItemId: plaidItem.id })
+    .then(() => { onRemove(); onClose() })
   }
 
-  const uniqueIntegrationIds = Array.from(new Set(plaidItem.accounts.map(account => account.destination_connections.map(dc => dc.destination.integration.id as Integrations_Enum)).reduce((all, curr) => all.concat(curr), [])));
+  const uniqueIntegrationIds = [] as string[]//Array.from(new Set(plaidItem.accounts.map(account => account.destination_connections.map(dc => dc.destination.integration.id as Integrations_Enum)).reduce((all, curr) => all.concat(curr), [])));
 
   return (
     <>

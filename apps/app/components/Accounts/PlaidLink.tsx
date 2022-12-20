@@ -6,18 +6,18 @@ import {
   PlaidLinkOptions,
   usePlaidLink
 } from "react-plaid-link";
+import { Serialize } from '@trpc/server/src/shared/internal/serialize'
 
-import { useUpsertPlaidItemMutation, useDeletePlaidAccountsMutation, useUpdateUserMutation, Plaid_Institutions_Constraint, Plaid_Institutions_Update_Column, PlaidAccounts_Constraint } from "~/graphql/frontend";
-import { PlaidItemModel } from "~/types/frontend/models";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { useLogger } from "~/utils/frontend/useLogger";
 import * as analytics from "~/utils/frontend/analytics";
-import { exchangePlaidPublicToken } from "~/utils/frontend/functions";
+import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
+import { PlaidItem } from "@prisma/client";
 
 
 interface PlaidLinkProps {
   onConnectCallback?: () => void;
-  onSuccessCallback: (plaidItem: PlaidItemModel) => void;
+  onSuccessCallback: ({ plaidItem, institutionName }: { plaidItem: Serialize<PlaidItem>; institutionName: string }) => void;
   onExitCallback: () => void;
   linkToken: string;
   receivedRedirectUri?: string
@@ -25,68 +25,16 @@ interface PlaidLinkProps {
 
 export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback, linkToken, receivedRedirectUri }: PlaidLinkProps) => {
   const logger = useLogger();
-  const { user } = useAuth();
-  const userId = user.id;
+  const { user } = useUser();
+  const userId = user!.id;
 
-  const [ upsertPlaidItemMutation ] = useUpsertPlaidItemMutation();
-  const [ deletePlaidAccountsMutation ] = useDeletePlaidAccountsMutation();
-  const [ updateUserMutation ] = useUpdateUserMutation();
+  const { mutateAsync: exchangePublicToken } = trpc.plaid.exchangePublicToken.useMutation();
+  const { mutateAsync: removeLinkToken } = trpc.plaid.removePlaidLink.useMutation();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(async (publicToken, metadata) => {
-    const { institution, accounts } = metadata;
-    logger.info("Plaid link success", { metadata, publicToken });
-
-    const { access_token: accessToken, item_id: itemId } = await exchangePlaidPublicToken({ publicToken })
-    .then(response => {
-      logger.info("Plaid public token exchanged", { item_id: response.item_id, request_id: response.request_id });
-      return response;
-    })
-    .catch(error => {
-      logger.error(error, {}, true);
-      return { access_token: null, item_id: null}
-    })
-
-    updateUserMutation({ variables: { id: userId, _delete_key: { metadata: "activeLinkToken" }}})
-
-    if ( !accessToken || !itemId ) { return; };
-
-    const deleteNonSharedAccountsPromise = deletePlaidAccountsMutation({
-      variables: { where: { _and: [
-        { plaid_item_id: { _eq: itemId }},
-        { id: { _nin: accounts.map(account => account.id )}}
-      ]}}
-    }).then(() => logger.info("Non shared accounts deleted"));
-
-    const upsertPlaidItemPromise = upsertPlaidItemMutation({
-      variables: { plaidItem: {
-        id: itemId,
-        accessToken,
-        error: null,
-        consentExpiresAt: null,
-        institution: {
-          data: { name: institution?.name, id: institution?.institution_id },
-          on_conflict: {
-            constraint: Plaid_Institutions_Constraint.PlaidInstitutionsPkey,
-            update_columns: [ Plaid_Institutions_Update_Column.Name ]
-          }
-        },
-        accounts: {
-          data: accounts.map(account => ({
-            id: account.id,
-            name: account.name,
-            mask: account.mask
-          })),
-          on_conflict: {
-            constraint: PlaidAccounts_Constraint.PlaidAccountsPkey,
-            update_columns: []
-          }
-        }
-      }}
-    }).then(response => { logger.info("Plaid Item upserted"); return response });
-
-    Promise.all([ deleteNonSharedAccountsPromise, upsertPlaidItemPromise ])
-    .then(([ _, upsertPlaidItemResponse ]) => onSuccessCallback(upsertPlaidItemResponse.data?.plaidItem))
-  }, [ onSuccessCallback, deletePlaidAccountsMutation, upsertPlaidItemMutation ])
+    exchangePublicToken({ publicToken })
+      .then(({ plaidItem, institutionName }) => onSuccessCallback({ plaidItem, institutionName }))
+  }, [ onSuccessCallback ])
 
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {
     logger.info("Plaid Link event", { eventName, metadata });
@@ -98,7 +46,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const onExit = useCallback<PlaidLinkOnExit>(async (error, metadata) => {
     if ( error ) { logger.error(new Error("Plaid Link error"), { error, metadata })};
     await Promise.all([
-      updateUserMutation({ variables: { id: userId, _delete_key: { metadata: "activeLinkToken" }}}),
+      removeLinkToken(),
       analytics.track({ event: analytics.EventNames.PLAID_PORTAL_CLOSED, properties: { has_error: !!error }})
     ])
     onExitCallback();

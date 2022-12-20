@@ -9,7 +9,8 @@ import { router, protectedProcedure, publicProcedure } from "../trpc";
 
 export const userRouter = router({
   getUser: protectedProcedure
-    .query(async ({ ctx: { session, db } }) => {
+    .query(async ({ ctx: { req, session, db } }) => {
+      console.log(req.headers)
       const userId = session!.user.id;
       return db.user.findFirstOrThrow({ where: { id: userId }})
     }),
