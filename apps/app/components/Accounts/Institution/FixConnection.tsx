@@ -10,6 +10,7 @@ import { trpc, RouterOutput } from "~/lib/trpc";
 import { useToast } from "~/lib/context/useToast";
 
 export const FixConnection = () => {
+  const { plaid: { getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts} } } = trpc.useContext()
   const { plaidItem, refetch } = usePlaidItem();
   const { mutateAsync: createPlaidLinkToken, isLoading } = trpc.plaid.createLinkToken.useMutation();
 
@@ -25,13 +26,14 @@ export const FixConnection = () => {
   const onExitCallback = useCallback(() => { setLinkToken(null)}, []);
 
   const onSuccessCallback = useCallback(async (plaidItem: RouterOutput['plaid']['exchangePublicToken']) => {
+    refetchAllPlaidAccounts();
     refetch();
     renderToast({
       status: 'success',
       title: 'Connection fixed',
       message: 'You should see new data for this institution shortly.'
     })
-  }, [ renderToast ]);
+  }, [ renderToast, refetchAllPlaidAccounts ]);
 
   if ( !(['ITEM_LOGIN_REQUIRED'].includes(plaidItem.error || "") || plaidItem.consentExpiresAt) ) {
     return <></>

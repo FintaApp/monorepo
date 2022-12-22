@@ -9,6 +9,7 @@ import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { useAuth } from "~/utils/frontend/useAuth";
 import { EmptyState } from "~/components/EmptyState";
 import { Destination, AddDestination } from "~/components/Destinations";
+import { authGate } from "~/lib/authGate";
 
 const Destinations = () => {
   // const { isAuthenticated } = useAuth();
@@ -17,6 +18,7 @@ const Destinations = () => {
 
   return (
     <>
+      <PageHeader title = "Destinations"><AddDestination /></PageHeader>
       {/* <PageHeader title = "Destinations"><AddDestination /></PageHeader>
 
       <Fade in = { isAuthenticated && !!destinations }>
@@ -39,27 +41,9 @@ const Destinations = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  // const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-  // if ( !nhostSession ) {
-  //   return {
-  //     props: {
-
-  //     },
-  //     redirect: {
-  //       destination: `/login?next=${context.resolvedUrl}`,
-  //       permanent: false
-  //     }
-  //   }
-  // }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 Destinations.analyticsPageName = AnalyticsPage.DESTINATIONS
 export default Destinations;

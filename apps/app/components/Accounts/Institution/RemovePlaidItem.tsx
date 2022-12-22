@@ -20,7 +20,11 @@ import { usePlaidItem } from "./context";
 import { trpc } from "~/lib/trpc";
 
 export const RemovePlaidItem = () => {
-  const { plaidItem, onRemove } = usePlaidItem();
+  const { plaid: { 
+    getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts},
+    getAllPlaidItems: { refetch: refetchAllPlaidItems }
+  } } = trpc.useContext()
+  const { plaidItem } = usePlaidItem();
   const { mutateAsync: removeItem, isLoading } = trpc.plaid.removePlaidItem.useMutation();
 
   const logger = useLogger();
@@ -29,7 +33,11 @@ export const RemovePlaidItem = () => {
 
   const onDelete = () => {
     removeItem({ plaidItemId: plaidItem.id })
-    .then(() => { onRemove(); onClose() })
+    .then(() => { 
+      refetchAllPlaidAccounts();
+      refetchAllPlaidItems();
+      onClose();
+    })
   }
 
   const uniqueIntegrationIds = [] as string[]//Array.from(new Set(plaidItem.accounts.map(account => account.destination_connections.map(dc => dc.destination.integration.id as Integrations_Enum)).reduce((all, curr) => all.concat(curr), [])));

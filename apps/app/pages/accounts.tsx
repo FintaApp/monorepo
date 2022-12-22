@@ -13,12 +13,12 @@ import { useMemo } from "react";
 
 const Accounts = () => {
   const { isAuthenticated } = useUser();
-  const { data, isLoading, refetch } = trpc.plaid.getAllPlaidItems.useQuery(undefined, { enabled: isAuthenticated });
+  const { data, isLoading } = trpc.plaid.getAllPlaidItems.useQuery(undefined, { enabled: isAuthenticated });
   const plaidItemIds = useMemo(() => data?.map(d => d.id), [ data ]);
   
   return (
     <>
-      <PageHeader title = "Accounts"><AddBankAccount refetchPlaidItems = { refetch } /></PageHeader>
+      <PageHeader title = "Accounts"><AddBankAccount /></PageHeader>
       <Fade in = { !isLoading }>
         {
           plaidItemIds?.length === 0
@@ -28,7 +28,7 @@ const Accounts = () => {
                 callToAction = "Click the button above to connect your first account."
               />
             : <VStack spacing = "6" mb = "10">
-                { plaidItemIds?.map(id => <Institution key = { id } id = { id } onRemove = { refetch } /> )}
+                { plaidItemIds?.map(id => <Institution key = { id } id = { id } /> )}
               </VStack>
         }
       </Fade>

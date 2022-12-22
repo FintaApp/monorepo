@@ -32,7 +32,8 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const { mutateAsync: removeLinkToken } = trpc.plaid.removePlaidLink.useMutation();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(async (publicToken, metadata) => {
-    exchangePublicToken({ publicToken })
+    const { institution, accounts } = metadata;
+    exchangePublicToken({ publicToken, institution: institution!, accounts })
       .then(({ plaidItem, institutionName }) => onSuccessCallback({ plaidItem, institutionName }))
   }, [ onSuccessCallback ])
 

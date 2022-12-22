@@ -57,13 +57,14 @@ model User {
   stripeCustomerId            String      @map("stripe_customer_id")
   isSubsribedGeneral          Boolean     @default(true) @map("is_subscribed_general")
   isSubscribedPeriodicUpdates Boolean     @default(true) @map("is_subscribed_periodic_updates")
-  periodicUpdatesFrequency    Frequency   @default(weekly) @map("periodic_updates_frequency")
+  periodicUpdatesFrequency    Frequency   @default(Weekly) @map("periodic_updates_frequency")
   periodicUpdatesJobId        String?     @map("periodic_updates_job_id")
 
   linkTokens        LinkToken[]
   accounts          Account[]
   sessions          Session[]
   plaidItems        PlaidItem[]
+  airtableTokens    AirtableToken[]
 
   @@map("users")
 }
@@ -78,20 +79,20 @@ model VerificationToken {
 }
 
 enum Frequency {
-  daily
-  weekly
-  monthly
-  quarterly
-  yearly
+  Daily
+  Weekly
+  Monthly
+  Quarterly
+  Yearly
 
   @@map("frequencies_enum")
 }
 
 enum Integration {
-  airtable
-  coda
-  google
-  notion
+  Airtable
+  Coda
+  Google
+  Notion
 
   @@map("integrations")
 }
@@ -141,6 +142,7 @@ model PlaidAccount {
   createdAt                   DateTime    @default(now()) @map("created_at")
   updatedAt                   DateTime    @updatedAt @map("updated_at")
 
+  destinations                Destination[] 
   item                        PlaidItem   @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
 
   @@map("plaid_accounts")
@@ -156,4 +158,207 @@ model LinkToken {
 
   @@map("link_tokens")
   @@index([userId])
+}
+
+model Destination {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id")
+  airtableCredentialId        String?     @map("airtable_credential_id") @unique
+  airtableCredential          AirtableCredential?   @relation(fields: [airtableCredentialId], references: [id])
+  codaCredentialId            String?     @map("coda_credential_id") @unique
+  codaCredential              CodaCredential?   @relation(fields: [codaCredentialId], references: [id])
+  googleSheetsCredentialId    String?     @map("google_sheets_credential_id") @unique
+  googleSheetsCredential      GoogleSheetsCredential?   @relation(fields: [googleSheetsCredentialId], references: [id])
+  notionCredentialId          String?     @map("notion_credential_id")
+  notionCredential            NotionCredential?   @relation(fields: [notionCredentialId], references: [id])
+  integration                 Integration
+  name                        String
+  syncStartDate               DateTime    @db.Date @map("sync_start_date")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  disabledAt                  DateTime?   @map("disabled_at")
+
+  accounts                    PlaidAccount[]
+  tableConfigs                DestinationTableConfig[]
+
+  @@index([airtableCredentialId])
+  @@index([codaCredentialId])
+  @@index([googleSheetsCredentialId])
+  @@index([notionCredentialId])
+  
+  @@map("destinations")
+}
+
+model DestinationTableConfig {
+  id                          String      @id @default(uuid())
+  destinationId               String      @map("destination_id")
+  destination                 Destination @relation(fields: [destinationId], references: [id] )
+  isEnabled                   Boolean     @map("is_enabled") @default(false)
+  table                       Table
+  tableId                     String      @map("table_id")
+  
+  fieldConfigs                DestinationFieldConfig[]
+  @@map("destination_table_configs")
+  @@index([destinationId])
+}
+
+model DestinationFieldConfig {
+  id                          String      @id @default(uuid())
+  tableConfigId               String      @map("table_config_id")
+  tableConfig                 DestinationTableConfig  @relation(fields: [tableConfigId], references: [id], onDelete: Cascade)
+  field                       Field
+  fieldId                     String      @map("field_id")
+  
+  @@map("destination_field_configs")
+  @@index([tableConfigId])
+}
+
+enum Table {
+  Institutions @map("institutions")
+  Accounts @map("accounts")
+  Transactions @map("transactions")
+  Holdings @map("holdings")
+  InvestmentTransactions @map("investment_transactions")
+  Securities @map("securities")
+  Categories @map("categories")
+
+  @@map("destination_tables")
+}
+
+enum Field {
+  Id @map("id")
+  Name @map("name")
+  Error @map("error")
+  LastUpdate @map("last_update")
+
+  Institution @map("institution")
+  Available @map("available")
+  Current @map("current")
+  Currency @map("currency")
+  Mask @map("mask")
+  Type @map("type")
+  Subtype @map("subtype")
+  Limit @map("limit")
+  InterestRate @map("interest_rate")
+  LastPaymentAmount @map("last_payment_amount")
+  LastPaymentDate @map("last_payment_date")
+  NextPaymentDueDate @map("next_payment_due_date")
+  LastStatementBalance @map("last_statement_balance")
+  MinimumPaymentAmount @map("minimum_payment_amount")
+  NextMonthlyPayment @map("next_monthly_payment")
+  OriginationDate @map("origination_date")
+  OriginationPrincipalAmount @map("origination_principal_amount")
+
+  Summary @map("summary")
+  Account @map("account")
+  SubAccount @map("sub_account")
+  Amount @map("amount")
+  IsPending @map("is_pending")
+  Category  @map("category")
+
+  CostBasis @map("cost_basis")
+  Quantity @map("quantity")
+  Security @map("security")
+
+  Date @map("date")
+  Fees @map("fees")
+  Price @map("price")
+  
+  Symbol @map("symbol")
+  ClosePrice @map("close_price")
+  ClosePriceAsOf @map("close_price_as_of")
+
+  Group
+  @@map("destination_fields")
+}
+
+enum SyncError {
+  InvalidCredentials @map("invalid_credentials")
+  DestinationNotFound @map("destination_not_found")
+  NotAllowed @map("not_allowed")
+  InvalidRole @map("invalid_role")
+  NoHeaderRow @map("no_header_row")
+  MissingTable @map("missing_table")
+  MissingField @map("missing_field")
+  UnknownError @map("unknown_error")
+  IncorrectFieldType @map("incorrect_field_type")
+  TemplateDestination
+
+  @@map("sync_errors")
+}
+
+model AirtableCredential {
+  id                          String      @id @default(uuid())
+  baseId                      String      @map("base_id")
+  apiKey                      String?     @map("api_key")
+
+  destination                 Destination?
+
+  @@map("airtable_credentials")
+}
+
+model AirtableToken {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken                 String      @map("access_token")
+  refreshToken                String      @map("refresh_token")
+  tokenType                   String      @map("token_type")
+  scope                       String      @map("scope")
+
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  refreshedAt                 DateTime    @default(now()) @map("refreshed_at")
+  accessTokenExpiresAt        DateTime    @map("access_token_expires_at")
+  refreshTokenExpiresAt       DateTime    @map("refresh_token_expires_at")
+
+  @@map("airtable_tokens")
+  @@index([userId])
+}
+
+model CodaCredential {
+  id                          String      @id @default(uuid())
+  accessToken                 String      @map("access_token")
+  accessTokenHash             String      @map("access_token_hash")
+
+  destination                 Destination?
+
+  @@map("coda_credentials")
+}
+
+model GoogleSheetsCredential {
+  id                          String      @id @default(uuid())
+  spreadsheetId               String      @map("spreadsheet_id")
+
+  destination                 Destination?
+
+  @@map("google_sheets_credentials")
+}
+
+model NotionCredential {
+  id                          String      @id @default(uuid())
+  botId                       String      @unique @map("bot_id")
+  userId                      String      @map("user_id")
+  accessToken                 String      @map("access_token")
+  workspaceId                 String      @map("workspace_id")
+  workspaceName               String?     @map("workspace_name")
+  workspaceIcon               String?     @map("workspace_icon")
+  owner                       Json        
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+
+  destinations                Destination[]
+
+  @@map("notion_credentials")
+}
+
+model SyncLog {
+  id                          String      @id @default(uuid())
+  error                       SyncError?
+
+  @@map("sync_logs")
+}
+
+generator zod {
+  provider       = "zod-prisma-types"
 }

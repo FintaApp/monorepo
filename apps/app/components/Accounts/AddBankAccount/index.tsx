@@ -22,7 +22,11 @@ import { trpc } from "~/lib/trpc";
 import { PlaidProduct } from "~/types";
 import { PlaidItem } from "@prisma/client";
 
-export const AddBankAccount = ({ refetchPlaidItems }: { refetchPlaidItems: () => Promise<any>}) => {
+export const AddBankAccount = () => {
+  const { plaid: { 
+    getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts},
+    getAllPlaidItems: { refetch: refetchAllPlaidItems }
+  } } = trpc.useContext()
   const { hasAppAccess } = useUser();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { mutateAsync } = trpc.plaid.createLinkToken.useMutation();
@@ -50,10 +54,11 @@ export const AddBankAccount = ({ refetchPlaidItems }: { refetchPlaidItems: () =>
   const onConnectCallback = useCallback(async () => { setMode("loadingPlaidItem")}, [])
 
   const onSuccessCallback = useCallback(async ({ plaidItem, institutionName }: { plaidItem: Serialize<PlaidItem>; institutionName: string }) => {
-    refetchPlaidItems()
+    refetchAllPlaidItems();
+    refetchAllPlaidAccounts();
     setNewPlaidItem(plaidItem);
     setMode("onSuccess");
-  }, []);
+  }, [ refetchAllPlaidItems, refetchAllPlaidAccounts ]);
 
   const onExitCallback = useCallback(() => setLinkToken(undefined), []);
 

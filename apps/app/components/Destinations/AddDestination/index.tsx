@@ -11,34 +11,30 @@ import {
   useDisclosure 
 } from "@chakra-ui/react";
 
-import { useAuth } from "~/utils/frontend/useAuth";
-import { useLogger } from "~/utils/frontend/useLogger";
+import { Integration } from "@prisma/client"
 
 import { SelectIntegration } from "./SelectIntegration";
 import { SetupDestination } from "./SetupDestination";
-import { IntegrationModel } from "~/types/frontend/models";
+import { useUser } from "~/lib/context/useUser";
+import { DestinationProvider } from "../context";
 
 export const AddDestination = () => {
-  const { user } = useAuth();
-  const logger = useLogger();
+  const { hasAppAccess } = useUser();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [ selectedIntegration, setSelectedIntegration ] = useState(null as IntegrationModel | null);
+  const [ selectedIntegration, setSelectedIntegration ] = useState(null as Integration | null);
   
   useEffect(() => { isOpen && setSelectedIntegration(null); }, [ isOpen ]);
-
-  const canAddDestination = user?.profile.stripeData.hasAppAccess
 
   return (
     <>
       <Tooltip
-        isDisabled = { canAddDestination }
+        isDisabled = { hasAppAccess }
         label = "Please activate your subscription on the settings page to add a new destination"
       >
         <Button
           variant = "primary"
           onClick = { onOpen }
-          isDisabled = { !canAddDestination }
+          isDisabled = { !hasAppAccess }
         >Add Destination</Button>
       </Tooltip>
 
@@ -55,7 +51,9 @@ export const AddDestination = () => {
 
           <ModalBody>
             { selectedIntegration 
-              ? <SetupDestination onClose = { onClose } integration = { selectedIntegration } onBack = { () => setSelectedIntegration(null) } /> 
+              ? <DestinationProvider integration = { selectedIntegration } isSetupMode = { true }>
+                  <SetupDestination onClose = { onClose } onBack = { () => setSelectedIntegration(null) } />
+                </DestinationProvider>
               : <SelectIntegration onSelectIntegration = { setSelectedIntegration } />
             }
           </ModalBody>

@@ -1,3 +1,4 @@
+import { Integration } from '@prisma/client';
 import { LogSnag, PublishOptions } from 'logsnag';
 import { Logger, log } from "next-axiom";
 
@@ -58,7 +59,7 @@ export const logInstitutionReconnected = ({ institution, userId, itemId }: { ins
     }
   })
 
-export const logInstitutionDeleted = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) => {
+export const logInstitutionDeleted = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
   logsnagPublish({
     options: {
       channel: Channel.ACTIVITY,
@@ -71,7 +72,20 @@ export const logInstitutionDeleted = ({ institution, userId, itemId }: { institu
       }
     }
   })
-};
+
+export const  logDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  logsnagPublish({
+    options: {
+      channel: Channel.ACTIVITY,
+      event: Event.DESTINATION_CREATED,
+      icon: "🗺",
+      tags: { 
+        [Tag.INTEGRATION]: integration, 
+        [Tag.USER_ID]: userId,
+        [Tag.DESTINATION_ID]: destinationId
+      }
+    }
+  })
 
 // Types
 enum Channel {
@@ -81,6 +95,8 @@ enum Channel {
 }
 
 enum Event {
+  DESTINATION_CREATED = "Destination Created",
+  DESTINATION_DELETED = "Destination Deleted",
   USER_SIGNED_UP = "User Signed Up",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",

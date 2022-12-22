@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
-import { Frequency, User } from '@prisma/client'
+import { Frequency, Integration, User } from '@prisma/client'
 import { Analytics } from "@segment/analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
@@ -65,6 +65,9 @@ export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; it
     properties: { plaidItemId: itemId }
   })
 
+export const trackDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  track({ userId, event: Event.DESTINATION_CREATED, properties: { integration, destinationId }})
+
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
@@ -87,6 +90,10 @@ export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; fi
 
 // Types
 enum Event {
+  DESTINATION_CREATED = "Destination Created",
+  DESTINATION_UPDATED = "Destination Updated",
+  DESTINATION_DELETED = "Destination Deleted",
+  DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   INSTITUTION_ACCOUNT_UPDATED = "Plaid Account Updated",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",

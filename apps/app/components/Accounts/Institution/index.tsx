@@ -1,8 +1,5 @@
 import { useMemo } from "react";
 import {
-  Accordion,
-//   Accordion,
-//   Avatar,
   Card,
   CardBody,
   CardHeader,
@@ -11,14 +8,7 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  Skeleton,
-//   Table,
-//   Tbody,
-//   Text,
-//   Th,
-//   Thead,
-//   Tr,
-//   useColorModeValue as mode
+  Skeleton
 } from "@chakra-ui/react";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
@@ -32,15 +22,14 @@ import { LastSync } from "./LastSync";
 import { Accounts } from "./Accounts";
 
 
-export const Institution = ({ id, onRemove }: { id: string; onRemove: () => Promise<any> }) => {
+export const Institution = ({ id }: { id: string; }) => {
   const { data: plaidItem, refetch, isLoading } = trpc.plaid.getPlaidItem.useQuery({ id });
   
   const memoedValue = useMemo(
     () => ({
       plaidItem,
-      refetch,
-      onRemove
-    } as PlaidItemContextType), [ plaidItem, refetch, onRemove ]
+      refetch
+    } as PlaidItemContextType), [ plaidItem, refetch ]
   )
 
   return (

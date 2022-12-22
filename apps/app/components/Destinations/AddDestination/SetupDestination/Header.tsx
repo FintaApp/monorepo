@@ -5,10 +5,11 @@ import {
   VStack
 } from "@chakra-ui/react";
 import { TriangleUpIcon } from "@radix-ui/react-icons";
+import { Integration } from "@prisma/client";
 
 import { Logo } from "~/components/Logo";
 import { IntegrationLogo } from "~/components/IntegrationLogo";
-import { IntegrationModel } from "~/types/frontend/models";
+import { integrationsMeta } from "~/lib/integrations/meta";
 
 const imageProps = {
   width: "75px",
@@ -18,7 +19,7 @@ const imageProps = {
   p: 1
 }
 
-export const Header = ({ integration }: { integration: IntegrationModel}) => (
+export const Header = ({ integration }: { integration: Integration}) => (
   <VStack>
     <HStack spacing = "4">
       <Logo variant = "symbol" { ...imageProps } />
@@ -26,6 +27,6 @@ export const Header = ({ integration }: { integration: IntegrationModel}) => (
       <IntegrationLogo integration = { integration } { ...imageProps } />
     </HStack>
 
-    <Heading size = "md" fontWeight = "normal">Connect to { integration.name }</Heading>
+    <Heading size = "md" fontWeight = "normal">Connect to { integrationsMeta[integration].name }</Heading>
   </VStack>
 )

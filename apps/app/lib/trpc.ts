@@ -4,6 +4,7 @@ import { createTRPCNext } from "@trpc/next";
 
 import type { AppRouter } from "~/server/routers";
 
+export type RouterInput = inferRouterInputs<AppRouter>
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 
 const getBaseUrl = () => {
@@ -29,6 +30,7 @@ export const trpc = createTRPCNext<AppRouter>({
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
+            cacheTime: Infinity,
             staleTime: Infinity
           }
         }

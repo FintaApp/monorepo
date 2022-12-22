@@ -6,6 +6,7 @@ import { logInstitutionCreated, logInstitutionDeleted, logInstitutionReconnected
 import { createLinkToken, exchangePublicToken, getAccounts, getInstitution, getItem, initiateProducts, removeItem } from "~/lib/plaid";
 import { uploadPlaidInstitutionLogo } from "~/lib/uploadToStorageBucket";
 import { router, protectedProcedure } from "../trpc";
+import { inngest } from "~/lib/inngest";
 
 export const plaidRouter = router({
   createLinkToken: protectedProcedure
@@ -115,6 +116,21 @@ export const plaidRouter = router({
         .then(response => logger.info("Link token deleted", { response }))
     }),
 
+  getAllPlaidAccounts: protectedProcedure
+    .query(async ({ ctx: { session, db }}) => {
+      const userId = session!.user.id;
+      return db.plaidAccount.findMany({
+        where: { item: { userId, disabledAt: null }},
+        select: { 
+          id: true, 
+          name: true,
+          mask: true,
+          item: { select: { institution: { select: { name: true }}}}
+        },
+        orderBy: { item: { institution: { name: 'asc'}}}
+      })
+    }),
+
   getAllPlaidItems: protectedProcedure
     .query(async ({ ctx: { session, db }}) => {
       const userId = session!.user.id;
@@ -152,10 +168,22 @@ export const plaidRouter = router({
   exchangePublicToken: protectedProcedure
     .input(
       z.object({
-        publicToken: z.string()
+        publicToken: z.string(),
+        institution: z.object({
+          institution_id: z.string(),
+          name: z.string()
+        }),
+        accounts: z.array(z.object({
+          id: z.string(),
+          mask: z.optional(z.string().or(z.null())),
+          name: z.string(),
+          subtype: z.string(),
+          type: z.string(),
+          verification_status: z.optional(z.string().or(z.null()))
+        }))
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { publicToken }}) => {
+    .mutation(async ({ ctx: { session, logger, db }, input: { publicToken, institution, accounts }}) => {
       const userId = session!.user.id;
       const { access_token: accessToken, item_id } = await exchangePublicToken({ publicToken })
         .then(response => {
@@ -166,107 +194,78 @@ export const plaidRouter = router({
           logger.error(error, { data: error.response.data });
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
         })
-      
-      // Fetch Data from Plaid
-      const [ { item, institution }, accounts ] = await Promise.all([
-        getItem({ accessToken })
-          .then(async response => {
-            logger.info("Get Plaid Item", { data: response.data });
-            const item = response.data.item;
-            const institution = await getInstitution({ institutionId: item.institution_id! })
-              .then(resp => {
-                logger.info("Get Plaid Institution", { data: resp.data });
-                return resp.data.institution
-              })
-            return { item, institution };
-          }),
-        getAccounts({ accessToken })
-          .then(response => {
-            logger.info("Get Plaid Accounts", { data: response.data });
-            return response.data.accounts
-          })
-      ])
-      
-      const institutionId = institution.institution_id;
 
       // Check to see if item and institution already exists
-      const [ institutionExists, dbItem, dbAccounts ] = await Promise.all([
-        db.plaidInstitution.findFirst({ where: { id: institutionId }, select: { id: true }})
-          .then(Boolean),
-        db.plaidItem.findFirst({ where: { id: item.item_id }, select: { id: true, error: true, consentExpiresAt: true }}),
-        db.plaidAccount.findMany({ where: { plaidItemId: item.item_id }})
-      ])
-
-      if ( !institutionExists ) {
-        const logoUrl = institution.logo
-          ? await uploadPlaidInstitutionLogo(institutionId, institution.logo)
-          : undefined
-
-        await db.plaidInstitution.create({ data: { id: institutionId, name: institution.name, logoUrl: logoUrl}})
-          .then(institution => logger.info("Plaid institution created", { institution }))
-      }
+      const dbItem = await db.plaidItem.findFirst({ where: { id: item_id }, select: { id: true, error: true, consentExpiresAt: true }})
+      logger.info("Fetched DB item", { item: dbItem })
 
       const newPlaidItem = await db.plaidItem.upsert({
-        where: { id: item.item_id },
-        create: {
-          id: item.item_id,
-          accessToken,
-          institutionId,
-          userId,
-          availableProducts: item.available_products,
-          billedProducts: item.billed_products
-        },
-        update: {
-          error: null,
-          consentExpiresAt: null,
-          availableProducts: item.available_products,
-          billedProducts: item.billed_products
-        }
-      })
-      .then(response => {
-        logger.info("Plaid item upserted", { item: response });
-        return response;
-      })
+          where: { id: item_id },
+          create: {
+            id: item_id,
+            accessToken,
+            institution: {
+              connectOrCreate: {
+                where: { id: institution.institution_id },
+                create: {
+                  id: institution.institution_id,
+                  name: institution.name
+                }
+              }
+            },
+            user: {
+              connect: { id: userId }
+            },
+            availableProducts: [],
+            billedProducts: []
+          },
+          update: {
+            error: null,
+            consentExpiresAt: null
+          }
+        })
+        .then(response => {
+          logger.info("Plaid item upserted", { item: response });
+          return response;
+        })
 
-      // Insert / Delete Accounts 
-      const [ accountsCreated, accountsDeleted ] = await Promise.all([
-        // Cant use createMany, skipDuplicates :(
-        db.plaidAccount.createMany({
-          data: accounts
-            .filter(account => !dbAccounts.map(dba => dba.id).includes(account.account_id))
-            .map(account => ({
-              id: account.account_id,
-              plaidItemId: item.item_id,
+        // Insert / Delete Accounts 
+        const [ accountsCreated, accountsDeleted ] = await Promise.all([
+          db.plaidAccount.createMany({
+            data: accounts.map(account => ({
+              id: account.id,
+              plaidItemId: item_id,
               mask: account.mask,
-              name: (account.name || account.official_name)!
-          }))
-        })
-        .then(({ count }) => {
-          if ( count > 0 ) { logger.info("Accounts created", { count })};
-          return count;
-        }),
+              name: account.name
+            })),
+            skipDuplicates: true
+          }).then(({ count }) => {
+            if ( count > 0 ) { logger.info("Accounts created", { count })};
+            return count;
+          }),
 
-        db.plaidAccount.deleteMany({ where: { id: { notIn: accounts.map(account => account.account_id ) }, plaidItemId: item_id }})
-        .then(({ count }) => {
-          if ( count > 0 ) { logger.info("Accounts deleted", { count })};
-          return count;
-        })
-      ])
+          db.plaidAccount.deleteMany({ where: { id: { notIn: accounts.map(account => account.id ) }, plaidItemId: item_id }})
+          .then(({ count }) => {
+            if ( count > 0 ) { logger.info("Accounts deleted", { count })};
+            return count;
+          })
+        ])
 
-      const initiateProductsPromise = initiateProducts({ accessToken, availableProducts: item.available_products.filter(product => product !== 'transactions').concat('transactions' as Products)}) // Make sure transactions is in there exactly once
-
-      const updateUserInstitutionsCount = dbItem ? Promise.resolve()
+      const updateUserInstitutionsCountPromise = dbItem ? Promise.resolve()
       : db.plaidItem.count({ where: { userId, disabledAt: null }})
         .then(async count => {
           logger.info("Fetched user's total items", { count })
           return identify({ userId, traits: { institutions_count: count }})
             .then(() => logger.info("Identified user with institutions_acount"))
         })
+      
+      const innestPromise = dbItem ? Promise.resolve()
+        : inngest.send({ name: 'plaid_item/setup', data: { plaidItemId: item_id }, user: { id: userId }});
 
       const trackInstitutionReconnectedPromise = dbItem && (dbItem.error || dbItem.consentExpiresAt)
         ? Promise.all([
           trackInstitutionReconnected({ userId, itemId: item_id }),
-          logInstitutionReconnected({ institution: institution.name, userId, itemId: item.item_id })
+          logInstitutionReconnected({ institution: institution.name, userId, itemId: item_id })
         ])
         : Promise.resolve();
 
@@ -277,8 +276,8 @@ export const plaidRouter = router({
       const trackInstitutionCreatedPromise = dbItem
         ? Promise.resolve()
         : Promise.all([
-          trackInstitutionCreated({ userId, institution: institution.name, itemId: item.item_id }),
-          logInstitutionCreated({ userId, institution: institution.name, itemId: item.item_id })
+          trackInstitutionCreated({ userId, institution: institution.name, itemId: item_id }),
+          logInstitutionCreated({ userId, institution: institution.name, itemId: item_id })
         ])
 
       const removeLinkTokenPromise = db.linkToken.delete({ where: { userId }})
@@ -287,8 +286,8 @@ export const plaidRouter = router({
         })
 
       await Promise.all([
-        initiateProductsPromise,
-        updateUserInstitutionsCount,
+        innestPromise,
+        updateUserInstitutionsCountPromise,
         trackInstitutionReconnectedPromise,
         trackInstitutionAccountsUpdatedPromise,
         trackInstitutionCreatedPromise,

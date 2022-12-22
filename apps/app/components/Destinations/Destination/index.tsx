@@ -16,12 +16,12 @@ import { Integrations_Enum } from "~/graphql/frontend";
 
 import { DestinationAccounts } from "./Accounts";
 import { DestinationActions } from "./Actions";
-import { DestinationAuthentication } from "./Authentication";
+import { DestinationCredentials } from "./Credentials";
 import { DestinationName } from "./DestinationName";
 import { SyncStartDate } from "./SyncStartDate";
 import { TableConfigs } from "./TableConfigs";
 
-export { DestinationAccounts,DestinationActions, DestinationAuthentication, DestinationName, SyncStartDate, TableConfigs }
+export { DestinationAccounts,DestinationActions, DestinationCredentials, DestinationName, SyncStartDate, TableConfigs }
 
 export const Destination = ({ destination }: { destination: DestinationModel }) => {
   const totalAccounts = destination.account_connections.length;

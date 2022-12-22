@@ -2,42 +2,37 @@ import { FormControl, FormHelperText, FormLabel, Input } from "@chakra-ui/react"
 
 import { EditableInputWithButtons } from "~/components/Forms/EditableInputWithButtons";
 import { useToast } from "~/utils/frontend/useToast";
-import { useUpdateDestinationMutation } from "~/graphql/frontend";
+import { useDestination } from "../context";
 
-interface DestinationNameProps {
-  destinationId?: string;
-  value: string;
-  onChange?: (newValue: string) => void;
-}
-
-export const DestinationName = ({ destinationId, value, onChange }: DestinationNameProps) => {
+export const DestinationName = () => {
+  const { isSetupMode, name, setName } = useDestination();
   const renderToast = useToast();
-  const [ updateDestinationMutation, { loading } ] = useUpdateDestinationMutation();
 
-  const onSubmit = (newValue: string) => {
-    if ( newValue !== value ) {
-      updateDestinationMutation({ variables: { destinationId, _set: { name: newValue }} })
-      .then(() => {
-        renderToast({ title: "Destination Updated", status: "success" });
-        onSubmit && onSubmit(newValue);
-      })
-    }
-  }
+  // const onSubmit = (newValue: string) => {
+  //   if ( newValue !== value ) {
+  //     updateDestinationMutation({ variables: { destinationId, _set: { name: newValue }} })
+  //     .then(() => {
+  //       renderToast({ title: "Destination Updated", status: "success" });
+  //       onSubmit && onSubmit(newValue);
+  //     })
+  //   }
+  // }
+
   return (
     <FormControl>
       <FormLabel>Destination Name</FormLabel>
-      { destinationId
-        ? <EditableInputWithButtons 
-            defaultValue = { value } 
-            onSubmit = { onSubmit } 
-            isLoading = { loading } 
+      { isSetupMode
+        ? <Input
+            value = { name }
+            onChange = { e => setName(e.target.value) }
           />
-        : <Input
-            value = { value }
-            onChange = { e => onChange(e.target.value) }
+        : <EditableInputWithButtons 
+            defaultValue = { name } 
+            onSubmit = { () => null } 
+            isLoading = { false } 
           />
       }
-      { destinationId ? null : <FormHelperText>Enter a nickname for this destination.</FormHelperText>}
+      { isSetupMode && <FormHelperText>Enter a nickname for this destination.</FormHelperText>}
     </FormControl>
   )
 }
