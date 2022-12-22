@@ -5,8 +5,7 @@ import { useDestination } from "../../context";
 // import { Airtable } from "./Airtable";
 import { Coda } from "./Coda";
 import { Google } from "./Google";
-// import { Google } from "./Google";
-// import { Notion } from "./Notion";
+import { Notion } from "./Notion";
 // import { DestinationAuthentication as DestinationAuthenticationType, AirtableAuthentication, GoogleSheetsAuthentication, NotionAuthentication } from "~/types/shared/models";
 
 
@@ -47,10 +46,7 @@ export const DestinationCredentials = () => {
 
   if ( integration === Integration.Coda ) { return <Coda />  }
   if ( integration === Integration.Google ) { return <Google /> }
-
-  if ( integration === Integration.Notion ) {
-
-  }
+  if ( integration === Integration.Notion ) { return <Notion />}
 
   return <></>
 }

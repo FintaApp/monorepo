@@ -1,10 +1,9 @@
 import { Button, Flex, FormControl, FormErrorMessage, Stack } from "@chakra-ui/react";
 import { SymbolIcon } from "@radix-ui/react-icons";
 
-import { Integrations_Enum } from "~/graphql/frontend";
 import { Input, Select, FormLabelWithTooltip } from "~/components/Forms";
 import { ConfigError, useDestination } from "~/components/Destinations/context";
-import { AirtableCredential, Integration, SyncError, Table } from "@prisma/client";
+import { Integration, SyncError, Table } from "@prisma/client";
 
 interface TableSelectionProps {
   tableOptions: { label: string; value: string }[];
@@ -12,8 +11,7 @@ interface TableSelectionProps {
 }
 
 export const TableSelection = ({ tableType, tableOptions }: TableSelectionProps) => {
-  const { integration, tableConfigsValidation, tableConfigs, credentials, isLoadingTables, refetchTables, onChangeTableConfig } = useDestination();
-  const isLegacyAirtable = !!(credentials as AirtableCredential)?.apiKey && integration === Integration.Airtable;
+  const { integration, tableConfigsValidation, tableConfigs, isLoadingTables, refetchTables, onChangeTableConfig, isLegacyAirtable } = useDestination();
   const tableConfig = tableConfigs?.find(config => config.table === tableType) || { table: tableType, tableId: '', isEnabled: false, fieldConfigs: [] };
   const error = tableConfigsValidation?.errors?.find(error => error.tableId === tableConfig.tableId && !error.fieldId && !error.field)?.code;
   const { label, tooltipText } = getConstants(integration);

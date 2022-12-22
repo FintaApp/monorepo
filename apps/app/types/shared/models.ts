@@ -1,6 +1,7 @@
 import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { Field, Integration, Table } from "@prisma/client";
+import { Field, Integration, Table, AirtableCredential, GoogleSheetsCredential, NotionCredential } from "@prisma/client";
 import { z } from "zod";
+import { RouterOutput } from "~/lib/trpc";
 import { AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema } from "~/prisma/generated/zod";
 
 export type NotionPropertyType = PropertyItemObjectResponse['type'];
@@ -9,10 +10,11 @@ export type DestinationFieldType = NotionPropertyType | AirtableFieldType;
 
 export type TableConfig =  { id?: string; isEnabled: boolean; table: Table; tableId: string; fieldConfigs: { id?: string; field: Field; fieldId: string; }[] }
 
-export type AirtableCredential = z.TypeOf<typeof AirtableCredentialSchema>;
-export type GoogleSheetsCredential = z.TypeOf<typeof GoogleSheetsCredentialSchema>;
-export type NotionCredential = z.TypeOf<typeof NotionCredentialSchema>;
+export type AirtableCredentialZod = z.TypeOf<typeof AirtableCredentialSchema>;
+export type GoogleSheetsCredentialZod = z.TypeOf<typeof GoogleSheetsCredentialSchema>;
+export type NotionCredentialZod = z.TypeOf<typeof NotionCredentialSchema>;
 
+export type DestinationCredentialZod = AirtableCredentialZod | GoogleSheetsCredentialZod | NotionCredentialZod
 export type DestinationCredential = AirtableCredential | GoogleSheetsCredential | NotionCredential
 
 

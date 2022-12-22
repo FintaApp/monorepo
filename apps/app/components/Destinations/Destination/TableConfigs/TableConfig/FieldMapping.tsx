@@ -11,7 +11,7 @@ from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import { Input, Select } from "~/components/Forms";
 import { TrashIcon } from "@radix-ui/react-icons";
-import {  DestinationFieldType, TableConfig, AirtableCredential } from "~/types/shared/models"
+import {  DestinationFieldType } from "~/types/shared/models"
 
 import { fieldHelperText } from "../constants";
 import { ConfigError, useDestination } from "~/components/Destinations/context";
@@ -28,11 +28,9 @@ interface FieldMappingProps {
 }
 
 export const FieldMapping = ({ onChange, tableType, fintaFieldOptions, field, index, destinationFieldOptions }: FieldMappingProps) => {
-  const { credentials, integration, tableConfigs, tableConfigsValidation, onChangeTableConfig } = useDestination();
+  const { isLegacyAirtable, integration, tableConfigs, tableConfigsValidation, onChangeTableConfig } = useDestination();
   const tableConfig = tableConfigs?.find(config => config.table === tableType) || { table: tableType, tableId: '', isEnabled: false, fieldConfigs: [] };
   const fieldConfig = tableConfig.fieldConfigs.find(f => f.field === field)!;
-
-  const isLegacyAirtable = !!(credentials as AirtableCredential).apiKey && integration === Integration.Airtable;
   
   const icon = useBreakpointValue({ base: ChevronDownIcon, sm: ChevronRightIcon });
   const fintaFieldValue = fintaFieldOptions.find(option => option.value === field);
@@ -87,12 +85,12 @@ export const FieldMapping = ({ onChange, tableType, fintaFieldOptions, field, in
 // Helper
 const getAllowedFieldOptions = (integration: Integration, tableType: Table, field: Field, fieldOptions: { label: string; value: string, type?: DestinationFieldType }[] ) => {
   if ( integration === Integration.Google || integration === Integration.Coda ) { return fieldOptions }
-  const fieldToTypeMappingforFieldType = tableConfigsMeta.find(meta => meta.table === tableType)!.fields.find(f => f.field === field)!.allowedTypes;
+  const fieldToTypeMappingforFieldType = tableConfigsMeta.find(meta => meta.table === tableType)!.fields.find(f => f.field === field)?.allowedTypes;
   if ( integration === Integration.Notion && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType.Notion.map(type => ({ label: fieldHelperText.Notion[type], options: fieldOptions.filter(option => type === option.type) }))
+    return fieldToTypeMappingforFieldType?.Notion.map(type => ({ label: fieldHelperText.Notion[type], options: fieldOptions.filter(option => type === option.type) }))
   }
   if ( integration === Integration.Airtable && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType.Airtable.map(type => ({ label: fieldHelperText.Airtable[type], options: fieldOptions.filter(option => type === option.type) }))
+    return fieldToTypeMappingforFieldType?.Airtable.map(type => ({ label: fieldHelperText.Airtable[type], options: fieldOptions.filter(option => type === option.type) }))
   }
 }
 

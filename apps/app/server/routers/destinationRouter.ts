@@ -2,23 +2,27 @@ import { AirtableCredential, Field, GoogleSheetsCredential, Integration, NotionC
 import { TRPCError } from "@trpc/server";
 import moment from "moment-timezone";
 import { z } from "zod";
-import { trackDestinationCreated } from "~/lib/analytics";
+import { trackDestinationCreated, trackNotionConnectionAdded } from "~/lib/analytics";
 import { getDestinationObject } from "~/lib/integrations/getDestinationObject";
-import { logDestinationCreated } from "~/lib/logsnag";
-import { AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema } from "~/prisma/generated/zod";
+import { logDestinationCreated, logNotionConnectionAdded } from "~/lib/logsnag";
 import { router, protectedProcedure } from "../trpc";
+import { Context } from "../context";
+import axios from "axios";
 
 export const destinationRouter = router({
   validateCredentials: protectedProcedure
     .input(
       z.object({
         integration: z.nativeEnum(Integration),
-        credentials: z.union([ AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema ])
+        googleSpreadsheetId: z.optional(z.string()),
+        notionBotId: z.optional(z.string()),
+        airtableBaseId: z.optional(z.string()),
+        airtableApiKey: z.optional(z.string()),
       })
     )
-    .mutation(async ({ ctx: { session, logger }, input: { integration, credentials }}) => {
+    .mutation(async ({ ctx: { session, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
       const userId = session!.user.id;
-      
+      const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
       if ( !credentials ) { throw new TRPCError({ code: 'BAD_REQUEST', message: "Incorrect integration"})}
 
       const Destination = getDestinationObject({ integration, credentials, userId })!;
@@ -32,7 +36,10 @@ export const destinationRouter = router({
     .input(
       z.object({
         integration: z.nativeEnum(Integration),
-        credentials: z.union([ AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema ]),
+        googleSpreadsheetId: z.optional(z.string()),
+        notionBotId: z.optional(z.string()),
+        airtableBaseId: z.optional(z.string()),
+        airtableApiKey: z.optional(z.string()),
         tableConfigs: z.array(
           z.object({ 
             table: z.nativeEnum(Table), 
@@ -48,8 +55,9 @@ export const destinationRouter = router({
         )
       })
     )
-    .mutation(async ({ ctx: { session, logger }, input: { integration, credentials, tableConfigs }}) => {
+    .mutation(async ({ ctx: { session, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId, tableConfigs }}) => {
       const userId = session!.user.id;
+      const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
       if ( !credentials ) { throw new TRPCError({ code: 'BAD_REQUEST', message: "Incorrect integration"})}
       
       const Destination = getDestinationObject({ integration, credentials, userId })!;
@@ -63,7 +71,10 @@ export const destinationRouter = router({
     .input(
       z.object({
         integration: z.nativeEnum(Integration),
-        credentials: z.union([ AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema ]),
+        googleSpreadsheetId: z.optional(z.string()),
+        notionBotId: z.optional(z.string()),
+        airtableBaseId: z.optional(z.string()),
+        airtableApiKey: z.optional(z.string()),
         tableConfigs: z.array(
           z.object({ 
             table: z.nativeEnum(Table), 
@@ -82,14 +93,15 @@ export const destinationRouter = router({
         connectedAccountIds: z.array(z.string())
       })
     )
-    .mutation(async ({ ctx: { session, db, logger }, input: { integration, credentials, tableConfigs, name, syncStartDate, connectedAccountIds }}) => {
+    .mutation(async ({ ctx: { session, db, logger }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, tableConfigs, name, syncStartDate, connectedAccountIds }}) => {
       const userId = session!.user.id;
+
       const destination = await db.destination.create({
         data: {
           userId,
-          airtableCredential: integration === Integration.Airtable ? { create: { baseId: (credentials as AirtableCredential).baseId }} : undefined,
-          notionCredential: integration === Integration.Notion ? { connect: { botId: (credentials as NotionCredential).botId }} : undefined,
-          googleSheetsCredential: integration === Integration.Google ? { create: { spreadsheetId: (credentials as GoogleSheetsCredential).spreadsheetId }} : undefined,
+          airtableCredential: integration === Integration.Airtable ? { create: { baseId: airtableBaseId! }} : undefined,
+          notionCredential: integration === Integration.Notion ? { connect: { botId: notionBotId! }} : undefined,
+          googleSheetsCredential: integration === Integration.Google ? { create: { spreadsheetId: googleSpreadsheetId! }} : undefined,
           codaCredential: undefined, // TODO
           integration,
           name,
@@ -120,13 +132,17 @@ export const destinationRouter = router({
     .input(
       z.object({
         integration: z.nativeEnum(Integration),
-        credentials: z.union([ AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema ])
+        googleSpreadsheetId: z.optional(z.string()),
+        notionBotId: z.optional(z.string()),
+        airtableBaseId: z.optional(z.string()),
+        airtableApiKey: z.optional(z.string())
       })
     )
-    .query(async ({ ctx: { session }, input: { integration, credentials }}) => {
+    .query(async ({ ctx: { session, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, airtableApiKey }}) => {
       const userId = session!.user.id;
+      const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
 
-      if ( integration === Integration.Coda ) { return [] }
+      if ( integration === Integration.Coda || !credentials ) { return [] }
       const Destination = getDestinationObject({ integration, credentials, userId })!;
       await Destination.init();
 
@@ -137,13 +153,17 @@ export const destinationRouter = router({
     .input(
       z.object({
         integration: z.nativeEnum(Integration),
-        credentials: z.union([ AirtableCredentialSchema, GoogleSheetsCredentialSchema, NotionCredentialSchema ])
+        googleSpreadsheetId: z.optional(z.string()),
+        notionBotId: z.optional(z.string()),
+        airtableBaseId: z.optional(z.string()),
+        airtableApiKey: z.optional(z.string())
       })
     )
-    .mutation(async ({ ctx: { session }, input: { integration, credentials }}) => {
+    .mutation(async ({ ctx: { session, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
       const userId = session!.user.id;
+      const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
 
-      if ( integration === Integration.Coda ) { return { tableConfigs: [
+      if ( integration === Integration.Coda || !credentials ) { return { tableConfigs: [
         { table: Table.Institutions, isEnabled: true, tableId: '', fieldConfigs: [] },
         { table: Table.Accounts, isEnabled: true, tableId: '', fieldConfigs: [] },
         { table: Table.Transactions, isEnabled: true, tableId: '', fieldConfigs: []},
@@ -154,6 +174,70 @@ export const destinationRouter = router({
       await Destination.init();
 
       return Destination.getDefaulTableConfigs()
+    }),
+
+  getNotionCredentials: protectedProcedure
+    .query(async ({ ctx: { session, db }}) => {
+      const userId = session!.user.id;
+
+      const notionCredentials = await db.notionCredential.findMany({ where: { userId }, select: { botId: true, workspaceName: true }});
+      return notionCredentials
+    }),
+
+  exchangeNotionToken: protectedProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        originUrl: z.string()
+      })
+    )
+    .mutation(async ({ ctx: { session, db, logger }, input: { code, originUrl }}) => {
+      const userId = session!.user.id;
+      const redirectUri = `${originUrl}/auth/notion`;
+
+      const response = await axios.post('https://api.notion.com/v1/oauth/token', {
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri
+      }, { auth: {
+        username: process.env.NEXT_PUBLIC_NOTION_OAUTH_CLIENT_ID!,
+        password: process.env.NOTION_OAUTH_SECRET!
+      }});
+
+      logger.info("Exchange Notion token response", { data: response.data });
+      const { access_token, bot_id, workspace_name, workspace_icon, workspace_id, owner } = response.data;
+      const connection = await db.notionCredential.create({ data: {
+        userId,
+        botId: bot_id,
+        accessToken: access_token,
+        workspaceName: workspace_name,
+        workspaceId: workspace_id,
+        workspaceIcon: workspace_icon,
+        owner
+      }});
+
+      logger.info("Notion connection inserted", { response: connection })
+
+      await Promise.all([
+        trackNotionConnectionAdded({ userId }),
+        logNotionConnectionAdded({ userId })
+      ])
     })
-    
 })
+
+// Helper
+type GetCredentialsProps = {
+  db: Context['db'];
+  integration: Integration;
+  googleSpreadsheetId?: string;
+  airtableBaseId?: string;
+  airtableApiKey?: string;
+  notionBotId?: string;
+}
+const getCredentials = async ({ db, integration, googleSpreadsheetId, airtableBaseId, airtableApiKey, notionBotId }: GetCredentialsProps): Promise<AirtableCredential | NotionCredential | GoogleSheetsCredential | undefined> => {
+  if ( integration === Integration.Google ) { return { id: "", spreadsheetId: googleSpreadsheetId! }};
+  if ( integration === Integration.Airtable ) { return { id: "", baseId: airtableBaseId!, apiKey: airtableApiKey || null }};
+  if ( integration === Integration.Notion ) {
+    return db.notionCredential.findFirstOrThrow({ where: { botId: notionBotId }})
+  }
+}

@@ -87,6 +87,16 @@ export const  logDestinationCreated = ({ userId, integration, destinationId }: {
     }
   })
 
+export const logNotionConnectionAdded = ({ userId }: { userId: string }) =>
+    logsnagPublish({
+      options: {
+        channel: Channel.ACTIVITY,
+        event: Event.NOTION_CONNECTION_ADDED,
+        icon: '🗺',
+        tags: { [Tag.USER_ID]: userId }
+      }
+    })
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -97,10 +107,11 @@ enum Channel {
 enum Event {
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_DELETED = "Destination Deleted",
-  USER_SIGNED_UP = "User Signed Up",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
+  NOTION_CONNECTION_ADDED = "Notion Connection Added",
+  USER_SIGNED_UP = "User Signed Up",
 }
 
 enum Tag {

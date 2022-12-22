@@ -48,7 +48,7 @@ export const TableConfigs = () => {
 
   return (
     <VStack spacing = "0">
-      { ALL_DESTINATION_TABLES.map(tableType => ( <TableConfig tableType = { tableType } /> ))}
+      { ALL_DESTINATION_TABLES.map(tableType => ( <TableConfig tableType = { tableType } key = { tableType } /> ))}
 
       <Text visibility = { (tableConfigsValidation?.errors?.length || 0) > 0 ? "visible" : "hidden" } my = "2">Please fix the errors listed above before saving.</Text>
 

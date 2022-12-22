@@ -3,40 +3,34 @@ import {
   CardBody,
   Center
 } from "@chakra-ui/react";
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { exchangeNotionToken } from "~/utils/frontend/functions";
 import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { authGate } from "~/lib/authGate";
+import { trpc } from "~/lib/trpc";
+import { useUser } from "~/lib/context/useUser";
 
 const NotionAuthorize = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [ screen, setScreen ] = useState('');
-  const [ isLoading, setIsLoading ] = useState(true);
+  const { mutateAsync: exchangeNotionToken, isLoading } = trpc.destinations.exchangeNotionToken.useMutation();
 
   const { code, error } = router.query;
-
-  const fetchRefreshToken = useCallback(async (code: string) => {
-    if ( typeof window === 'undefined' ) { return; }
-    return exchangeNotionToken({ code, redirectUri: `${window.location.origin}/auth/notion` })
-    .then(() => { setScreen('success'); setIsLoading(false) })
-  }, [ user ]);
 
   useEffect(() => { if ( error ) { setScreen(error as string) }}, [ error ]);
 
 
   useEffect(() => {
-    if ( code && user && !screen ) {
-      setIsLoading(true)
-      fetchRefreshToken(code as string)
+    console.log(code, user, screen)
+    if ( code && user && !screen && typeof window !== 'undefined' ) {
+      exchangeNotionToken({ code: code as string, originUrl: window.location.origin})
+        .then(() => { setScreen('success')})
     }
-  }, [ code, screen, user, fetchRefreshToken ]);
+  }, [ code, screen, user ]);
 
   return (
     <Center w = "full" maxW = "xl" mx = "auto" flexDir = "column" mt = {{ base: 10, sm: 20, md: 32 }} px = {{ base: 8, md: 'unset' }}>
@@ -51,27 +45,9 @@ const NotionAuthorize = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: false
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: false, isProtectedRoute: true }}
+}, true)
 
 NotionAuthorize.analyticsPageName = AnalyticsPage.NOTION_AUTHORIZE
 export default NotionAuthorize;

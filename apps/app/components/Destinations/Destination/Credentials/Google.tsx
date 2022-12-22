@@ -13,12 +13,9 @@ import { Pencil2Icon, Cross1Icon, CheckIcon } from "@radix-ui/react-icons";
 import { useDestination } from "../../context"
 import { CopiableText } from "~/components/CopiableText";
 import { FormLabelWithTooltip } from "~/components/Forms";
-import { GoogleSheetsCredential } from "~/types/shared/models";
 
 export const Google = () => {
-  const { credentials, setCredentials, destinationId, credentialsValidation, onCancelChanges, isValidatingCredentials } = useDestination();
-  const spreadsheetId = (credentials as GoogleSheetsCredential)?.spreadsheetId || "";
-  const [ newSpreadsheetId, setNewSpreadsheetId ] = useState(spreadsheetId);
+  const { googleSpreadsheetId, setGoogleSpreadsheetId, destinationId, credentialsValidation, onCancelChanges, isValidatingCredentials } = useDestination();
   const [ isEditMode, setIsEditMode ] = useState(!destinationId);
 
   const onSubmit = (e: FormEvent) => {
@@ -28,16 +25,9 @@ export const Google = () => {
     }
   }
 
-  const onChange = (newValue: string ) => {
-    setCredentials({ id: "", spreadsheetId: newValue });
-    setNewSpreadsheetId(newValue)
-  }
-
   const onCancel = () => {
     onCancelChanges();
     setIsEditMode(false);
-
-    setNewSpreadsheetId(spreadsheetId);
   }
 
 
@@ -54,8 +44,8 @@ export const Google = () => {
         <FormControl isInvalid = { credentialsValidation && !credentialsValidation.isValid }>
           <FormLabelWithTooltip tooltipText = 'Your spreadsheet ID can be found in its URL after the "/d"'>Spreadsheet ID</FormLabelWithTooltip>
           <Input 
-            value = { newSpreadsheetId }
-            onChange = { e => onChange(e.target.value) }
+            value = { googleSpreadsheetId }
+            onChange = { e => setGoogleSpreadsheetId(e.target.value) }
             variant = { isEditMode ? 'outline' : 'flushed' }
             onFocus = { () => !isEditMode && setIsEditMode(true) }
           />
@@ -67,7 +57,7 @@ export const Google = () => {
             ? (
               <Stack justifyContent = {{ base: 'stretch', md: 'flex-end' }} spacing = "1" direction = {{ base: 'column-reverse', md: 'row' }} width = 'full'>
                 <Button leftIcon = {<Cross1Icon /> } onClick = { onCancel }>Cancel</Button>
-                <Button type = "submit" isDisabled = { newSpreadsheetId.length === 0 } isLoading = { isValidatingCredentials || false } leftIcon = {<CheckIcon /> } variant = 'primary'>Save</Button>
+                <Button type = "submit" isDisabled = { googleSpreadsheetId?.length === 0 } isLoading = { isValidatingCredentials || false } leftIcon = {<CheckIcon /> } variant = 'primary'>Save</Button>
               </Stack>
             ) : (
               <Flex justifyContent = {{ base: 'stretch', md: 'flex-end' }} width = "full">

@@ -200,6 +200,7 @@ model DestinationTableConfig {
   fieldConfigs                DestinationFieldConfig[]
   @@map("destination_table_configs")
   @@index([destinationId])
+  @@unique([destinationId, table])
 }
 
 model DestinationFieldConfig {
@@ -211,6 +212,7 @@ model DestinationFieldConfig {
   
   @@map("destination_field_configs")
   @@index([tableConfigId])
+  @@unique([tableConfigId, field])
 }
 
 enum Table {

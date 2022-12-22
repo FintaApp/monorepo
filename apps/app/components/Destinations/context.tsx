@@ -13,8 +13,6 @@ interface DestinationContextType {
   integration: Integration;
   validateCredentials: () => Promise<RouterOutput['destinations']['validateCredentials']>;
   isValidatingCredentials: boolean;
-  credentials?: DestinationCredential;
-  setCredentials: Dispatch<SetStateAction<DestinationCredential | undefined>>;
   credentialsValidation?: RouterOutput['destinations']['validateCredentials'];
   destinationId?: string;
   onCancelChanges: () => void;
@@ -22,10 +20,6 @@ interface DestinationContextType {
   selectedAccountIds: string[];
   onToggleAccountIds: (accountIds: string[], action: 'add' | 'remove') => void;
   allPlaidAccounts: RouterOutput['plaid']['getAllPlaidAccounts'];
-  name: string;
-  setName: Dispatch<SetStateAction<string>>;
-  syncStartDate: string;
-  setSyncStartDate: Dispatch<SetStateAction<string>>;
   isSetupMode: boolean;
   tables?: RouterOutput['destinations']['getTables'];
   getDefaultTableConfig: () => Promise<void>;
@@ -41,6 +35,22 @@ interface DestinationContextType {
   createDestination: () => Promise<RouterOutput['destinations']['createDestination']>;
   isCreatingDestination: boolean;
   isGettingDefaultTableConfig: boolean;
+  credentialsHasChanges: boolean;
+
+  googleSpreadsheetId?: string;
+  setGoogleSpreadsheetId: Dispatch<SetStateAction<string>>;
+  notionBotId?: string;
+  setNotionBotId: Dispatch<SetStateAction<string>>;
+  airtableBaseId?: string;
+  setAirtableBaseId: Dispatch<SetStateAction<string>>;
+  airtableApiKey?: string;
+  isLegacyAirtable: boolean;
+
+  name: string;
+  setName: Dispatch<SetStateAction<string>>;
+
+  syncStartDate: string;
+  setSyncStartDate: Dispatch<SetStateAction<string>>;
 }
 
 const DestinationContext = createContext<DestinationContextType>({} as DestinationContextType)
@@ -79,7 +89,6 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   const { mutateAsync: getDefaultTableConfigMutation, isLoading: isGettingDefaultTableConfig }= trpc.destinations.getDefaultTableConfig.useMutation();
   const { mutateAsync: validateTableConfigsMutation, isLoading: isValidatingTableConfigs } = trpc.destinations.validateTableConfigs.useMutation();
   const { mutateAsync: createDestinationMutation, isLoading: isCreatingDestination } = trpc.destinations.createDestination.useMutation();
-  const [ credentials, setCredentials ] = useState<DestinationCredential>();
   const [ credentialsValidation, setCredentialsValidation ] = useState<RouterOutput['destinations']['validateCredentials']>();
   const [ selectedAccountIds, setSelectedAccountIds ] = useState<string[]>([])
   const [ name, setName ] = useState("My Budget");
@@ -87,20 +96,28 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   const [ tableConfigs, setTableConfigs ] = useState<TableConfig[]>();
   const [ tableConfigsValidation, setTableConfigsValidation ] = useState<TableConfigsValidation>();
 
-  const { data: tables, isLoading: isLoadingTables, isRefetching: isRefetchingTables, refetch: refetchTables } = trpc.destinations.getTables.useQuery({ integration, credentials: credentials! }, { enabled: !!credentials && credentialsValidation?.isValid });
+  const [ googleSpreadsheetId, setGoogleSpreadsheetId ] = useState<string>();
+  const [ notionBotId, setNotionBotId ] = useState<string>();
+  const [ airtableBaseId, setAirtableBaseId ] = useState<string>();
+  const [ airtableApiKey, setAirtableApiKey ] = useState<string>();
+
+  const { data: tables, isLoading: isLoadingTables, isRefetching: isRefetchingTables, refetch: refetchTables } = trpc.destinations.getTables.useQuery({ integration, googleSpreadsheetId, notionBotId, airtableBaseId, airtableApiKey }, { enabled: !!credentialsValidation && credentialsValidation.isValid });
   
   const tableConfigsHasChanges = !_.isEqual(tableConfigs, {}); // TODO: Put destination.tableConfigs here
+  const credentialsHasChanges = false;
   const resetTableConfigs = () => null;
 
-  const getCanValidateCredential = useCallback((credentials?: DestinationCredential) => {
-    if ( integration === Integration.Google ) { return (credentials as GoogleSheetsCredential)?.spreadsheetId.length > 0 }
-  }, [ integration ]);
+  const getCanValidateCredential = useCallback(() => {
+    if ( integration === Integration.Google ) { return googleSpreadsheetId && googleSpreadsheetId.length > 0 };
+    if ( integration === Integration.Notion ) { return !!notionBotId }
+    if ( integration === Integration.Airtable ) { return !!airtableBaseId }
+  }, [ integration, googleSpreadsheetId, notionBotId, airtableBaseId ]);
 
   const validateTableConfigs = useCallback(() => {
     const frontendErrors = areTableConfigsFrontendValid(tableConfigs!);
     if ( frontendErrors.length > 0 ) { setTableConfigsValidation({ isValid: false, errors: frontendErrors }); return; }
 
-    validateTableConfigsMutation({ tableConfigs: tableConfigs!, credentials: credentials!, integration })
+    validateTableConfigsMutation({ tableConfigs: tableConfigs!, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId, integration })
       .then(setTableConfigsValidation)
   }, [ tableConfigs ])
 
@@ -129,8 +146,8 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   }, [])
 
   const createDestination = useCallback(async () => {
-    return createDestinationMutation({ name, tableConfigs: tableConfigs!, syncStartDate, integration, credentials: credentials!, connectedAccountIds: selectedAccountIds })
-  }, [ name, tableConfigs, syncStartDate, integration, credentials, selectedAccountIds ]);
+    return createDestinationMutation({ name, tableConfigs: tableConfigs!, syncStartDate, integration, googleSpreadsheetId, notionBotId, airtableBaseId, connectedAccountIds: selectedAccountIds })
+  }, [ name, tableConfigs, syncStartDate, integration, googleSpreadsheetId, notionBotId, airtableBaseId, selectedAccountIds ]);
 
   const onCancelChanges = () => {
     setCredentialsValidation(undefined);
@@ -138,11 +155,10 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   }
 
   const getDefaultTableConfig = useCallback(async () => {
-    if ( !credentials ) { return; }
-    const defaultConfigs = await getDefaultTableConfigMutation({ integration, credentials })
+    const defaultConfigs = await getDefaultTableConfigMutation({ integration, googleSpreadsheetId, notionBotId, airtableBaseId })
       .then(response => response.tableConfigs)
     setTableConfigs(defaultConfigs)
-  }, [ credentials, integration ]);
+  }, [ googleSpreadsheetId, notionBotId, airtableBaseId, integration ]);
 
   const onToggleAccountIds = useCallback((accountIds: string[], action: 'add' | 'remove') => {
     const newAccountIds = action === 'add'
@@ -157,8 +173,7 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   }, [ selectedAccountIds ])
 
   const validateCredentials = () => {
-    if ( !credentials ) { return; }
-    return validateCredentialsMutation({ credentials, integration })
+    return validateCredentialsMutation({ googleSpreadsheetId, notionBotId, airtableBaseId, airtableApiKey, integration })
       .then(response => {
         setCredentialsValidation(response);
 
@@ -172,13 +187,11 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
 
   const memoedValue = useMemo(
     () => {
-      const canValidateCredentials = getCanValidateCredential(credentials)
+      const canValidateCredentials = getCanValidateCredential()
       return {
         integration,
         validateCredentials,
         isValidatingCredentials,
-        credentials,
-        setCredentials,
         credentialsValidation,
         destinationId,
         onCancelChanges,
@@ -204,15 +217,24 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
         refetchTables,
         createDestination,
         isCreatingDestination,
-        isGettingDefaultTableConfig
+        isGettingDefaultTableConfig,
+        credentialsHasChanges,
+        googleSpreadsheetId,
+        setGoogleSpreadsheetId,
+        notionBotId,
+        setNotionBotId,
+        airtableBaseId,
+        setAirtableBaseId,
+        airtableApiKey,
+        isLegacyAirtable: !!airtableApiKey && integration === Integration.Airtable
       } as DestinationContextType
     }, [ 
       destinationId, integration, validateCredentials, isValidatingCredentials, 
-      credentials, setCredentials, credentialsValidation, allPlaidAccounts, refetchTables,
+      airtableApiKey, googleSpreadsheetId, setGoogleSpreadsheetId, notionBotId, setNotionBotId, airtableBaseId, setAirtableBaseId, airtableApiKey, credentialsValidation, allPlaidAccounts, refetchTables,
       onCancelChanges, selectedAccountIds, onToggleAccountIds, isLoadingTables, isRefetchingTables,
       name, setName, syncStartDate, setSyncStartDate, isSetupMode, tables, getDefaultTableConfig, isGettingDefaultTableConfig, tableConfigs,
       onChangeTableConfig, tableConfigsValidation, tableConfigsHasChanges, resetTableConfigs, validateTableConfigs, isValidatingTableConfigs,
-      createDestination, isCreatingDestination
+      createDestination, isCreatingDestination, credentialsHasChanges
     ]
   )
   return <DestinationContext.Provider value = { memoedValue }>{ children }</DestinationContext.Provider>

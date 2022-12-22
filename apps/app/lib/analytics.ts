@@ -68,6 +68,9 @@ export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; it
 export const trackDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
   track({ userId, event: Event.DESTINATION_CREATED, properties: { integration, destinationId }})
 
+export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
+  track({ userId, event: Event.NOTION_CONNECTION_ADDED })
+
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
@@ -99,6 +102,7 @@ enum Event {
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   INSTITUTION_ACCOUNTS_UPDATED = "Institution Accounts Updated",
+  NOTION_CONNECTION_ADDED = "Notion Connection Added",
   PLAID_LINK_INITIATED = "Plaid Link Initiated",
   USER_SIGNED_IN = "User Signed In",
   USER_SIGNED_UP = "User Signed Up",

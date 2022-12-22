@@ -4,6 +4,7 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { Field, Integration, Table } from "@prisma/client";
 import { useDestination } from "~/components/Destinations/context";
 import { tableConfigsMeta } from "~/lib/tableConfigsMeta";
+import { TableConfig as TableConfigType } from "~/types/shared/models";
 
 import { AccordionItem } from "~/components/AccordionItem";
 import { EnableTableSwitch } from "./EnableTableSwitch";
@@ -45,7 +46,7 @@ export const TableConfig = ({ tableType }: { tableType: Table }) => {
     >
       <VStack spacing = "2" maxW = "full" mx = "auto">
         { tableConfigMeta.isRequired 
-          ? <Text>{ getEnabledHelperText(tableType) }</Text>
+          ? <Text>{ getEnabledHelperText(tableType, tableConfig) }</Text>
           : <EnableTableSwitch tableType = { tableType } />
         }
 
@@ -87,8 +88,13 @@ export const TableConfig = ({ tableType }: { tableType: Table }) => {
 }
 
 // Helper Functions
-const getEnabledHelperText = (tableType: Table) => {
-  if ( tableType === Table.Categories) { return "The 'Categories' field in the Transactions table must be enabled to sync categories"}
+const getEnabledHelperText = (tableType: Table, tableConfig: TableConfigType) => {
+  if ( tableType === Table.Categories) { 
+    if ( tableConfig.isEnabled ) {
+      return "Remove the 'Category' field in the Transactions table to disable the Categories table"
+    }
+    return "Add the 'Category' field in the Transactions table to enable the Categories table"
+  }
   if ( tableType === Table.Securities) { return "Either the Investment Transactions or Holdings table must be enabled to sync securities"}
   return ""
 }

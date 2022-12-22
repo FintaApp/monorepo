@@ -1374,6 +1374,7 @@ export const DestinationTableConfigOrderByWithRelationInputSchema: z.ZodType<Pri
 
 export const DestinationTableConfigWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.DestinationTableConfigWhereUniqueInput> = z.object({
   id: z.string().optional(),
+  destinationId_table: z.lazy(() => DestinationTableConfigDestinationIdTableCompoundUniqueInputSchema).optional(),
 }).strict();
 
 export const DestinationTableConfigOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.DestinationTableConfigOrderByWithAggregationInput> = z.object({
@@ -1419,6 +1420,7 @@ export const DestinationFieldConfigOrderByWithRelationInputSchema: z.ZodType<Pri
 
 export const DestinationFieldConfigWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigWhereUniqueInput> = z.object({
   id: z.string().optional(),
+  tableConfigId_field: z.lazy(() => DestinationFieldConfigTableConfigIdFieldCompoundUniqueInputSchema).optional(),
 }).strict();
 
 export const DestinationFieldConfigOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigOrderByWithAggregationInput> = z.object({
@@ -3548,6 +3550,11 @@ export const DestinationFieldConfigOrderByRelationAggregateInputSchema: z.ZodTyp
   _count: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
+export const DestinationTableConfigDestinationIdTableCompoundUniqueInputSchema: z.ZodType<PrismaClient.Prisma.DestinationTableConfigDestinationIdTableCompoundUniqueInput> = z.object({
+  destinationId: z.string(),
+  table: z.lazy(() => TableSchema),
+}).strict();
+
 export const DestinationTableConfigCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationTableConfigCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   destinationId: z.lazy(() => SortOrderSchema).optional(),
@@ -3592,6 +3599,11 @@ export const EnumFieldFilterSchema: z.ZodType<PrismaClient.Prisma.EnumFieldFilte
   in: z.lazy(() => FieldSchema).array().optional(),
   notIn: z.lazy(() => FieldSchema).array().optional(),
   not: z.union([z.lazy(() => FieldSchema), z.lazy(() => NestedEnumFieldFilterSchema)]).optional(),
+}).strict();
+
+export const DestinationFieldConfigTableConfigIdFieldCompoundUniqueInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigTableConfigIdFieldCompoundUniqueInput> = z.object({
+  tableConfigId: z.string(),
+  field: z.lazy(() => FieldSchema),
 }).strict();
 
 export const DestinationFieldConfigCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigCountOrderByAggregateInput> = z.object({
