@@ -6,18 +6,16 @@ import {
   PlaidLinkOptions,
   usePlaidLink
 } from "react-plaid-link";
-import { Serialize } from '@trpc/server/src/shared/internal/serialize'
 
 import { useLogger } from "~/utils/frontend/useLogger";
 import * as analytics from "~/utils/frontend/analytics";
 import { useUser } from "~/lib/context/useUser";
-import { trpc } from "~/lib/trpc";
-import { PlaidItem } from "@prisma/client";
+import { RouterOutput, trpc } from "~/lib/trpc";
 
 
 interface PlaidLinkProps {
   onConnectCallback?: () => void;
-  onSuccessCallback: ({ plaidItem, institutionName }: { plaidItem: Serialize<PlaidItem>; institutionName: string }) => void;
+  onSuccessCallback: ({ plaidItem, institutionName }: { plaidItem: RouterOutput['plaid']['exchangePublicToken']; institutionName: string }) => void;
   onExitCallback: () => void;
   linkToken: string;
   receivedRedirectUri?: string
@@ -34,7 +32,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const onSuccess = useCallback<PlaidLinkOnSuccess>(async (publicToken, metadata) => {
     const { institution, accounts } = metadata;
     exchangePublicToken({ publicToken, institution: institution!, accounts })
-      .then(({ plaidItem, institutionName }) => onSuccessCallback({ plaidItem, institutionName }))
+      .then(plaidItem => onSuccessCallback({ plaidItem, institutionName: metadata.institution?.name! }))
   }, [ onSuccessCallback ])
 
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {

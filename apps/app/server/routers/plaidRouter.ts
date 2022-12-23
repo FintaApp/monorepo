@@ -87,8 +87,9 @@ export const plaidRouter = router({
     )
     .mutation(async ({ ctx: { session, logger, db }, input: { plaidItemId }}) => {
       const userId = session!.user.id;
-      const plaidItem = await db.plaidItem.findFirstOrThrow({ 
-        where: { id: plaidItemId, userId },
+      const plaidItem = await db.plaidItem.update({ 
+        where: { id: plaidItemId },
+        data: { disabledAt: new Date()},
         select: { institution: { select: { name: true }}, accessToken: true, accounts: true }
       });
 
@@ -217,7 +218,8 @@ export const plaidRouter = router({
           update: {
             error: null,
             consentExpiresAt: null
-          }
+          },
+          include: { accounts: true }
         })
         .then(response => {
           logger.info("Plaid item upserted", { item: response });
@@ -289,6 +291,33 @@ export const plaidRouter = router({
         removeLinkTokenPromise
       ])
 
-      return { plaidItem: newPlaidItem, institutionName: institution.name };
-    })
+      return db.plaidItem.findFirst({ 
+        where: { id: newPlaidItem.id }, 
+        select: { 
+          id: true, 
+          institution: { select: { name: true }},
+          accounts: true
+        }}); // Doing this since accounts weren't created in newPlaidItem
+    }),
+
+    connectDestinationsToPlaidAccounts: protectedProcedure
+      .input(
+        z.object({
+          plaidItemId: z.string(),
+          destinationIds: z.array(z.string())
+        })
+      )
+      .mutation(async ({ ctx: { session, db, logger }, input: { destinationIds, plaidItemId }}) => {
+        const plaidItem = await db.plaidItem.findFirstOrThrow({ where: { id: plaidItemId }, include: { accounts: true }});
+        logger.info("Fetched Plaid item", { plaidItem });
+        const accounts = plaidItem.accounts.map(account => ({ id: account.id }))
+        await Promise.all(destinationIds.map(destinationId => db.destination.update({ where: { id: destinationId }, data: { accounts: { connect: accounts }}})))
+        return "OK"
+      }),
+
+    getActiveLinkToken: protectedProcedure
+      .query(async ({ ctx: { session, db }}) => {
+        const userId = session!.user.id;
+        return db.linkToken.findFirst({ where: { userId }});
+      })
 })

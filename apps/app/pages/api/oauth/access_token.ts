@@ -1,52 +1,19 @@
-import * as crypto from "~/utils/backend/crypto";
-import { graphql } from "~/graphql/backend";
 import { wrapper } from "~/utils/backend/apiWrapper";
-
+import { db } from "~/lib/db";
 
 export default wrapper('public', async function handler({ req, logger }) {
-    const { client_id, client_secret, code } = req.body;
-  const clientSecretHash = crypto.hash(client_secret);
-
-  // Check client credentials
-  const isAuthValid = await graphql.GetOauthClients({ where: {
-    id: { _eq: client_id },
-    secret_hash: { _eq: clientSecretHash }
-  }}).then(response => {
-    logger.info("Get Oauth clients response", { response });
-    return response.oauth_clients.length === 1
-  });
-
-  if (!isAuthValid) {
-    return { status: 401, message: "Not Authorized" }
-  }
+    const { code } = req.body;
 
   // Check for code
-  const oauthCodeData = await graphql.GetOauthCode({ code }).then(response => {
-    logger.info("Get Oauth code response", { response });
-    return response.oauth_code?.oauth_client_id === client_id ? response.oauth_code : null
-  } )
-  if ( !oauthCodeData ) {
+  const codaCredential = await db.codaCredential.findFirstOrThrow({ where: { id: code }});
+  logger.info("Get Coda credential response", { codaCredential });
+  if ( !codaCredential ) {
     return { status: 404, message: "Code not found" }
   }
 
-  // Set destination to ready
-  const { access_token } = oauthCodeData;
-  const accessTokenHash = crypto.hash(access_token);
+  const { accessToken } = codaCredential;
 
+  await db.codaCredential.update({ where: { id: code }, data: { exchangedAt: new Date() }})
 
-  const destination = await graphql.GetDestinations({ where: { authentication: { _contains: { access_token_hash: accessTokenHash }}}})
-  .then(response => {
-    logger.info("Get Destinations response", { response });
-    return response.destinations[0]
-  })
-  
-  if ( !destination ) { 
-    logger.error(new Error("Missing destination"), { accessTokenHash })
-    return { status: 500, message: "Internal Error" }
-  }
-
-  await graphql.UpdateDestination({ destinationId: destination.id, _set: { is_ready: true }})
-    .then(response => logger.info("Destination updated", { response }))
-
-  return { status: 200, message: { access_token }}
+  return { status: 200, message: { access_token: accessToken }}
 })

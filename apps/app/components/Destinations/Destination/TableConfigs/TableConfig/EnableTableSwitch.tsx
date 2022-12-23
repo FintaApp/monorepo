@@ -1,16 +1,20 @@
 import { FormControl, FormLabel, Switch } from "@chakra-ui/react";
-import { Table } from "@prisma/client";
+import { Integration, Table } from "@prisma/client";
 import { useDestination } from "~/components/Destinations/context"
 
 const humanizeTableType = (tableType: Table) => tableType === Table.InvestmentTransactions 
   ? "Investment Transactions" : tableType
 
 export const EnableTableSwitch = ({ tableType }: { tableType: Table }) => {
-  const { tableConfigs, onChangeTableConfig } = useDestination();
+  const { tableConfigs, onChangeTableConfig, toggleTableConfigCoda, integration, isSetupMode } = useDestination();
   const tableConfig = tableConfigs?.find(config => config.table === tableType) || { table: tableType, isEnabled: false, tableId: '', fieldConfigs: [] };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChangeTableConfig({ ...tableConfig, isEnabled: e.target.checked})
+    const isEnabled = e.target.checked;
+    onChangeTableConfig({ ...tableConfig, isEnabled })
+    if ( integration === Integration.Coda && !isSetupMode ) {
+      toggleTableConfigCoda({ isEnabled, table: tableType })
+    }
   }
 
   return (

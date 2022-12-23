@@ -7,6 +7,7 @@ import { getDestinationObject } from "~/lib/integrations/getDestinationObject";
 import { logDestinationCreated, logDestinationDeleted } from "~/lib/logsnag";
 import { router, protectedProcedure } from "../trpc";
 import { Context } from "../context";
+import { createToken, hash } from "~/lib/crypto";
 
 export const destinationRouter = router({
   validateCredentials: protectedProcedure
@@ -56,6 +57,8 @@ export const destinationRouter = router({
     )
     .mutation(async ({ ctx: { session, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId, tableConfigs }}) => {
       const userId = session!.user.id;
+
+      if ( integration === Integration.Coda ) { return { isValid: true, errors: [] }}
       const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
       if ( !credentials ) { throw new TRPCError({ code: 'BAD_REQUEST', message: "Incorrect integration"})}
       
@@ -74,6 +77,7 @@ export const destinationRouter = router({
         notionBotId: z.optional(z.string()),
         airtableBaseId: z.optional(z.string()),
         airtableApiKey: z.optional(z.string()),
+        codaCredentialId: z.optional(z.string()),
         tableConfigs: z.array(
           z.object({ 
             table: z.nativeEnum(Table), 
@@ -92,7 +96,7 @@ export const destinationRouter = router({
         connectedAccountIds: z.array(z.string())
       })
     )
-    .mutation(async ({ ctx: { session, db, logger }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, tableConfigs, name, syncStartDate, connectedAccountIds }}) => {
+    .mutation(async ({ ctx: { session, db, logger }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, tableConfigs, name, syncStartDate, connectedAccountIds, codaCredentialId }}) => {
       const userId = session!.user.id;
 
       const destination = await db.destination.create({
@@ -101,10 +105,10 @@ export const destinationRouter = router({
           airtableCredential: integration === Integration.Airtable ? { create: { baseId: airtableBaseId! }} : undefined,
           notionCredential: integration === Integration.Notion ? { connect: { botId: notionBotId! }} : undefined,
           googleSheetsCredential: integration === Integration.Google ? { create: { spreadsheetId: googleSpreadsheetId! }} : undefined,
-          codaCredential: undefined, // TODO
+          codaCredential: integration === Integration.Coda ? { connect: { id: codaCredentialId }} : undefined,
           integration,
           name,
-          syncStartDate: moment(syncStartDate).utc(true).toDate(),
+          syncStartDate,
           accounts: { connect: connectedAccountIds.map(id => ({ id }))},
           tableConfigs: { createMany: { data: tableConfigs.map(({ isEnabled, table, tableId }) => ({ isEnabled, table, tableId }))}}
         },
@@ -180,9 +184,9 @@ export const destinationRouter = router({
       const userId = session!.user.id;
       return db.destination.findMany({ 
         where: { userId, disabledAt: null }, 
-        select: { id: true },
+        select: { id: true, name: true, codaCredential: { select: { exchangedAt: true }} },
         orderBy: { createdAt: 'asc' }
-      }) 
+      }).then(destinations => destinations.filter(destination => !destination.codaCredential || !!destination.codaCredential.exchangedAt))
     }),
   
     getDestination: protectedProcedure
@@ -321,18 +325,20 @@ export const destinationRouter = router({
             update: { table, tableId, isEnabled }
           })));
 
-          await Promise.all(upsertedTableConfigs.map(upsertedTableConfig => {
-            const fieldConfigs = tableConfigs.find(config => config.table === upsertedTableConfig.table)!.fieldConfigs;
-            return Promise.all([
-                db.$transaction(fieldConfigs.map(({ field, fieldId }) => db.destinationFieldConfig.upsert({
-                  where: { tableConfigId_field: { tableConfigId: upsertedTableConfig.id, field }},
-                  create: { tableConfigId: upsertedTableConfig.id, field, fieldId },
-                  update: { field, fieldId }
-                }))),
+          if ( integration !== Integration.Coda ) {
+            await Promise.all(upsertedTableConfigs.map(upsertedTableConfig => {
+              const fieldConfigs = tableConfigs.find(config => config.table === upsertedTableConfig.table)!.fieldConfigs;
+              return Promise.all([
+                  db.$transaction(fieldConfigs.map(({ field, fieldId }) => db.destinationFieldConfig.upsert({
+                    where: { tableConfigId_field: { tableConfigId: upsertedTableConfig.id, field }},
+                    create: { tableConfigId: upsertedTableConfig.id, field, fieldId },
+                    update: { field, fieldId }
+                  }))),
 
-                db.destinationFieldConfig.deleteMany({ where: { tableConfigId: upsertedTableConfig.id, field: { notIn: fieldConfigs.map(c => c.field )}}})
-            ])
-          }));
+                  db.destinationFieldConfig.deleteMany({ where: { tableConfigId: upsertedTableConfig.id, field: { notIn: fieldConfigs.map(c => c.field )}}})
+              ])
+            }));
+          }
         }
 
 
@@ -358,7 +364,17 @@ export const destinationRouter = router({
 
           logDestinationDeleted({ userId, destinationId: id, integration: destination.integration })
         ])
+      }),
 
+    createOauthCode: protectedProcedure
+      .mutation(async ({ ctx: { db, logger }}) => {
+        const accessToken = createToken();
+        const accessTokenHash = hash(accessToken);
+
+        const oauthCode = await db.codaCredential.create({ data: { accessToken, accessTokenHash }});
+        logger.info("Created Coda credential", { oauthCode })
+
+        return { code: oauthCode.id }
       })
 })
 

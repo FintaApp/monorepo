@@ -34,7 +34,7 @@ interface DestinationContextType {
   isValidatingTableConfigs: boolean;
   isLoadingTables: boolean;
   refetchTables: () => Promise<any>;
-  createDestination: () => Promise<void>;
+  createDestination: (code?: string, shouldRefetch?: boolean) => Promise<void>;
   isCreatingDestination: boolean;
   isGettingDefaultTableConfig: boolean;
   credentialsHasChanges: boolean;
@@ -58,7 +58,11 @@ interface DestinationContextType {
 
   syncStartDate: string;
   updateSyncStartDate: (newDate: string) => Promise<void>;
-  triggerSync: () => Promise<void>
+  triggerSync: () => Promise<void>;
+  createOauthToken: () => Promise<string>;
+  isCreatingOauthToken: boolean;
+
+  toggleTableConfigCoda: ({ isEnabled, table }: { isEnabled: boolean; table: Table }) => Promise<void>
 }
 
 const DestinationContext = createContext<DestinationContextType>({} as DestinationContextType)
@@ -103,12 +107,12 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
   const { mutateAsync: updateCredentials, isLoading: isUpdatingCredentials } = trpc.destinations.updateCredentials.useMutation();
   const { mutateAsync: updateDestination } = trpc.destinations.updateDestination.useMutation();
   const { mutateAsync: disableDestinationMutation, isLoading: isDisablingDestination } = trpc.destinations.disableDestination.useMutation();
-
+  const { mutateAsync: createOauthTokenMutation, isLoading: isCreatingOauthToken } = trpc.destinations.createOauthCode.useMutation();
   const { data: destination, isLoading: isLoadingDestination, isRefetching: isRefetchingDestination, refetch: refetchDestination } = trpc.destinations.getDestination.useQuery({ id: id! }, { enabled: !!id });
   const integration = (integrationProp || destination?.integration)!;
   const [ name, setName ] = useState( "My Budget");
   const [ syncStartDate, setSyncStartDate ] = useState<string>( destination?.syncStartDate || moment().format("YYYY-MM-DD") );
-  const [ tableConfigs, setTableConfigs ] = useState<TableConfig[] | undefined>(destination?.tableConfigs);
+  const [ tableConfigs, setTableConfigs ] = useState<TableConfig[] | undefined>(destination?.tableConfigs || (isSetupMode && integration === Integration.Coda ? defaultCodaTableConfigs : undefined));
   const [ googleSpreadsheetId, setGoogleSpreadsheetId ] = useState<string | undefined>(destination?.googleSheetsCredential?.spreadsheetId);
   const [ notionBotId, setNotionBotId ] = useState<string | undefined>(destination?.notionCredential?.botId );
   const [ airtableBaseId, setAirtableBaseId ] = useState<string | undefined>( destination?.airtableCredential?.baseId );
@@ -135,6 +139,18 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
       setSelectedAccountIds(destination.accounts.map(account => account.id))
     }
   }, [ destination ]);
+
+  const toggleTableConfigCoda = useCallback(async ({ isEnabled, table }: { isEnabled: boolean; table: string}) => {
+    if ( destination ) {
+      updateDestination({ destinationId: destination.id, tableConfigs: tableConfigs!.map(config => config.table === table ? ({ ...config, isEnabled }) : config ) as RouterOutput['destinations']['getDestination']['tableConfigs']})
+        .then(() => renderToast({ status: 'success', title: "Destination Settings Updated"}))
+    } 
+  }, [ destination, tableConfigs ])
+
+  const createOauthToken = useCallback(async () => {
+    const { code } = await createOauthTokenMutation();
+    return code;
+  }, [])
 
   const tableConfigsHasChanges = !_.isEqual(tableConfigs, destination?.tableConfigs as TableConfig[] );
   const credentialsHasChanges = (destination?.integration === Integration.Google && destination.googleSheetsCredential?.spreadsheetId !== googleSpreadsheetId)
@@ -166,9 +182,10 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
   const onChangeTableConfig = useCallback((tableConfig: TableConfig) => {
     setTableConfigsValidation(undefined);
     setTableConfigs(prev => {
-      const getRequiredFields = (table: Table) => tableConfigsMeta.find(config => config.table === table)!.fields.filter(field => field.isRequired && !field.hideFor?.includes(integration)).map(field => ({ field: field.field, fieldId: ''}))
       let newTableConfigs = prev?.map(tc => tc.table === tableConfig.table ? tableConfig : tc)
+      if ( integration === Integration.Coda ) { return newTableConfigs };
 
+      const getRequiredFields = (table: Table) => tableConfigsMeta.find(config => config.table === table)!.fields.filter(field => field.isRequired && !field.hideFor?.includes(integration)).map(field => ({ field: field.field, fieldId: ''}))
       const baseSecuritiesConfig = newTableConfigs?.find(config => config.table === Table.Securities) || { isEnabled: false, tableId: '', table: Table.Securities, fieldConfigs: getRequiredFields(Table.Securities)};
       const baseCategoriesConfig = newTableConfigs?.find(config => config.table === Table.Categories) || { isEnabled: false, tableId: '', table: Table.Categories, fieldConfigs: getRequiredFields(Table.Categories)};
       const holdingsConfig = newTableConfigs?.find(config => config.table === Table.Holdings) || { isEnabled: false, tableId: '', table: Table.Holdings, fieldConfigs: getRequiredFields(Table.Holdings)};
@@ -185,11 +202,11 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
 
       return newTableConfigs;
     });
-  }, [])
+  }, [ integration ])
 
-  const createDestination = useCallback(async () => {
-    return createDestinationMutation({ name, tableConfigs: tableConfigs!, syncStartDate, integration, googleSpreadsheetId, notionBotId, airtableBaseId, connectedAccountIds: selectedAccountIds })
-      .then(() => refetchDestinations())
+  const createDestination = useCallback(async (code?: string, shouldRefetch = true) => {
+    return createDestinationMutation({ name, tableConfigs: tableConfigs!, syncStartDate, integration, googleSpreadsheetId, notionBotId, airtableBaseId, codaCredentialId: code, connectedAccountIds: selectedAccountIds })
+      .then(() => shouldRefetch ? refetchDestinations() : undefined)
   }, [ name, tableConfigs, syncStartDate, integration, googleSpreadsheetId, notionBotId, airtableBaseId, selectedAccountIds ]);
 
   const onCancelChanges = () => {
@@ -326,7 +343,10 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
         setCurrentActiveSyncLogId,
         disableDestination,
         isDisablingDestination,
-        triggerSync
+        triggerSync,
+        createOauthToken, 
+        isCreatingOauthToken,
+        toggleTableConfigCoda
       } as DestinationContextType
     }, [ 
       integration, validateCredentials, isValidatingCredentials, destination, refetchDestination,
@@ -335,7 +355,7 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
       name, updateName, syncStartDate, updateSyncStartDate, isSetupMode, tables, getDefaultTableConfig, isGettingDefaultTableConfig, tableConfigs,
       onChangeTableConfig, tableConfigsValidation, tableConfigsHasChanges, validateTableConfigs, isValidatingTableConfigs,
       createDestination, isCreatingDestination, credentialsHasChanges, isUpdatingCredentials, currentActiveSyncLogId, setCurrentActiveSyncLogId,
-      disableDestination, isDisablingDestination
+      disableDestination, isDisablingDestination, createOauthToken, isCreatingOauthToken, toggleTableConfigCoda
     ]
   );
 
@@ -381,9 +401,17 @@ const areTableConfigsFrontendValid = (tableConfigs: TableConfig[]): FrontendTabl
   return errors;
 }
 
-// Helper
+// Helpers
 const getOnUpdateCredentialsToastTitle = (integration: Integration) => {
   if ( integration === Integration.Airtable ) { return "Airtable Base Updated"}
   if ( integration === Integration.Google ) { return "Google Spreadsheet Updated" }
   if ( integration === Integration.Notion ) { return "Notion Workspace Updated"}
 }
+
+const defaultCodaTableConfigs = [
+  { table: Table.Institutions, tableId: '', isEnabled: true, fieldConfigs: [] },
+  { table: Table.Accounts, tableId: '', isEnabled: true, fieldConfigs: [] },
+  { table: Table.Transactions, tableId: '', isEnabled: true, fieldConfigs: [] },
+  { table: Table.InvestmentTransactions, tableId: '', isEnabled: true, fieldConfigs: [] },
+  { table: Table.Holdings, tableId: '', isEnabled: true, fieldConfigs: [] },
+] as TableConfig[];

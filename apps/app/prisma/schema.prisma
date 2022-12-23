@@ -335,7 +335,8 @@ model CodaCredential {
   id                          String      @id @default(uuid())
   accessToken                 String      @map("access_token")
   accessTokenHash             String      @map("access_token_hash")
-
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  exchangedAt                 DateTime?   @map("exchanged_at")
   destination                 Destination?
 
   @@map("coda_credentials")

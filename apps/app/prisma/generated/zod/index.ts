@@ -292,6 +292,8 @@ export const CodaCredentialSchema = z.object({
   id: z.string(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date(),
+  exchangedAt: z.date().nullish(),
 });
 
 // GOOGLE SHEETS CREDENTIAL
@@ -752,6 +754,8 @@ export const CodaCredentialSelectSchema: z.ZodType<PrismaClient.Prisma.CodaCrede
   id: z.boolean().optional(),
   accessToken: z.boolean().optional(),
   accessTokenHash: z.boolean().optional(),
+  createdAt: z.boolean().optional(),
+  exchangedAt: z.boolean().optional(),
   destination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
 }).strict();
 
@@ -1641,6 +1645,8 @@ export const CodaCredentialWhereInputSchema: z.ZodType<PrismaClient.Prisma.CodaC
   id: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
   accessToken: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
   accessTokenHash: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  createdAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  exchangedAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
   destination: z.union([z.lazy(() => DestinationRelationFilterSchema), z.lazy(() => DestinationWhereInputSchema)]).optional().nullable(),
 }).strict();
 
@@ -1648,6 +1654,8 @@ export const CodaCredentialOrderByWithRelationInputSchema: z.ZodType<PrismaClien
   id: z.lazy(() => SortOrderSchema).optional(),
   accessToken: z.lazy(() => SortOrderSchema).optional(),
   accessTokenHash: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  exchangedAt: z.lazy(() => SortOrderSchema).optional(),
   destination: z.lazy(() => DestinationOrderByWithRelationInputSchema).optional(),
 }).strict();
 
@@ -1659,6 +1667,8 @@ export const CodaCredentialOrderByWithAggregationInputSchema: z.ZodType<PrismaCl
   id: z.lazy(() => SortOrderSchema).optional(),
   accessToken: z.lazy(() => SortOrderSchema).optional(),
   accessTokenHash: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  exchangedAt: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => CodaCredentialCountOrderByAggregateInputSchema).optional(),
   _max: z.lazy(() => CodaCredentialMaxOrderByAggregateInputSchema).optional(),
   _min: z.lazy(() => CodaCredentialMinOrderByAggregateInputSchema).optional(),
@@ -1671,6 +1681,8 @@ export const CodaCredentialScalarWhereWithAggregatesInputSchema: z.ZodType<Prism
   id: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
   accessToken: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
   accessTokenHash: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  createdAt: z.union([z.lazy(() => DateTimeWithAggregatesFilterSchema), z.date()]).optional(),
+  exchangedAt: z.union([z.lazy(() => DateTimeNullableWithAggregatesFilterSchema), z.date()]).optional().nullable(),
 }).strict();
 
 export const GoogleSheetsCredentialWhereInputSchema: z.ZodType<PrismaClient.Prisma.GoogleSheetsCredentialWhereInput> = z.object({
@@ -2838,6 +2850,8 @@ export const CodaCredentialCreateInputSchema: z.ZodType<PrismaClient.Prisma.Coda
   id: z.string().optional(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date().optional(),
+  exchangedAt: z.date().optional().nullable(),
   destination: z.lazy(() => DestinationCreateNestedOneWithoutCodaCredentialInputSchema).optional(),
 }).strict();
 
@@ -2845,6 +2859,8 @@ export const CodaCredentialUncheckedCreateInputSchema: z.ZodType<PrismaClient.Pr
   id: z.string().optional(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date().optional(),
+  exchangedAt: z.date().optional().nullable(),
   destination: z.lazy(() => DestinationUncheckedCreateNestedOneWithoutCodaCredentialInputSchema).optional(),
 }).strict();
 
@@ -2852,6 +2868,8 @@ export const CodaCredentialUpdateInputSchema: z.ZodType<PrismaClient.Prisma.Coda
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   destination: z.lazy(() => DestinationUpdateOneWithoutCodaCredentialNestedInputSchema).optional(),
 }).strict();
 
@@ -2859,6 +2877,8 @@ export const CodaCredentialUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Pr
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   destination: z.lazy(() => DestinationUncheckedUpdateOneWithoutCodaCredentialNestedInputSchema).optional(),
 }).strict();
 
@@ -2866,18 +2886,24 @@ export const CodaCredentialCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.
   id: z.string().optional(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date().optional(),
+  exchangedAt: z.date().optional().nullable(),
 }).strict();
 
 export const CodaCredentialUpdateManyMutationInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialUpdateManyMutationInput> = z.object({
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const CodaCredentialUncheckedUpdateManyInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialUncheckedUpdateManyInput> = z.object({
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const GoogleSheetsCredentialCreateInputSchema: z.ZodType<PrismaClient.Prisma.GoogleSheetsCredentialCreateInput> = z.object({
@@ -3860,18 +3886,24 @@ export const CodaCredentialCountOrderByAggregateInputSchema: z.ZodType<PrismaCli
   id: z.lazy(() => SortOrderSchema).optional(),
   accessToken: z.lazy(() => SortOrderSchema).optional(),
   accessTokenHash: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  exchangedAt: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
 export const CodaCredentialMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialMaxOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   accessToken: z.lazy(() => SortOrderSchema).optional(),
   accessTokenHash: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  exchangedAt: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
 export const CodaCredentialMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialMinOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   accessToken: z.lazy(() => SortOrderSchema).optional(),
   accessTokenHash: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  exchangedAt: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
 export const GoogleSheetsCredentialCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.GoogleSheetsCredentialCountOrderByAggregateInput> = z.object({
@@ -6143,12 +6175,16 @@ export const CodaCredentialCreateWithoutDestinationInputSchema: z.ZodType<Prisma
   id: z.string().optional(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date().optional(),
+  exchangedAt: z.date().optional().nullable(),
 }).strict();
 
 export const CodaCredentialUncheckedCreateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialUncheckedCreateWithoutDestinationInput> = z.object({
   id: z.string().optional(),
   accessToken: z.string(),
   accessTokenHash: z.string(),
+  createdAt: z.date().optional(),
+  exchangedAt: z.date().optional().nullable(),
 }).strict();
 
 export const CodaCredentialCreateOrConnectWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialCreateOrConnectWithoutDestinationInput> = z.object({
@@ -6277,12 +6313,16 @@ export const CodaCredentialUpdateWithoutDestinationInputSchema: z.ZodType<Prisma
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const CodaCredentialUncheckedUpdateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.CodaCredentialUncheckedUpdateWithoutDestinationInput> = z.object({
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   accessTokenHash: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  exchangedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const GoogleSheetsCredentialUpsertWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.GoogleSheetsCredentialUpsertWithoutDestinationInput> = z.object({

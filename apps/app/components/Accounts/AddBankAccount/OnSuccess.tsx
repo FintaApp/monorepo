@@ -8,12 +8,12 @@ import {
   Stack,
   Text
 } from "@chakra-ui/react";
-import { useGetDestinationsSubscription, useInsertDestinationAccountsMutation } from "~/graphql/frontend";
-import { PlaidItemModel, DestinationModel } from "~/types/frontend/models";
+import { RouterOutput, trpc } from "~/lib/trpc";
 
 interface OnSuccessProps {
-  plaidItem: PlaidItemModel;
+  plaidItem: RouterOutput['plaid']['exchangePublicToken'];
   onFinish: () => void;
+  institutionName: string;
 }
 
 const NoDestinationsView = ({ onFinish }: { onFinish: OnSuccessProps['onFinish']}) => (
@@ -23,26 +23,19 @@ const NoDestinationsView = ({ onFinish }: { onFinish: OnSuccessProps['onFinish']
   </Box>
 )
 
-export const OnSuccess = ({ plaidItem, onFinish }: OnSuccessProps) => {
-  const [ selectedDestinations, setSelectedDestinations ] = useState([] as string[]);
-  const { data } = useGetDestinationsSubscription();
-  const [ createDestinationAccountsMutation, { loading: isCreatingDestinationAccounts } ] = useInsertDestinationAccountsMutation({ refetchQueries: 'all' });
-
-  const destinations = data?.destinations;
+export const OnSuccess = ({ plaidItem, onFinish, institutionName }: OnSuccessProps) => {
+  const { data: destinations } = trpc.destinations.getAllDestinations.useQuery(undefined, { enabled: !!plaidItem });
+  const { mutateAsync: connectDestinations, isLoading: isConnectingDestinations } = trpc.plaid.connectDestinationsToPlaidAccounts.useMutation();
+  const [ selectedDestinations, setSelectedDestinations ] = useState<string[]>([]);
+  console.log(plaidItem, destinations)
   if ( !destinations ) { return <></> };
 
-  const { accounts, institution } = plaidItem;
+  const accounts = plaidItem?.accounts || [];
 
   const onSubmit = () => {
     if ( !plaidItem ) { return; }
-    const destination_accounts = (selectedDestinations || [])
-      .map(destinationId => accounts.map(account => ({
-        destination_id: destinationId,
-        account_id: account.id
-      })))
-      .reduce((all, curr) => all.concat(curr), []);
-    
-    createDestinationAccountsMutation({ variables: { destination_accounts }}).then(onFinish)
+    connectDestinations({ plaidItemId: plaidItem.id, destinationIds: selectedDestinations})
+      .then(onFinish)
   }
 
   if ( destinations.length === 0 || accounts.length === 0 ) {
@@ -50,17 +43,17 @@ export const OnSuccess = ({ plaidItem, onFinish }: OnSuccessProps) => {
   } else if ( destinations.length === 1 ) {
     return (
       <Box>
-        <Text textAlign = "center">Would you like to connect your { institution.name } account{accounts.length > 1 ? "s" : ""} to your {destinations[0].name} Destination?</Text>
+        <Text textAlign = "center">Would you like to connect your { institutionName } account{accounts.length > 1 ? "s" : ""} to your {destinations[0].name} Destination?</Text>
           <HStack mt = "4" justifyContent = "space-between">
             <Button onClick = { onFinish }>No</Button>
-            <Button variant = "primary" onClick = { onSubmit } isLoading = { isCreatingDestinationAccounts }>Yes</Button>
+            <Button variant = "primary" onClick = { onSubmit } isLoading = { isConnectingDestinations }>Yes</Button>
           </HStack>
       </Box>
     )
   } else {
     return (
       <Box>
-        <Text textAlign = "center" mb = "2">Which destinations would you like to connect your { institution.name } account{accounts.length > 1 ? "s" : ""} to?</Text>
+        <Text textAlign = "center" mb = "2">Which destinations would you like to connect your { institutionName } account{accounts.length > 1 ? "s" : ""} to?</Text>
         <CheckboxGroup colorScheme = 'primary' defaultValue={ selectedDestinations } onChange = { (destinationIds: string[]) => setSelectedDestinations(destinationIds) }>
           <Stack spacing = "2" direction = "column">
             { destinations.map(destination => <Checkbox value = { destination.id } key = { destination.id }>{ destination.name }</Checkbox>) }
@@ -71,7 +64,7 @@ export const OnSuccess = ({ plaidItem, onFinish }: OnSuccessProps) => {
           <Button 
             variant = "primary" 
             onClick = { onSubmit } 
-            isLoading = { isCreatingDestinationAccounts }
+            isLoading = { isConnectingDestinations }
             isDisabled = { (selectedDestinations || []).length === 0}
           >Connect</Button>
         </HStack>
