@@ -1,9 +1,12 @@
-import { GoogleSheetsCredential, Integration, SyncError } from "@prisma/client";
-import { GoogleSpreadsheet, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
+import { Field, GoogleSheetsCredential, Integration, SyncError } from "@prisma/client";
+import { GoogleSpreadsheet, GoogleSpreadsheetRow, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
 import { drive_v3, google, sheets_v4 } from "googleapis";
-import { GetDestinationTablesRepsonse, IntegrationBase, IntegrationBaseProps, ValidateDestinationCredentialsResponse } from "../base";
+import { IntegrationBase } from "../base";
+import { parseSheetProperties } from "./formatter/helper";
+import * as formatter from "./formatter";
+import * as types from "../base/types"
 
-interface GoogleProps extends IntegrationBaseProps {
+interface GoogleProps extends types.IntegrationBaseProps {
   credentials: GoogleSheetsCredential
 }
 
@@ -17,6 +20,8 @@ export class Google extends IntegrationBase {
     super({ userId, credentials })
     this.spreadsheetId = credentials.spreadsheetId;
     this.integration = Integration.Google;
+    this.formatter = formatter;
+    this.isGoogle = true;
 
     const JwtClient = new google.auth.JWT(process.env.GOOGLE_CLIENT_EMAIL, undefined, process.env.GOOGLE_PRIVATE_KEY, ['https://www.googleapis.com/auth/drive']);
     this.sheets = google.sheets({ version: 'v4', auth: JwtClient });
@@ -32,7 +37,7 @@ export class Google extends IntegrationBase {
     this.doc = doc;
   }
 
-  async validateCredentials(): Promise<ValidateDestinationCredentialsResponse> {
+  async validateCredentials(): Promise<types.ValidateDestinationCredentialsResponse> {
     const spreadsheetId = this.spreadsheetId;
 
     if ( spreadsheetId === "1vvALZDLcnJ4BXGKmJPBmjXWOA1ws1PtVj8rsUqQBiuY" ) {
@@ -78,7 +83,7 @@ export class Google extends IntegrationBase {
       })
   }
 
-  async getTables(): Promise<GetDestinationTablesRepsonse> {
+  async getTables(): Promise<types.GetDestinationTablesRepsonse> {
     const sheets = this.doc!.sheetsById;
     const tables = await Promise.all(Object.entries(sheets).map(async ([ sheetId, sheet ]: [string, GoogleSpreadsheetWorksheet ]) => {
       return sheet.loadHeaderRow()
@@ -89,5 +94,55 @@ export class Google extends IntegrationBase {
       .catch(() => ({ tableId: sheetId, name: sheet.title, fields: [] }))
     }))
     return { tables }
+  }
+
+  async queryTable({ tableId, fieldConfigs }: { tableId: string; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
+    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
+    const sheet = this.doc.sheetsById[tableId];
+    if ( !sheet ) { return [] };
+    const rows = await sheet.getRows();
+    return rows.map(row => ({
+      id: row.rowIndex,
+      properties: parseSheetProperties({ row, fieldConfigs }),
+      object: row
+    }))
+  }
+
+  async createRecords({ tableId, data, fieldConfigs }: { tableId: string; data: Record<string, any>[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
+    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
+    return this.doc.sheetsById[tableId].addRows(data)
+      .then(rows => rows.map(row => ({ id: row.rowIndex, properties: parseSheetProperties({ row, fieldConfigs }), object: row })))
+
+    // Original Method: return this.sheets.spreadsheets.values.append({
+    //   spreadsheetId: this.spreadsheetId,
+    //   range: `${sheet.title}!A:${sheet.lastColumnLetter}`,
+    //   valueInputOption: 'USER_ENTERED',
+    //   requestBody: {
+    //     values: data
+    //   }
+    // })
+  }
+
+  async updateRecords({ tableId, data }: { tableId: string; data: { fields: Record<string, any>; record: types.IntegrationRecord; }[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
+    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
+    const sheet = this.doc.sheetsById[tableId];
+    await sheet.loadHeaderRow();
+    const headerRow = sheet.headerValues;
+
+    return this.sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
+      requestBody: {
+        valueInputOption: 'USER_ENTERED',
+        data: data.map(d => ({
+          range: `${sheet.title}!A${d.record.id}:${sheet.lastColumnLetter}${d.record.id}`,
+          values: [ headerRow.map(header => data[header as keyof typeof data]) ]
+        }))
+      }
+    })
+    .then(() => data.map(d => d.record))
+  }
+
+  async deleteRecords({ records }: { tableId: string; records: types.IntegrationRecord[]; }): Promise<void> {
+    await Promise.all(records.map(async record => (record.object as GoogleSpreadsheetRow).delete()))
   }
 }

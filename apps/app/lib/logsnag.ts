@@ -17,6 +17,14 @@ const logsnagPublish = (options: PublishOptions) => {
   return logsnag.publish(options).then(() => log.info("Published to Logsnag", { options }))
 }
 
+export const logUnhandledEvent = (description: string) => logsnagPublish({
+  channel: Channel.ERRORS,
+  event: Event.UNHANDLED,
+  icon: '😶',
+  notify: true,
+  description
+});
+
 export const logUserSignedUp = ({ name, email, userId }: { name?: string; email: string; userId: string; }) =>
   logsnagPublish({
     channel: Channel.ACTIVITY,
@@ -120,6 +128,7 @@ enum Event {
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
+  UNHANDLED = "Unhandled",
   USER_SIGNED_UP = "User Signed Up",
 }
 
