@@ -8,9 +8,10 @@ import "react-datepicker/dist/react-datepicker.css";
 export interface DatePickerProps {
   selected: Date;
   onChange: (date: Date) => void;
+  isDisabled?: boolean;
 }
 
-export const DatePicker = ({ selected, onChange }: DatePickerProps) => {
+export const DatePicker = ({ selected, onChange, isDisabled = false }: DatePickerProps) => {
   const { colorMode } = useColorMode();
 
   return (
@@ -23,6 +24,7 @@ export const DatePicker = ({ selected, onChange }: DatePickerProps) => {
       selected = { selected }
       onChange = { onChange }
       filterDate = {(date: Date) => date <= new Date() }
+      disabled = { isDisabled }
     />
   )
 }

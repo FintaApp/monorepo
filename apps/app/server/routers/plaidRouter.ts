@@ -1,10 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { Products } from "plaid";
 import { z } from "zod";
 import { trackPlaidLinkInitiated, backendIdentify as identify, trackInstitutionReconnected, trackInstitutionAccountsUpdated, trackInstitutionCreated, trackInstitutionDeleted, trackPlaidAccountUpdated } from "~/lib/analytics";
 import { logInstitutionCreated, logInstitutionDeleted, logInstitutionReconnected } from "~/lib/logsnag";
-import { createLinkToken, exchangePublicToken, getAccounts, getInstitution, getItem, initiateProducts, removeItem } from "~/lib/plaid";
-import { uploadPlaidInstitutionLogo } from "~/lib/uploadToStorageBucket";
+import { createLinkToken, exchangePublicToken, removeItem } from "~/lib/plaid";
 import { router, protectedProcedure } from "../trpc";
 import { inngest } from "~/lib/inngest";
 
@@ -90,18 +88,15 @@ export const plaidRouter = router({
     .mutation(async ({ ctx: { session, logger, db }, input: { plaidItemId }}) => {
       const userId = session!.user.id;
       const plaidItem = await db.plaidItem.findFirstOrThrow({ 
-        where: { id: plaidItemId },
-        select: { institution: { select: { name: true }}, accessToken: true }
+        where: { id: plaidItemId, userId },
+        select: { institution: { select: { name: true }}, accessToken: true, accounts: true }
       });
 
       await Promise.all([
         removeItem({ accessToken: plaidItem.accessToken! })
           .then(response => logger.info("Plaid Item access token disabled", { response: response.data })),
-        
-        // TODO: Delete destination accounts
 
-        db.plaidItem.update({ where: { id: plaidItemId }, data: { disabledAt: new Date() }})
-          .then(response => logger.info("Plaid item updated", { response })),
+        db.$transaction(plaidItem.accounts.map(account => db.plaidAccount.update({ where: { id: account.id }, data: { destinations: { set: []} }}))),
         
         trackInstitutionDeleted({ userId, itemId: plaidItemId }),
 

@@ -1,22 +1,10 @@
 import { FormControl, FormHelperText, FormLabel, Input } from "@chakra-ui/react";
 
 import { EditableInputWithButtons } from "~/components/Forms/EditableInputWithButtons";
-import { useToast } from "~/utils/frontend/useToast";
 import { useDestination } from "../context";
 
 export const DestinationName = () => {
-  const { isSetupMode, name, setName } = useDestination();
-  const renderToast = useToast();
-
-  // const onSubmit = (newValue: string) => {
-  //   if ( newValue !== value ) {
-  //     updateDestinationMutation({ variables: { destinationId, _set: { name: newValue }} })
-  //     .then(() => {
-  //       renderToast({ title: "Destination Updated", status: "success" });
-  //       onSubmit && onSubmit(newValue);
-  //     })
-  //   }
-  // }
+  const { isSetupMode, name, updateName } = useDestination();
 
   return (
     <FormControl>
@@ -24,11 +12,11 @@ export const DestinationName = () => {
       { isSetupMode
         ? <Input
             value = { name }
-            onChange = { e => setName(e.target.value) }
+            onChange = { e => updateName(e.target.value, false) }
           />
         : <EditableInputWithButtons 
             defaultValue = { name } 
-            onSubmit = { () => null } 
+            onSubmit = { newValue => updateName(newValue, true) } 
             isLoading = { false } 
           />
       }

@@ -5,7 +5,7 @@ import { NotionConnection } from "~/components/Destinations/Destination/NotionCo
 import { useDestination } from "../../context";
 
 export const Notion = () => {
-  const { onCancelChanges, isValidatingCredentials, isSetupMode, credentialsHasChanges } = useDestination();
+  const { destination, onCancelChanges, isValidatingCredentials, isSetupMode, isUpdatingCredentials, credentialsHasChanges, validateCredentials } = useDestination();
 
   return (
     <Stack direction = 'column' spacing = '2' mt = '2'>
@@ -16,9 +16,9 @@ export const Notion = () => {
           <Button leftIcon = {<Cross1Icon /> } onClick = { onCancelChanges }>Cancel</Button>
           <Button 
             variant = "primary" 
-            isLoading = { isValidatingCredentials || false } // Is saving credentials 
+            isLoading = { isValidatingCredentials || isUpdatingCredentials }
             leftIcon = { <CheckIcon /> } 
-            onClick = { () => null } // save credentials
+            onClick = { validateCredentials }
           >Save</Button>
         </Stack>
       )}

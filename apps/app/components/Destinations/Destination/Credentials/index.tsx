@@ -1,50 +1,29 @@
 import { Integration } from "@prisma/client";
+import { ReactNode } from "react";
+import { AccordionItem } from "~/components/AccordionItem";
 
 import { useDestination } from "../../context";
 import { Airtable } from "./Airtable";
-
-// import { Airtable } from "./Airtable";
 import { Coda } from "./Coda";
 import { Google } from "./Google";
 import { Notion } from "./Notion";
-// import { DestinationAuthentication as DestinationAuthenticationType, AirtableAuthentication, GoogleSheetsAuthentication, NotionAuthentication } from "~/types/shared/models";
 
-
-
-
-// interface DestinationAuthenticationProps { 
-//   integration: Integration; 
-//   // destinationId?: string; 
-//   // authentication: DestinationAuthenticationType; 
-//   // onChange?: (newAuthentication: DestinationAuthenticationType) => void; 
-//   // errorMessage?: string;
-// }
-
-// export const DestinationAuthentication = ({ integration }: DestinationAuthenticationProps) => {
-//   if ( integrationId === Integrations_Enum.Airtable ) {
-//     return <Airtable destinationId = { destinationId } authentication = { authentication as AirtableAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
-//   }
-
-//   if ( integrationId === Integrations_Enum.Google ) {
-//     return <Google destinationId = { destinationId } authentication = { authentication as GoogleSheetsAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
-//   }
-
-//   if ( integrationId === Integrations_Enum.Notion ) {
-//     return <Notion destinationId = { destinationId } authentication = { authentication as NotionAuthentication } onChange = { onChange } errorMessage = { errorMessage } />
-//   }
-  
-//   if ( integration === Integrations_Enum.Coda ) {
-//     return <Coda />
-//   }
-// }
+const Wrapper = ({ isSetupMode, integration, children }: { isSetupMode: boolean; integration: Integration; children: ReactNode[] }) => {
+  if ( isSetupMode || integration === Integration.Coda ) { return <>{ children }</> };
+  return (
+    <AccordionItem buttonLabel = "Credentials" buttonChildren = {<></>}>{ children }</AccordionItem>
+  )
+}
 
 export const DestinationCredentials = () => {
-  const { integration } = useDestination();
+  const { integration, isSetupMode } = useDestination();
 
-  if ( integration === Integration.Airtable ) { return <Airtable />}
-  if ( integration === Integration.Coda ) { return <Coda />  }
-  if ( integration === Integration.Google ) { return <Google /> }
-  if ( integration === Integration.Notion ) { return <Notion />}
-
-  return <></>
+  return (
+    <Wrapper isSetupMode = { isSetupMode } integration = { integration }>
+      { integration === Integration.Airtable && <Airtable /> }
+      { integration === Integration.Coda && <Coda />   }
+      { integration === Integration.Google && <Google />  }
+      { integration === Integration.Notion && <Notion /> }
+    </Wrapper>
+  )
 }

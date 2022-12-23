@@ -68,11 +68,20 @@ export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; it
 export const trackDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
   track({ userId, event: Event.DESTINATION_CREATED, properties: { integration, destinationId }})
 
+export const trackDestinationUpdated = ({ userId, integration, destinationId, field }: { userId: string; integration: Integration; destinationId: string; field: 'name' | 'table_configs' | 'credentials' | 'sync_start_date' }) =>
+  track({ userId, event: Event.DESTINATION_UPDATED, properties: { integration, destinationId, field }})
+
+export const trackDestinationDeleted = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  track({ userId, event: Event.DESTINATION_DELETED, properties: { integration, destinationId }})
+
 export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
   track({ userId, event: Event.NOTION_CONNECTION_ADDED });
 
 export const trackAirtableTokenAdded = ({ userId }: { userId: string }) =>
   track({ userId, event: Event.AIRTABLE_TOKEN_ADDED })
+
+export const trackDestinationAccountsUpdated = ({ userId, action, count, destinationId }: { userId: string; action: 'add' | 'remove'; count: number; destinationId: string; }) =>
+  track({ userId, event: Event.DESTINATION_ACCOUNTS_UPDATED, properties: { action, count, destinationId }});
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
   new Promise((resolve, reject) => {
@@ -97,6 +106,7 @@ export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; fi
 // Types
 enum Event {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
+  DESTINATION_ACCOUNTS_UPDATED = "Destination Accounts Updated",
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_UPDATED = "Destination Updated",
   DESTINATION_DELETED = "Destination Deleted",

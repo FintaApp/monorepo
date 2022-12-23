@@ -19,7 +19,7 @@ const AirtableAuthorize = () => {
   const [ screen, setScreen ] = useState('');
   const { code, error, state } = router.query;
 
-  const { isLoading } = trpc.destinations.exchangeAirtableToken.useQuery(
+  const { isLoading } = trpc.airtable.exchangeToken.useQuery(
     { code: code as string, state: state as string, originUrl: (typeof window !== 'undefined' && window.location.origin ) || ""}, 
     { onSuccess: () => setScreen('success'), enabled: !error && typeof window !== 'undefined' && !!user }
   );

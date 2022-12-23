@@ -10,7 +10,7 @@ import { SelectProps, Select } from "~/components/Forms/Select";
 export const NotionConnection = (selectProps: SelectProps) => {
   const [ shouldPoll, setShouldPoll ] = useState(false);
   const [ totalConnections, setTotalConnections ] = useState(0)
-  const { data: allUserNotionCredentials } = trpc.destinations.getNotionCredentials.useQuery(undefined, { refetchInterval: shouldPoll ? 2000 : false });
+  const { data: allUserNotionCredentials } = trpc.notion.getCredentials.useQuery(undefined, { refetchInterval: shouldPoll ? 2000 : false });
   const { credentialsValidation, notionBotId, setNotionBotId } = useDestination();
   const onClickPlusButton = () => {
     setShouldPoll(true);

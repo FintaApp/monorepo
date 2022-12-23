@@ -32,7 +32,7 @@ import { EnableTableSwitch } from "./TableConfig/EnableTableSwitch";
 // }
 
 export const TableConfigs = () => {
-  const { integration, tableConfigsValidation, isSetupMode, tableConfigsHasChanges, resetTableConfigs, validateTableConfigs, isValidatingTableConfigs } = useDestination();
+  const { integration, tableConfigsValidation, isSetupMode, tableConfigsHasChanges, onCancelChanges, validateTableConfigs, isValidatingTableConfigs } = useDestination();
 
   if ( integration === Integration.Coda ) {
     return (
@@ -47,13 +47,13 @@ export const TableConfigs = () => {
   }
 
   return (
-    <VStack spacing = "0">
+    <VStack spacing = "0" width = "full">
       { ALL_DESTINATION_TABLES.map(tableType => ( <TableConfig tableType = { tableType } key = { tableType } /> ))}
 
       <Text visibility = { (tableConfigsValidation?.errors?.length || 0) > 0 ? "visible" : "hidden" } my = "2">Please fix the errors listed above before saving.</Text>
 
       <Stack display = { isSetupMode || tableConfigsHasChanges ? 'flex' : 'none' } mt = "4" justifyContent = {{ base: 'stretch', md: 'space-between' }} spacing = "1" direction = {{ base: 'column-reverse', md: 'row' }} width = 'full'>
-        <Button leftIcon = {<Cross1Icon /> } onClick = { resetTableConfigs } visibility = { isSetupMode ? 'hidden' : 'visible' }>Cancel</Button>
+        <Button leftIcon = {<Cross1Icon /> } onClick = { onCancelChanges } visibility = { isSetupMode ? 'hidden' : 'visible' }>Cancel</Button>
         <Button
           onClick = { validateTableConfigs }
           isDisabled = { tableConfigsValidation?.isValid || !tableConfigsHasChanges }

@@ -13,14 +13,16 @@ export class Notion extends IntegrationBase {
   constructor({ userId, credentials }: NotionProps) {
     super({ userId, credentials });
     this.integration = Integration.Notion;
+    console.log(credentials)
     this.client = new Client({ auth: credentials.accessToken })
   }
 
   async validateCredentials(): Promise<ValidateDestinationCredentialsResponse> {
     return this.client.users.me({})
       .then(() => ({ isValid: true }))
-      .catch(({ code }) => {
+      .catch(({ code, ...rest }) => {
         if ( code === 'unauthorized' ) {
+          console.log("TAYLOR", rest)
           return {
             isValid: false,
             error: {

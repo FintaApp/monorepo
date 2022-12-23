@@ -12,19 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { DeleteIcon } from '@chakra-ui/icons';
 
-import { useUpdateDestinationMutation, useDeleteDestinationAccountsMutation } from "~/graphql/frontend";
+import { useDestination } from "../../context";
 
-export const DeleteDestination = ({ destinationId }: { destinationId: string }) => {
+export const DisableDestination = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef(null);
 
-  const [ deleteDestinationAccounts, { loading: deleteLoading } ] = useDeleteDestinationAccountsMutation({ refetchQueries: 'all'});
-  const [ updateDestination, { loading: updateLoading } ] = useUpdateDestinationMutation();
-
-  const onDelete = () => {
-    deleteDestinationAccounts({ variables: { where: { destination_id: { _eq: destinationId }}}})
-    .then(() => updateDestination({ variables: { destinationId, _set: { disabled_at: new Date()}}}))
-  };
+  const { disableDestination, isDisablingDestination } = useDestination();
 
   return (
     <>
@@ -47,7 +41,7 @@ export const DeleteDestination = ({ destinationId }: { destinationId: string }) 
 
             <AlertDialogFooter justifyContent = "space-between">
               <Button ref = { cancelRef } onClick = { onClose }>Cancel</Button>
-              <Button variant = "danger" onClick = { onDelete } isLoading = { deleteLoading || updateLoading }>Delete</Button>
+              <Button variant = "danger" onClick = { disableDestination } isLoading = { isDisablingDestination }>Delete</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

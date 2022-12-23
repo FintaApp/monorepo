@@ -3,17 +3,14 @@ import moment from "moment-timezone";
 
 import { DatePicker } from "~/components/DatePicker";
 import { FormLabelWithTooltip } from "~/components/Forms/FormLabelWithTooltip";
-import { useToast } from "~/utils/frontend/useToast";
 import { useDestination } from "../context";
 
 const TOOLTIP_TEXT = "From what date should we import historical data?"
 
 export const SyncStartDate = () => {
-  const { isSetupMode, syncStartDate, setSyncStartDate } = useDestination();
-  const renderToast = useToast();
-  
+  const { isSetupMode, syncStartDate, updateSyncStartDate, currentActiveSyncLogId } = useDestination();
   const onChange = async (newDate: Date) => {
-    setSyncStartDate(moment(newDate).utc(true).format("YYYY-MM-DD"))
+    updateSyncStartDate(moment(newDate).utc(true).format("YYYY-MM-DD"))
     if ( isSetupMode ) { return; }
 
     // const originalMoment = moment(value).utc(true);
@@ -60,7 +57,7 @@ export const SyncStartDate = () => {
     <FormControl>
       <FormLabelWithTooltip tooltipText = { !isSetupMode && TOOLTIP_TEXT }>Sync Start Date</FormLabelWithTooltip>
       <Box width = "full">
-        <DatePicker selected = { moment(syncStartDate).toDate() } onChange = { onChange } />
+        <DatePicker isDisabled = { !!currentActiveSyncLogId } selected = { moment(syncStartDate, true).toDate() } onChange = { onChange } />
       </Box>
       { isSetupMode && <FormHelperText mt = '1'>{ TOOLTIP_TEXT }</FormHelperText> }
     </FormControl>

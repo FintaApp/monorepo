@@ -19,7 +19,7 @@ const NotionAuthorize = () => {
   const [ screen, setScreen ] = useState('');
   const { code, error } = router.query;
 
-  const { isLoading } = trpc.destinations.exchangeNotionToken.useQuery(
+  const { isLoading } = trpc.notion.exchangeToken.useQuery(
     { code: code as string, originUrl: (typeof window !== 'undefined' && window.location.origin ) || ""},
     { onSuccess: () => setScreen('success'), enabled: !error && typeof window !== 'undefined' && !!user }
   );

@@ -174,7 +174,7 @@ model Destination {
   notionCredential            NotionCredential?   @relation(fields: [notionCredentialId], references: [id])
   integration                 Integration
   name                        String
-  syncStartDate               DateTime    @db.Date @map("sync_start_date")
+  syncStartDate               String      @map("sync_start_date")
   createdAt                   DateTime    @default(now()) @map("created_at")
   updatedAt                   DateTime    @updatedAt @map("updated_at")
   disabledAt                  DateTime?   @map("disabled_at")

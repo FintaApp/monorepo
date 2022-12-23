@@ -2,15 +2,11 @@ import { AirtableCredential, Field, GoogleSheetsCredential, Integration, NotionC
 import { TRPCError } from "@trpc/server";
 import moment from "moment-timezone";
 import { z } from "zod";
-import { trackAirtableTokenAdded, trackDestinationCreated, trackNotionConnectionAdded } from "~/lib/analytics";
+import { trackDestinationAccountsUpdated, trackDestinationCreated, trackDestinationDeleted, trackDestinationUpdated } from "~/lib/analytics";
 import { getDestinationObject } from "~/lib/integrations/getDestinationObject";
-import { logAirtableTokenAdded, logDestinationCreated, logNotionConnectionAdded } from "~/lib/logsnag";
+import { logDestinationCreated, logDestinationDeleted } from "~/lib/logsnag";
 import { router, protectedProcedure } from "../trpc";
 import { Context } from "../context";
-import axios from "axios";
-import crypto from "crypto";
-import { getAuthorizationHeader } from "~/lib/integrations/airtable/_helpers";
-import { Airtable } from "~/lib/integrations/airtable";
 
 export const destinationRouter = router({
   validateCredentials: protectedProcedure
@@ -179,169 +175,191 @@ export const destinationRouter = router({
       return Destination.getDefaulTableConfigs()
     }),
 
-  getNotionCredentials: protectedProcedure
+    getAllDestinations: protectedProcedure
     .query(async ({ ctx: { session, db }}) => {
       const userId = session!.user.id;
-
-      const notionCredentials = await db.notionCredential.findMany({ where: { userId }, select: { botId: true, workspaceName: true }});
-      return notionCredentials
-    }),
-
-  exchangeNotionToken: protectedProcedure
-    .input(
-      z.object({
-        code: z.string(),
-        originUrl: z.string()
-      })
-    )
-    .query(async ({ ctx: { session, db, logger }, input: { code, originUrl }}) => {
-      const userId = session!.user.id;
-      const redirectUri = `${originUrl}/auth/notion`;
-
-      const response = await axios.post('https://api.notion.com/v1/oauth/token', {
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri
-      }, { auth: {
-        username: process.env.NEXT_PUBLIC_NOTION_OAUTH_CLIENT_ID!,
-        password: process.env.NOTION_OAUTH_SECRET!
-      }});
-
-      logger.info("Exchange Notion token response", { data: response.data });
-      const { access_token, bot_id, workspace_name, workspace_icon, workspace_id, owner } = response.data;
-      const connection = await db.notionCredential.create({ data: {
-        userId,
-        botId: bot_id,
-        accessToken: access_token,
-        workspaceName: workspace_name,
-        workspaceId: workspace_id,
-        workspaceIcon: workspace_icon,
-        owner
-      }});
-
-      logger.info("Notion connection inserted", { response: connection })
-
-      await Promise.all([
-        trackNotionConnectionAdded({ userId }),
-        logNotionConnectionAdded({ userId })
-      ]);
-
-      return "OK"
-    }),
-  exchangeAirtableToken: protectedProcedure
-    .input(
-      z.object({
-        code: z.string(),
-        originUrl: z.string(),
-        state: z.string()
-      })
-    )
-    .query(async ({ ctx: { session, db, logger }, input: { code, originUrl, state }}) => {
-      const userId = session!.user.id;
-      const cache = await db.airtableAuthorizationCache.findFirstOrThrow({ where: { userId, state }})
-      logger.info("Fetched airtable cache", { cache });
-
-      await db.airtableAuthorizationCache.delete({ where: { userId }});
-      logger.info("Deleted authorization cache");
-
-      const { codeVerifier } = cache;
-
-      const { data } = await axios.post(`https://www.airtable.com/oauth2/v1/token`, {
-        code_verifier: codeVerifier,
-        redirect_uri: `${originUrl}/auth/airtable`,
-        code,
-        grant_type: 'authorization_code'
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': getAuthorizationHeader()
-        }
-      });
-
-      logger.info("Airtable oauth2 token response", { data });
-      await db.airtableToken.upsert({ 
-        where: { userId }, 
-        create: {
-          userId,
-          accessToken: data.access_token,
-          refreshToken: data.refresh_token,
-          tokenType: data.token_type,
-          scope: data.scope,
-          accessTokenExpiresAt: moment().add(parseInt(data.expires_in), 'seconds').toDate(),
-          refreshTokenExpiresAt: moment().add(parseInt(data.refresh_expires_in), 'seconds').toDate()
-        },
-        update: {
-          accessToken: data.access_token,
-          refreshToken: data.refresh_token,
-          tokenType: data.token_type,
-          scope: data.scope,
-          accessTokenExpiresAt: moment().add(parseInt(data.expires_in), 'seconds').toDate(),
-          refreshTokenExpiresAt: moment().add(parseInt(data.refresh_expires_in), 'seconds').toDate()
-        }
-      })
-
-      await Promise.all([
-        trackAirtableTokenAdded({ userId }),
-        logAirtableTokenAdded({ userId })
-      ]);
-
-      return "OK"
+      return db.destination.findMany({ 
+        where: { userId, disabledAt: null }, 
+        select: { id: true },
+        orderBy: { createdAt: 'asc' }
+      }) 
     }),
   
-  getAirtableAuthorizationUrl: protectedProcedure // Source: https://github.com/Airtable/oauth-example/blob/main/index.js
-    .mutation(async ({ ctx: { session, db, logger }}) => {
-      const userId = session!.user.id;
-      const state = crypto.randomBytes(100).toString('base64url');
-      const codeVerifier = crypto.randomBytes(96).toString('base64url');
-      const codeChallengeMethod = 'S256'
-      const codeChallenge = crypto
-            .createHash('sha256')
-            .update(codeVerifier) // hash the code verifier with the sha256 algorithm
-            .digest('base64') // base64 encode, needs to be transformed to base64url
-            .replace(/=/g, '') // remove =
-            .replace(/\+/g, '-') // replace + with -
-            .replace(/\//g, '_'); // replace / with _ now base64url encoded
+    getDestination: protectedProcedure
+      .input(
+        z.object({
+          id: z.string()
+        })
+      )
+      .query(async ({ ctx: { session, db }, input: { id }}) => {
+        const userId = session!.user.id;
+        return db.destination.findFirstOrThrow({ 
+          where: { userId, id },
+          select: {
+            id: true,
+            airtableCredential: true,
+            googleSheetsCredential: true,
+            notionCredential: {
+              select: { botId: true }
+            },
+            integration: true,
+            name: true,
+            syncStartDate: true,
+            createdAt: true,
+            accounts: true,
+            tableConfigs: {
+              include: { fieldConfigs: true }
+            }
+          }
+        })
+      }),
+    
+    updateConnectedAccounts: protectedProcedure
+      .input(
+        z.object({
+          destinationId: z.string(),
+          action: z.enum(["add", "remove"]),
+          accountIds: z.array(z.string())
+        })
+      )
+      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, action, accountIds }}) => {
+        const userId = session!.user.id;
+        const currentAccountIds = await db.destination.findFirstOrThrow({ where: { id: destinationId }, select: { accounts: true }})
+          .then(response => {
+            logger.info("Fetched current destination accounts", { response });
+            return response.accounts.map(account => account.id);
+          });
 
-      await db.airtableAuthorizationCache.upsert({
-        where: { userId },
-        create: { userId, state, codeVerifier },
-        update: { state, codeVerifier }
-      }).then(cache => logger.info("Airtable cache upserted", { cache }));
+        const actualAccountIds = action === 'add' 
+          ? accountIds.filter(id => !currentAccountIds.includes(id))
+          : accountIds.filter(id => currentAccountIds.includes(id));
+        
+        await db.destination.update({ where: { id: destinationId }, data: { 
+          accounts: {
+            connect: action === 'add' ? actualAccountIds.map(id => ({ id })) : undefined,
+            disconnect: action === 'remove' ? actualAccountIds.map(id => ({ id })) : undefined
+        }}})
 
-      const redirectUriByEnv = {
-        production: 'https://app.finta.io/auth/airtable',
-        preview: 'https://staging.app.finta.io/auth/airtable',
-        development: 'http://localhost:3000/auth/airtable'
-      }
+        await trackDestinationAccountsUpdated({ userId, action, count: actualAccountIds.length, destinationId });
+        return "OK"
+      }),
 
-      const authorizationUrl = new URL(`https://www.airtable.com/oauth2/v1/authorize`);
-      authorizationUrl.searchParams.set('code_challenge', codeChallenge);
-      authorizationUrl.searchParams.set('code_challenge_method', codeChallengeMethod);
-      authorizationUrl.searchParams.set('state', state);
-      authorizationUrl.searchParams.set('client_id', process.env.AIRTABLE_OAUTH_CLIENT_ID! );
-      authorizationUrl.searchParams.set('redirect_uri', redirectUriByEnv[(process.env.VERCEL_ENV || 'production') as keyof typeof redirectUriByEnv]);
-      authorizationUrl.searchParams.set('response_type', 'code');
-      authorizationUrl.searchParams.set('scope', 'data.records:read data.records:write schema.bases:read schema.bases:write');
+    updateCredentials: protectedProcedure
+      .input(
+        z.object({
+          destinationId: z.string(),
+          googleSpreadsheetId: z.optional(z.string()),
+          notionBotId: z.optional(z.string()),
+          airtableBaseId: z.optional(z.string()),
+          airtableApiKey: z.optional(z.string())
+        })
+      )
+      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, googleSpreadsheetId, notionBotId, airtableBaseId }}) => {
+        const userId = session!.user.id;
+        const destination = await db.destination.findFirstOrThrow({ 
+          where: { id: destinationId, userId },
+          select: { integration: true, googleSheetsCredentialId: true, notionCredentialId: true, airtableCredentialId: true }
+        })
+        logger.info("Fetched destination", { destination })
 
-      return { url: authorizationUrl.toString() }
-    }),
+        const { integration } = destination
+        if ( integration === Integration.Airtable ) {
+          await db.airtableCredential.update({ where: { id: destination.airtableCredentialId! }, data: { baseId: airtableBaseId }})
+            .then(response => logger.info("Airtable credential updated", { response }));
+        }
 
-  getAirtableBases: protectedProcedure
-    .query(async ({ ctx: { session, logger }}) => {
-      const userId = session!.user.id;
-      const airtable = new Airtable({ userId, credentials: { id: "", baseId: "", apiKey: null }});
-      await airtable.init();
-      logger.info("Initialized Airtable");
+        if ( integration === Integration.Google ) {
+          await db.googleSheetsCredential.update({ where: { id: destination.googleSheetsCredentialId! }, data: { spreadsheetId: googleSpreadsheetId }})
+            .then(response => logger.info("Google sheets credential updated", { response }));
+        }
 
-      return airtable.getBases();
-    }),
+        if ( integration === Integration.Notion ) {
+          await db.notionCredential.update({ where: { id: destination.notionCredentialId! }, data: { botId: notionBotId }})
+            .then(response => logger.info("Notion credential updated", { response }));
+        }
 
-  doesUserHaveAirtableToken: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+        await trackDestinationUpdated({ userId, integration, destinationId, field: 'credentials' });
+        return "OK"
+      }),
 
-      return db.airtableToken.findFirst({ where: { userId }}).then(Boolean);
-    })
+    updateDestination: protectedProcedure
+      .input(
+        z.object({
+          destinationId: z.string(),
+          name: z.optional(z.string()),
+          syncStartDate: z.optional(z.string()),
+          tableConfigs: z.optional(z.array(
+            z.object({ 
+              id: z.string(),
+              table: z.nativeEnum(Table), 
+              tableId: z.string(), 
+              isEnabled: z.boolean(),
+              fieldConfigs: z.array(
+                z.object({
+                  field: z.nativeEnum(Field),
+                  fieldId: z.string()
+                })
+              )
+            })
+          )),
+        })
+      )
+      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, name, syncStartDate, tableConfigs }}) => {
+        const userId = session!.user.id;
+        const { integration } = await db.destination.findFirstOrThrow({ where: { userId, id: destinationId }, select: { integration: true }});
+        logger.info("Fetched integration", { integration });
+
+        if ( name || syncStartDate ) {
+          await db.destination.update({ where: { id: destinationId }, data: { name, syncStartDate }})
+            .then(response => logger.info("Updated destination", { response }))
+        }
+
+        if ( tableConfigs ) {
+          const upsertedTableConfigs = await db.$transaction(tableConfigs.map(({ table, tableId, isEnabled }) => db.destinationTableConfig.upsert({ 
+            where: { destinationId_table: { destinationId, table} },
+            create: { table, tableId, isEnabled, destinationId },
+            update: { table, tableId, isEnabled }
+          })));
+
+          await Promise.all(upsertedTableConfigs.map(upsertedTableConfig => {
+            const fieldConfigs = tableConfigs.find(config => config.table === upsertedTableConfig.table)!.fieldConfigs;
+            return Promise.all([
+                db.$transaction(fieldConfigs.map(({ field, fieldId }) => db.destinationFieldConfig.upsert({
+                  where: { tableConfigId_field: { tableConfigId: upsertedTableConfig.id, field }},
+                  create: { tableConfigId: upsertedTableConfig.id, field, fieldId },
+                  update: { field, fieldId }
+                }))),
+
+                db.destinationFieldConfig.deleteMany({ where: { tableConfigId: upsertedTableConfig.id, field: { notIn: fieldConfigs.map(c => c.field )}}})
+            ])
+          }));
+        }
+
+
+        await trackDestinationUpdated({ userId, destinationId, integration, field: name ? 'name' : syncStartDate ? 'sync_start_date' : 'table_configs' });
+      }),
+
+    disableDestination: protectedProcedure
+      .input(z.string())
+      .mutation(async ({ ctx: { session, db, logger }, input: id }) => {
+        const userId = session!.user.id;
+        const destination = await db.destination.findFirstOrThrow({ where: { id, userId }});
+        logger.info("Fetched destination", { destination });
+
+        await Promise.all([
+          db.destination.update({ where: { id }, data: { disabledAt: new Date(), accounts: { set: [] } }}).then(() => logger.info("Destination disabled")),
+
+          destination.integration === Integration.Google 
+            ? db.googleSheetsCredential.delete({ where: { id: destination.googleSheetsCredentialId! }})
+              .then(() => logger.info("Google Sheets credentials deleted"))
+            : Promise.resolve(),
+
+          trackDestinationDeleted({ userId, integration: destination.integration, destinationId: id }),
+
+          logDestinationDeleted({ userId, destinationId: id, integration: destination.integration })
+        ])
+
+      })
 })
 
 // Helper
