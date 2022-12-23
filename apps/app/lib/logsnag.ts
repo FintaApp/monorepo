@@ -97,6 +97,16 @@ export const logNotionConnectionAdded = ({ userId }: { userId: string }) =>
       }
     })
 
+export const logAirtableTokenAdded = ({ userId }: { userId: string }) =>
+  logsnagPublish({
+    options: {
+      channel: Channel.ACTIVITY,
+      event: Event.AIRTABLE_TOKEN_ADDED,
+      icon: '🗺',
+      tags: { [Tag.USER_ID]: userId }
+    }
+  })
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -105,6 +115,7 @@ enum Channel {
 }
 
 enum Event {
+  AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_DELETED = "Destination Deleted",
   INSTITUTION_CREATED = "Institution Created",

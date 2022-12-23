@@ -157,7 +157,11 @@ export const DestinationProvider = ({ children, isSetupMode, integration, destin
   const getDefaultTableConfig = useCallback(async () => {
     const defaultConfigs = await getDefaultTableConfigMutation({ integration, googleSpreadsheetId, notionBotId, airtableBaseId })
       .then(response => response.tableConfigs)
-    setTableConfigs(defaultConfigs)
+    setTableConfigs(defaultConfigs);
+
+    // Manual handle changes for special tables
+    const securitiesConfig = defaultConfigs.find(config => config.table === Table.Securities);
+    securitiesConfig && onChangeTableConfig(securitiesConfig)
   }, [ googleSpreadsheetId, notionBotId, airtableBaseId, integration ]);
 
   const onToggleAccountIds = useCallback((accountIds: string[], action: 'add' | 'remove') => {

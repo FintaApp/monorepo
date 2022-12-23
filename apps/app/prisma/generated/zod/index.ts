@@ -10,6 +10,8 @@ import * as PrismaClient from "@prisma/client";
 
 export const AccountScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.AccountScalarFieldEnum);
 
+export const AirtableAuthorizationCacheScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.AirtableAuthorizationCacheScalarFieldEnum);
+
 export const AirtableCredentialScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.AirtableCredentialScalarFieldEnum);
 
 export const AirtableTokenScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.AirtableTokenScalarFieldEnum);
@@ -256,6 +258,16 @@ export const AirtableCredentialSchema = z.object({
   apiKey: z.string().nullish(),
 });
 
+// AIRTABLE AUTHORIZATION CACHE
+//------------------------------------------------------
+
+export const AirtableAuthorizationCacheSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  state: z.string(),
+  codeVerifier: z.string(),
+});
+
 // AIRTABLE TOKEN
 //------------------------------------------------------
 
@@ -380,6 +392,7 @@ export const UserIncludeSchema: z.ZodType<PrismaClient.Prisma.UserInclude> = z.o
   sessions: z.union([z.boolean(), z.lazy(() => SessionFindManyArgsSchema)]).optional(),
   plaidItems: z.union([z.boolean(), z.lazy(() => PlaidItemFindManyArgsSchema)]).optional(),
   airtableTokens: z.union([z.boolean(), z.lazy(() => AirtableTokenFindManyArgsSchema)]).optional(),
+  airtableAuthorizationCache: z.union([z.boolean(), z.lazy(() => AirtableAuthorizationCacheArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => UserCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -415,6 +428,7 @@ export const UserSelectSchema: z.ZodType<PrismaClient.Prisma.UserSelect> = z.obj
   sessions: z.union([z.boolean(), z.lazy(() => SessionFindManyArgsSchema)]).optional(),
   plaidItems: z.union([z.boolean(), z.lazy(() => PlaidItemFindManyArgsSchema)]).optional(),
   airtableTokens: z.union([z.boolean(), z.lazy(() => AirtableTokenFindManyArgsSchema)]).optional(),
+  airtableAuthorizationCache: z.union([z.boolean(), z.lazy(() => AirtableAuthorizationCacheArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => UserCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -675,6 +689,26 @@ export const AirtableCredentialSelectSchema: z.ZodType<PrismaClient.Prisma.Airta
   destination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
 }).strict();
 
+// AIRTABLE AUTHORIZATION CACHE
+//------------------------------------------------------
+
+export const AirtableAuthorizationCacheArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheArgs> = z.object({
+  select: z.lazy(() => AirtableAuthorizationCacheSelectSchema).optional(),
+  include: z.lazy(() => AirtableAuthorizationCacheIncludeSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheIncludeSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheInclude> = z.object({
+  user: z.union([z.boolean(), z.lazy(() => UserArgsSchema)]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheSelectSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheSelect> = z.object({
+  id: z.boolean().optional(),
+  userId: z.boolean().optional(),
+  state: z.boolean().optional(),
+  codeVerifier: z.boolean().optional(),
+  user: z.union([z.boolean(), z.lazy(() => UserArgsSchema)]).optional(),
+}).strict();
+
 // AIRTABLE TOKEN
 //------------------------------------------------------
 
@@ -930,6 +964,7 @@ export const UserWhereInputSchema: z.ZodType<PrismaClient.Prisma.UserWhereInput>
   sessions: z.lazy(() => SessionListRelationFilterSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemListRelationFilterSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenListRelationFilterSchema).optional(),
+  airtableAuthorizationCache: z.union([z.lazy(() => AirtableAuthorizationCacheRelationFilterSchema), z.lazy(() => AirtableAuthorizationCacheWhereInputSchema)]).optional().nullable(),
 }).strict();
 
 export const UserOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.UserOrderByWithRelationInput> = z.object({
@@ -952,6 +987,7 @@ export const UserOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.U
   sessions: z.lazy(() => SessionOrderByRelationAggregateInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemOrderByRelationAggregateInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenOrderByRelationAggregateInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheOrderByWithRelationInputSchema).optional(),
 }).strict();
 
 export const UserWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.UserWhereUniqueInput> = z.object({
@@ -1482,6 +1518,50 @@ export const AirtableCredentialScalarWhereWithAggregatesInputSchema: z.ZodType<P
   apiKey: z.union([z.lazy(() => StringNullableWithAggregatesFilterSchema), z.string()]).optional().nullable(),
 }).strict();
 
+export const AirtableAuthorizationCacheWhereInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheWhereInput> = z.object({
+  AND: z.union([z.lazy(() => AirtableAuthorizationCacheWhereInputSchema), z.lazy(() => AirtableAuthorizationCacheWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => AirtableAuthorizationCacheWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => AirtableAuthorizationCacheWhereInputSchema), z.lazy(() => AirtableAuthorizationCacheWhereInputSchema).array()]).optional(),
+  id: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  userId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  state: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  codeVerifier: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  user: z.union([z.lazy(() => UserRelationFilterSchema), z.lazy(() => UserWhereInputSchema)]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  userId: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
+  codeVerifier: z.lazy(() => SortOrderSchema).optional(),
+  user: z.lazy(() => UserOrderByWithRelationInputSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheWhereUniqueInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  userId: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
+  codeVerifier: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => AirtableAuthorizationCacheCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => AirtableAuthorizationCacheMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => AirtableAuthorizationCacheMinOrderByAggregateInputSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([z.lazy(() => AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema), z.lazy(() => AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  OR: z.lazy(() => AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema), z.lazy(() => AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  id: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  userId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  state: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  codeVerifier: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+}).strict();
+
 export const AirtableTokenWhereInputSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenWhereInput> = z.object({
   AND: z.union([z.lazy(() => AirtableTokenWhereInputSchema), z.lazy(() => AirtableTokenWhereInputSchema).array()]).optional(),
   OR: z.lazy(() => AirtableTokenWhereInputSchema).array().optional(),
@@ -1517,6 +1597,7 @@ export const AirtableTokenOrderByWithRelationInputSchema: z.ZodType<PrismaClient
 
 export const AirtableTokenWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenWhereUniqueInput> = z.object({
   id: z.string().optional(),
+  userId: z.string().optional(),
 }).strict();
 
 export const AirtableTokenOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenOrderByWithAggregationInput> = z.object({
@@ -1900,6 +1981,7 @@ export const UserCreateInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateInpu
   sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateInput> = z.object({
@@ -1922,6 +2004,7 @@ export const UserUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.UserU
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUpdateInputSchema: z.ZodType<PrismaClient.Prisma.UserUpdateInput> = z.object({
@@ -1944,6 +2027,7 @@ export const UserUpdateInputSchema: z.ZodType<PrismaClient.Prisma.UserUpdateInpu
   sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateInput> = z.object({
@@ -1966,6 +2050,7 @@ export const UserUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.UserU
   sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateManyInput> = z.object({
@@ -2604,6 +2689,54 @@ export const AirtableCredentialUncheckedUpdateManyInputSchema: z.ZodType<PrismaC
   apiKey: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
+export const AirtableAuthorizationCacheCreateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateInput> = z.object({
+  id: z.string().optional(),
+  state: z.string(),
+  codeVerifier: z.string(),
+  user: z.lazy(() => UserCreateNestedOneWithoutAirtableAuthorizationCacheInputSchema),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedCreateInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  state: z.string(),
+  codeVerifier: z.string(),
+}).strict();
+
+export const AirtableAuthorizationCacheUpdateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  user: z.lazy(() => UserUpdateOneRequiredWithoutAirtableAuthorizationCacheNestedInputSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedUpdateInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateManyInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  state: z.string(),
+  codeVerifier: z.string(),
+}).strict();
+
+export const AirtableAuthorizationCacheUpdateManyMutationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateManyMutationInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedUpdateManyInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedUpdateManyInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
 export const AirtableTokenCreateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenCreateInput> = z.object({
   id: z.string().optional(),
   user: z.lazy(() => UserCreateNestedOneWithoutAirtableTokensInputSchema),
@@ -3146,6 +3279,11 @@ export const AirtableTokenListRelationFilterSchema: z.ZodType<PrismaClient.Prism
   none: z.lazy(() => AirtableTokenWhereInputSchema).optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheRelationFilterSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheRelationFilter> = z.object({
+  is: z.lazy(() => AirtableAuthorizationCacheWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => AirtableAuthorizationCacheWhereInputSchema).optional().nullable(),
+}).strict();
+
 export const LinkTokenOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
@@ -3655,6 +3793,27 @@ export const AirtableCredentialMinOrderByAggregateInputSchema: z.ZodType<PrismaC
   apiKey: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCountOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  userId: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
+  codeVerifier: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  userId: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
+  codeVerifier: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  userId: z.lazy(() => SortOrderSchema).optional(),
+  state: z.lazy(() => SortOrderSchema).optional(),
+  codeVerifier: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
 export const AirtableTokenCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   userId: z.lazy(() => SortOrderSchema).optional(),
@@ -3878,6 +4037,12 @@ export const AirtableTokenCreateNestedManyWithoutUserInputSchema: z.ZodType<Pris
   connect: z.union([z.lazy(() => AirtableTokenWhereUniqueInputSchema), z.lazy(() => AirtableTokenWhereUniqueInputSchema).array()]).optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateNestedOneWithoutUserInput> = z.object({
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => AirtableAuthorizationCacheCreateOrConnectWithoutUserInputSchema).optional(),
+  connect: z.lazy(() => AirtableAuthorizationCacheWhereUniqueInputSchema).optional(),
+}).strict();
+
 export const LinkTokenUncheckedCreateNestedManyWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenUncheckedCreateNestedManyWithoutUserInput> = z.object({
   create: z.union([z.lazy(() => LinkTokenCreateWithoutUserInputSchema), z.lazy(() => LinkTokenCreateWithoutUserInputSchema).array(), z.lazy(() => LinkTokenUncheckedCreateWithoutUserInputSchema), z.lazy(() => LinkTokenUncheckedCreateWithoutUserInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => LinkTokenCreateOrConnectWithoutUserInputSchema), z.lazy(() => LinkTokenCreateOrConnectWithoutUserInputSchema).array()]).optional(),
@@ -3911,6 +4076,12 @@ export const AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema: z.Zod
   connectOrCreate: z.union([z.lazy(() => AirtableTokenCreateOrConnectWithoutUserInputSchema), z.lazy(() => AirtableTokenCreateOrConnectWithoutUserInputSchema).array()]).optional(),
   createMany: z.lazy(() => AirtableTokenCreateManyUserInputEnvelopeSchema).optional(),
   connect: z.union([z.lazy(() => AirtableTokenWhereUniqueInputSchema), z.lazy(() => AirtableTokenWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInput> = z.object({
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => AirtableAuthorizationCacheCreateOrConnectWithoutUserInputSchema).optional(),
+  connect: z.lazy(() => AirtableAuthorizationCacheWhereUniqueInputSchema).optional(),
 }).strict();
 
 export const BoolFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.BoolFieldUpdateOperationsInput> = z.object({
@@ -3991,6 +4162,16 @@ export const AirtableTokenUpdateManyWithoutUserNestedInputSchema: z.ZodType<Pris
   deleteMany: z.union([z.lazy(() => AirtableTokenScalarWhereInputSchema), z.lazy(() => AirtableTokenScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateOneWithoutUserNestedInput> = z.object({
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => AirtableAuthorizationCacheCreateOrConnectWithoutUserInputSchema).optional(),
+  upsert: z.lazy(() => AirtableAuthorizationCacheUpsertWithoutUserInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => AirtableAuthorizationCacheWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => AirtableAuthorizationCacheUpdateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateWithoutUserInputSchema)]).optional(),
+}).strict();
+
 export const LinkTokenUncheckedUpdateManyWithoutUserNestedInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenUncheckedUpdateManyWithoutUserNestedInput> = z.object({
   create: z.union([z.lazy(() => LinkTokenCreateWithoutUserInputSchema), z.lazy(() => LinkTokenCreateWithoutUserInputSchema).array(), z.lazy(() => LinkTokenUncheckedCreateWithoutUserInputSchema), z.lazy(() => LinkTokenUncheckedCreateWithoutUserInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => LinkTokenCreateOrConnectWithoutUserInputSchema), z.lazy(() => LinkTokenCreateOrConnectWithoutUserInputSchema).array()]).optional(),
@@ -4059,6 +4240,16 @@ export const AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema: z.Zod
   update: z.union([z.lazy(() => AirtableTokenUpdateWithWhereUniqueWithoutUserInputSchema), z.lazy(() => AirtableTokenUpdateWithWhereUniqueWithoutUserInputSchema).array()]).optional(),
   updateMany: z.union([z.lazy(() => AirtableTokenUpdateManyWithWhereWithoutUserInputSchema), z.lazy(() => AirtableTokenUpdateManyWithWhereWithoutUserInputSchema).array()]).optional(),
   deleteMany: z.union([z.lazy(() => AirtableTokenScalarWhereInputSchema), z.lazy(() => AirtableTokenScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInput> = z.object({
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => AirtableAuthorizationCacheCreateOrConnectWithoutUserInputSchema).optional(),
+  upsert: z.lazy(() => AirtableAuthorizationCacheUpsertWithoutUserInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => AirtableAuthorizationCacheWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => AirtableAuthorizationCacheUpdateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateWithoutUserInputSchema)]).optional(),
 }).strict();
 
 export const PlaidItemCreateNestedManyWithoutInstitutionInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateNestedManyWithoutInstitutionInput> = z.object({
@@ -4497,6 +4688,20 @@ export const DestinationUncheckedUpdateOneWithoutAirtableCredentialNestedInputSc
   update: z.union([z.lazy(() => DestinationUpdateWithoutAirtableCredentialInputSchema), z.lazy(() => DestinationUncheckedUpdateWithoutAirtableCredentialInputSchema)]).optional(),
 }).strict();
 
+export const UserCreateNestedOneWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateNestedOneWithoutAirtableAuthorizationCacheInput> = z.object({
+  create: z.union([z.lazy(() => UserCreateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedCreateWithoutAirtableAuthorizationCacheInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutAirtableAuthorizationCacheInputSchema).optional(),
+  connect: z.lazy(() => UserWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const UserUpdateOneRequiredWithoutAirtableAuthorizationCacheNestedInputSchema: z.ZodType<PrismaClient.Prisma.UserUpdateOneRequiredWithoutAirtableAuthorizationCacheNestedInput> = z.object({
+  create: z.union([z.lazy(() => UserCreateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedCreateWithoutAirtableAuthorizationCacheInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutAirtableAuthorizationCacheInputSchema).optional(),
+  upsert: z.lazy(() => UserUpsertWithoutAirtableAuthorizationCacheInputSchema).optional(),
+  connect: z.lazy(() => UserWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => UserUpdateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedUpdateWithoutAirtableAuthorizationCacheInputSchema)]).optional(),
+}).strict();
+
 export const UserCreateNestedOneWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateNestedOneWithoutAirtableTokensInput> = z.object({
   create: z.union([z.lazy(() => UserCreateWithoutAirtableTokensInputSchema), z.lazy(() => UserUncheckedCreateWithoutAirtableTokensInputSchema)]).optional(),
   connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutAirtableTokensInputSchema).optional(),
@@ -4888,6 +5093,7 @@ export const UserCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma
   sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutAccountsInput> = z.object({
@@ -4909,6 +5115,7 @@ export const UserUncheckedCreateWithoutAccountsInputSchema: z.ZodType<PrismaClie
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserCreateOrConnectWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutAccountsInput> = z.object({
@@ -4940,6 +5147,7 @@ export const UserUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma
   sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutAccountsInput> = z.object({
@@ -4961,6 +5169,7 @@ export const UserUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClie
   sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserCreateWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutSessionsInput> = z.object({
@@ -4982,6 +5191,7 @@ export const UserCreateWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma
   accounts: z.lazy(() => AccountCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutSessionsInput> = z.object({
@@ -5003,6 +5213,7 @@ export const UserUncheckedCreateWithoutSessionsInputSchema: z.ZodType<PrismaClie
   accounts: z.lazy(() => AccountUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserCreateOrConnectWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutSessionsInput> = z.object({
@@ -5034,6 +5245,7 @@ export const UserUpdateWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma
   accounts: z.lazy(() => AccountUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateWithoutSessionsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutSessionsInput> = z.object({
@@ -5055,6 +5267,7 @@ export const UserUncheckedUpdateWithoutSessionsInputSchema: z.ZodType<PrismaClie
   accounts: z.lazy(() => AccountUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const LinkTokenCreateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenCreateWithoutUserInput> = z.object({
@@ -5219,6 +5432,23 @@ export const AirtableTokenCreateManyUserInputEnvelopeSchema: z.ZodType<PrismaCli
   skipDuplicates: z.boolean().optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheCreateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateWithoutUserInput> = z.object({
+  id: z.string().optional(),
+  state: z.string(),
+  codeVerifier: z.string(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedCreateWithoutUserInput> = z.object({
+  id: z.string().optional(),
+  state: z.string(),
+  codeVerifier: z.string(),
+}).strict();
+
+export const AirtableAuthorizationCacheCreateOrConnectWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateOrConnectWithoutUserInput> = z.object({
+  where: z.lazy(() => AirtableAuthorizationCacheWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]),
+}).strict();
+
 export const LinkTokenUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenUpsertWithWhereUniqueWithoutUserInput> = z.object({
   where: z.lazy(() => LinkTokenWhereUniqueInputSchema),
   update: z.union([z.lazy(() => LinkTokenUpdateWithoutUserInputSchema), z.lazy(() => LinkTokenUncheckedUpdateWithoutUserInputSchema)]),
@@ -5374,6 +5604,23 @@ export const AirtableTokenScalarWhereInputSchema: z.ZodType<PrismaClient.Prisma.
   refreshTokenExpiresAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
 }).strict();
 
+export const AirtableAuthorizationCacheUpsertWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpsertWithoutUserInput> = z.object({
+  update: z.union([z.lazy(() => AirtableAuthorizationCacheUpdateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateWithoutUserInputSchema)]),
+  create: z.union([z.lazy(() => AirtableAuthorizationCacheCreateWithoutUserInputSchema), z.lazy(() => AirtableAuthorizationCacheUncheckedCreateWithoutUserInputSchema)]),
+}).strict();
+
+export const AirtableAuthorizationCacheUpdateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateWithoutUserInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheUncheckedUpdateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUncheckedUpdateWithoutUserInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  state: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  codeVerifier: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
 export const PlaidItemCreateWithoutInstitutionInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateWithoutInstitutionInput> = z.object({
   id: z.string(),
   isInitialUpdateComplete: z.boolean().optional(),
@@ -5455,6 +5702,7 @@ export const UserCreateWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Pris
   accounts: z.lazy(() => AccountCreateNestedManyWithoutUserInputSchema).optional(),
   sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutPlaidItemsInput> = z.object({
@@ -5476,6 +5724,7 @@ export const UserUncheckedCreateWithoutPlaidItemsInputSchema: z.ZodType<PrismaCl
   accounts: z.lazy(() => AccountUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserCreateOrConnectWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutPlaidItemsInput> = z.object({
@@ -5552,6 +5801,7 @@ export const UserUpdateWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Pris
   accounts: z.lazy(() => AccountUpdateManyWithoutUserNestedInputSchema).optional(),
   sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutPlaidItemsInput> = z.object({
@@ -5573,6 +5823,7 @@ export const UserUncheckedUpdateWithoutPlaidItemsInputSchema: z.ZodType<PrismaCl
   accounts: z.lazy(() => AccountUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidInstitutionUpsertWithoutItemsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidInstitutionUpsertWithoutItemsInput> = z.object({
@@ -5792,6 +6043,7 @@ export const UserCreateWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Pris
   sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutLinkTokensInput> = z.object({
@@ -5813,6 +6065,7 @@ export const UserUncheckedCreateWithoutLinkTokensInputSchema: z.ZodType<PrismaCl
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserCreateOrConnectWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutLinkTokensInput> = z.object({
@@ -5844,6 +6097,7 @@ export const UserUpdateWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Pris
   sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutLinkTokensInput> = z.object({
@@ -5865,6 +6119,7 @@ export const UserUncheckedUpdateWithoutLinkTokensInputSchema: z.ZodType<PrismaCl
   sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const AirtableCredentialCreateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableCredentialCreateWithoutDestinationInput> = z.object({
@@ -6357,6 +6612,104 @@ export const DestinationUncheckedUpdateWithoutAirtableCredentialInputSchema: z.Z
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
 }).strict();
 
+export const UserCreateWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutAirtableAuthorizationCacheInput> = z.object({
+  id: z.string().optional(),
+  name: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
+  emailVerified: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  image: z.string().optional().nullable(),
+  disabledAt: z.date().optional().nullable(),
+  timezone: z.string().optional(),
+  stripeCustomerId: z.string(),
+  isSubsribedGeneral: z.boolean().optional(),
+  isSubscribedPeriodicUpdates: z.boolean().optional(),
+  periodicUpdatesFrequency: z.lazy(() => FrequencySchema).optional(),
+  periodicUpdatesJobId: z.string().optional().nullable(),
+  linkTokens: z.lazy(() => LinkTokenCreateNestedManyWithoutUserInputSchema).optional(),
+  accounts: z.lazy(() => AccountCreateNestedManyWithoutUserInputSchema).optional(),
+  sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
+  plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableTokens: z.lazy(() => AirtableTokenCreateNestedManyWithoutUserInputSchema).optional(),
+}).strict();
+
+export const UserUncheckedCreateWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutAirtableAuthorizationCacheInput> = z.object({
+  id: z.string().optional(),
+  name: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
+  emailVerified: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  image: z.string().optional().nullable(),
+  disabledAt: z.date().optional().nullable(),
+  timezone: z.string().optional(),
+  stripeCustomerId: z.string(),
+  isSubsribedGeneral: z.boolean().optional(),
+  isSubscribedPeriodicUpdates: z.boolean().optional(),
+  periodicUpdatesFrequency: z.lazy(() => FrequencySchema).optional(),
+  periodicUpdatesJobId: z.string().optional().nullable(),
+  linkTokens: z.lazy(() => LinkTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  accounts: z.lazy(() => AccountUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableTokens: z.lazy(() => AirtableTokenUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+}).strict();
+
+export const UserCreateOrConnectWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutAirtableAuthorizationCacheInput> = z.object({
+  where: z.lazy(() => UserWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => UserCreateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedCreateWithoutAirtableAuthorizationCacheInputSchema)]),
+}).strict();
+
+export const UserUpsertWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserUpsertWithoutAirtableAuthorizationCacheInput> = z.object({
+  update: z.union([z.lazy(() => UserUpdateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedUpdateWithoutAirtableAuthorizationCacheInputSchema)]),
+  create: z.union([z.lazy(() => UserCreateWithoutAirtableAuthorizationCacheInputSchema), z.lazy(() => UserUncheckedCreateWithoutAirtableAuthorizationCacheInputSchema)]),
+}).strict();
+
+export const UserUpdateWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserUpdateWithoutAirtableAuthorizationCacheInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  email: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  emailVerified: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  image: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  timezone: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  stripeCustomerId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isSubsribedGeneral: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isSubscribedPeriodicUpdates: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  periodicUpdatesFrequency: z.union([z.lazy(() => FrequencySchema), z.lazy(() => EnumFrequencyFieldUpdateOperationsInputSchema)]).optional(),
+  periodicUpdatesJobId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  linkTokens: z.lazy(() => LinkTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+  accounts: z.lazy(() => AccountUpdateManyWithoutUserNestedInputSchema).optional(),
+  sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
+  plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableTokens: z.lazy(() => AirtableTokenUpdateManyWithoutUserNestedInputSchema).optional(),
+}).strict();
+
+export const UserUncheckedUpdateWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutAirtableAuthorizationCacheInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  email: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  emailVerified: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  image: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  timezone: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  stripeCustomerId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isSubsribedGeneral: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isSubscribedPeriodicUpdates: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  periodicUpdatesFrequency: z.union([z.lazy(() => FrequencySchema), z.lazy(() => EnumFrequencyFieldUpdateOperationsInputSchema)]).optional(),
+  periodicUpdatesJobId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  linkTokens: z.lazy(() => LinkTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  accounts: z.lazy(() => AccountUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableTokens: z.lazy(() => AirtableTokenUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+}).strict();
+
 export const UserCreateWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutAirtableTokensInput> = z.object({
   id: z.string().optional(),
   name: z.string().optional().nullable(),
@@ -6376,6 +6729,7 @@ export const UserCreateWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.
   accounts: z.lazy(() => AccountCreateNestedManyWithoutUserInputSchema).optional(),
   sessions: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedCreateWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedCreateWithoutAirtableTokensInput> = z.object({
@@ -6397,6 +6751,7 @@ export const UserUncheckedCreateWithoutAirtableTokensInputSchema: z.ZodType<Pris
   accounts: z.lazy(() => AccountUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
 }).strict();
 
 export const UserCreateOrConnectWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateOrConnectWithoutAirtableTokensInput> = z.object({
@@ -6428,6 +6783,7 @@ export const UserUpdateWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.
   accounts: z.lazy(() => AccountUpdateManyWithoutUserNestedInputSchema).optional(),
   sessions: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const UserUncheckedUpdateWithoutAirtableTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserUncheckedUpdateWithoutAirtableTokensInput> = z.object({
@@ -6449,6 +6805,7 @@ export const UserUncheckedUpdateWithoutAirtableTokensInputSchema: z.ZodType<Pris
   accounts: z.lazy(() => AccountUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   sessions: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   plaidItems: z.lazy(() => PlaidItemUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  airtableAuthorizationCache: z.lazy(() => AirtableAuthorizationCacheUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateWithoutCodaCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutCodaCredentialInput> = z.object({
@@ -7937,6 +8294,72 @@ export const AirtableCredentialFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClie
   where: AirtableCredentialWhereUniqueInputSchema,
 }).strict();
 
+export const AirtableAuthorizationCacheFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheFindFirstArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+  orderBy: z.union([AirtableAuthorizationCacheOrderByWithRelationInputSchema.array(), AirtableAuthorizationCacheOrderByWithRelationInputSchema]).optional(),
+  cursor: AirtableAuthorizationCacheWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: AirtableAuthorizationCacheScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheFindFirstOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheFindFirstOrThrowArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+  orderBy: z.union([AirtableAuthorizationCacheOrderByWithRelationInputSchema.array(), AirtableAuthorizationCacheOrderByWithRelationInputSchema]).optional(),
+  cursor: AirtableAuthorizationCacheWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: AirtableAuthorizationCacheScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheFindManyArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheFindManyArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+  orderBy: z.union([AirtableAuthorizationCacheOrderByWithRelationInputSchema.array(), AirtableAuthorizationCacheOrderByWithRelationInputSchema]).optional(),
+  cursor: AirtableAuthorizationCacheWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: AirtableAuthorizationCacheScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheAggregateArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheAggregateArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+  orderBy: z.union([AirtableAuthorizationCacheOrderByWithRelationInputSchema.array(), AirtableAuthorizationCacheOrderByWithRelationInputSchema]).optional(),
+  cursor: AirtableAuthorizationCacheWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheGroupByArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheGroupByArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+  orderBy: z.union([AirtableAuthorizationCacheOrderByWithAggregationInputSchema.array(), AirtableAuthorizationCacheOrderByWithAggregationInputSchema]).optional(),
+  by: AirtableAuthorizationCacheScalarFieldEnumSchema.array(),
+  having: AirtableAuthorizationCacheScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheFindUniqueArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheFindUniqueArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereUniqueInputSchema,
+}).strict();
+
+export const AirtableAuthorizationCacheFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheFindUniqueOrThrowArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereUniqueInputSchema,
+}).strict();
+
 export const AirtableTokenFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenFindFirstArgs> = z.object({
   select: AirtableTokenSelectSchema.optional(),
   include: AirtableTokenIncludeSchema.optional(),
@@ -8746,6 +9169,47 @@ export const AirtableCredentialUpdateManyArgsSchema: z.ZodType<PrismaClient.Pris
 
 export const AirtableCredentialDeleteManyArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableCredentialDeleteManyArgs> = z.object({
   where: AirtableCredentialWhereInputSchema.optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheCreateArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  data: z.union([AirtableAuthorizationCacheCreateInputSchema, AirtableAuthorizationCacheUncheckedCreateInputSchema]),
+}).strict();
+
+export const AirtableAuthorizationCacheUpsertArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpsertArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereUniqueInputSchema,
+  create: z.union([AirtableAuthorizationCacheCreateInputSchema, AirtableAuthorizationCacheUncheckedCreateInputSchema]),
+  update: z.union([AirtableAuthorizationCacheUpdateInputSchema, AirtableAuthorizationCacheUncheckedUpdateInputSchema]),
+}).strict();
+
+export const AirtableAuthorizationCacheCreateManyArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheCreateManyArgs> = z.object({
+  data: AirtableAuthorizationCacheCreateManyInputSchema.array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheDeleteArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheDeleteArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  where: AirtableAuthorizationCacheWhereUniqueInputSchema,
+}).strict();
+
+export const AirtableAuthorizationCacheUpdateArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateArgs> = z.object({
+  select: AirtableAuthorizationCacheSelectSchema.optional(),
+  include: AirtableAuthorizationCacheIncludeSchema.optional(),
+  data: z.union([AirtableAuthorizationCacheUpdateInputSchema, AirtableAuthorizationCacheUncheckedUpdateInputSchema]),
+  where: AirtableAuthorizationCacheWhereUniqueInputSchema,
+}).strict();
+
+export const AirtableAuthorizationCacheUpdateManyArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheUpdateManyArgs> = z.object({
+  data: z.union([AirtableAuthorizationCacheUpdateManyMutationInputSchema, AirtableAuthorizationCacheUncheckedUpdateManyInputSchema]),
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
+}).strict();
+
+export const AirtableAuthorizationCacheDeleteManyArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableAuthorizationCacheDeleteManyArgs> = z.object({
+  where: AirtableAuthorizationCacheWhereInputSchema.optional(),
 }).strict();
 
 export const AirtableTokenCreateArgsSchema: z.ZodType<PrismaClient.Prisma.AirtableTokenCreateArgs> = z.object({

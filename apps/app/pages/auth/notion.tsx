@@ -4,7 +4,7 @@ import {
   Center
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
@@ -17,26 +17,18 @@ const NotionAuthorize = () => {
   const router = useRouter();
   const { user } = useUser();
   const [ screen, setScreen ] = useState('');
-  const { mutateAsync: exchangeNotionToken, isLoading } = trpc.destinations.exchangeNotionToken.useMutation();
-
   const { code, error } = router.query;
 
-  useEffect(() => { if ( error ) { setScreen(error as string) }}, [ error ]);
-
-
-  useEffect(() => {
-    console.log(code, user, screen)
-    if ( code && user && !screen && typeof window !== 'undefined' ) {
-      exchangeNotionToken({ code: code as string, originUrl: window.location.origin})
-        .then(() => { setScreen('success')})
-    }
-  }, [ code, screen, user ]);
+  const { isLoading } = trpc.destinations.exchangeNotionToken.useQuery(
+    { code: code as string, originUrl: (typeof window !== 'undefined' && window.location.origin ) || ""},
+    { onSuccess: () => setScreen('success'), enabled: !error && typeof window !== 'undefined' && !!user }
+  );
 
   return (
     <Center w = "full" maxW = "xl" mx = "auto" flexDir = "column" mt = {{ base: 10, sm: 20, md: 32 }} px = {{ base: 8, md: 'unset' }}>
       <Card shadow = "sm" width = "full" px = { 8 } py = { 8 }>
         <CardBody>
-          { screen === 'access_denied' && <AccessDenied integrationName = "Notion" /> }
+          { error === 'access_denied' && <AccessDenied integrationName = "Notion" /> }
           { screen === 'success' && <Success integrationName = "Notion" /> }
           { isLoading &&  <LoadingSpinner /> }
         </CardBody>

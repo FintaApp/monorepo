@@ -1,6 +1,7 @@
 import { Integration } from "@prisma/client";
 
 import { useDestination } from "../../context";
+import { Airtable } from "./Airtable";
 
 // import { Airtable } from "./Airtable";
 import { Coda } from "./Coda";
@@ -40,10 +41,7 @@ import { Notion } from "./Notion";
 export const DestinationCredentials = () => {
   const { integration } = useDestination();
 
-  if ( integration === Integration.Airtable ) {
-
-  }
-
+  if ( integration === Integration.Airtable ) { return <Airtable />}
   if ( integration === Integration.Coda ) { return <Coda />  }
   if ( integration === Integration.Google ) { return <Google /> }
   if ( integration === Integration.Notion ) { return <Notion />}

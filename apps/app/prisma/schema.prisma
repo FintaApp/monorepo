@@ -65,6 +65,7 @@ model User {
   sessions          Session[]
   plaidItems        PlaidItem[]
   airtableTokens    AirtableToken[]
+  airtableAuthorizationCache AirtableAuthorizationCache?
 
   @@map("users")
 }
@@ -299,9 +300,21 @@ model AirtableCredential {
   @@map("airtable_credentials")
 }
 
+model AirtableAuthorizationCache {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id") @unique
+  state                       String
+  codeVerifier                String
+
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+
+  @@index([userId])
+  @@map("airtable_authorization_cache")
+}
+
 model AirtableToken {
   id                          String      @id @default(uuid())
-  userId                      String      @map("user_id")
+  userId                      String      @map("user_id") @unique
   user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken                 String      @map("access_token")
   refreshToken                String      @map("refresh_token")

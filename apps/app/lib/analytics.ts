@@ -69,7 +69,10 @@ export const trackDestinationCreated = ({ userId, integration, destinationId }: 
   track({ userId, event: Event.DESTINATION_CREATED, properties: { integration, destinationId }})
 
 export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
-  track({ userId, event: Event.NOTION_CONNECTION_ADDED })
+  track({ userId, event: Event.NOTION_CONNECTION_ADDED });
+
+export const trackAirtableTokenAdded = ({ userId }: { userId: string }) =>
+  track({ userId, event: Event.AIRTABLE_TOKEN_ADDED })
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
   new Promise((resolve, reject) => {
@@ -93,6 +96,7 @@ export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; fi
 
 // Types
 enum Event {
+  AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_UPDATED = "Destination Updated",
   DESTINATION_DELETED = "Destination Deleted",

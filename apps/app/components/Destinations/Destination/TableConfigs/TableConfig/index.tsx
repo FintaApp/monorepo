@@ -36,7 +36,7 @@ export const TableConfig = ({ tableType }: { tableType: Table }) => {
 
   return (
     <AccordionItem
-      buttonLabel = { `${tableType.replaceAll("_", " ")} - ${tableConfig.isEnabled ? "Synced" : "Not Synced"}` }
+      buttonLabel = { `${tableType === Table.InvestmentTransactions ? "Investment Transactions" : tableType} - ${tableConfig.isEnabled ? "Synced" : "Not Synced"}` }
       buttonChildren = { <></> }
       buttonLabelProps = {{ 
         textTransform: 'capitalize', 

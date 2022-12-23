@@ -3,7 +3,6 @@ import { Cross1Icon, CheckIcon } from "@radix-ui/react-icons";
 
 import { NotionConnection } from "~/components/Destinations/Destination/NotionConnection";
 import { useDestination } from "../../context";
-import { SyncError } from "@prisma/client";
 
 export const Notion = () => {
   const { onCancelChanges, isValidatingCredentials, isSetupMode, credentialsHasChanges } = useDestination();
@@ -25,9 +24,4 @@ export const Notion = () => {
       )}
     </Stack>
   )
-}
-
-const parseErrorCode = (error?: SyncError) => {
-  if ( error === 'NotAllowed' ) { return 'This Notion connection is no longer valid. Please reconnect' };
-  return ''
 }
