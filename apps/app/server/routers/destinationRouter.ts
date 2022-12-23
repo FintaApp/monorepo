@@ -8,6 +8,7 @@ import { logDestinationCreated, logDestinationDeleted } from "~/lib/logsnag";
 import { router, protectedProcedure } from "../trpc";
 import { Context } from "../context";
 import { createToken, hash } from "~/lib/crypto";
+import _ from "lodash";
 
 export const destinationRouter = router({
   validateCredentials: protectedProcedure
@@ -375,6 +376,26 @@ export const destinationRouter = router({
         logger.info("Created Coda credential", { oauthCode })
 
         return { code: oauthCode.id }
+      }),
+
+    triggerManualSync: protectedProcedure
+      .input(
+        z.object({
+          destinationId: z.string(),
+          startDate: z.string()
+        })
+      )
+      .mutation(async ({ ctx: { db, logger }, input: { destinationId, startDate }}) => {
+        const destination = await db.destination.findFirstOrThrow({ where: { id: destinationId }, include: { accounts: { include: { item: true }} }});
+        logger.info("Fetched destination", { destination });
+        const plaidItems = _.uniqBy(destination.accounts.map(account => account.item).filter(item => item.error !== 'ITEM_LOGIN_REQUIRED'), 'id')
+        if ( destination.integration === Integration.Coda || plaidItems.length === 0 ) { return { syncLogId: null }}
+
+        // Create sync log
+
+        // Trigger inngest event
+
+        // Return
       })
 })
 
