@@ -18,8 +18,11 @@ import { nhost } from "~/utils/nhost";
 import { password as isPasswordValid } from "~/utils/frontend/validate";
 import { useAuth } from "~/utils/frontend/useAuth";
 import { alias } from "~/utils/frontend/analytics";
+import { trpc } from "~/lib/trpc";
 
 export const SignupForm = () => {
+  const { mutateAsync: signUp } = trpc.users.onSignUp.useMutation();
+
   const router = useRouter();
   const { parseAuthError } = useAuth();
   return (
@@ -30,20 +33,22 @@ export const SignupForm = () => {
         password: ""
       }}
       onSubmit = {({ name, email, password }, { setSubmitting, setFieldError }) => {
-        nhost.auth.signUp({ email, password, options: { displayName: name }})
-        .then(async ({ error, session }) => {
+        console.log("Submit")
+        signUp({ name, email, password })
+        .then(async ({ session, error }) => {
           if ( error ) {
             const parsedError = await parseAuthError(error);
             if ( parsedError.code === "already_singed_in" ) { router.push('/') }
             setSubmitting(false);
             setFieldError(parsedError.field, parsedError.message);
             return;
-          }
-          
-          alias({ userId: session.user.id })
+          };
 
-          router.push('/');
+          alias({ userId: session?.user.id! });
+          nhost.auth.signIn({ email, password })
+          .then(() => router.push('/'))
         })
+        .catch(error => console.log(error))
       }}
       validate = {({ name, email, password }) => {
         const errors = {} as { form: undefined | boolean };

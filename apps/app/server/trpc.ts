@@ -4,6 +4,16 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import { AxiomAPIRequest } from "next-axiom";
 import { Context } from "./context";
 
+const removeUnsafeBody = (body: Record<string, any>): Record<string, any> => {
+  const unsafeProperties = ['password'];
+  return Object.entries(body).reduce((prevValue, [key, value]) => {
+    if ( typeof value === 'object' ) {
+      return { ...prevValue, ...removeUnsafeBody(value) }
+    }
+    return { ...prevValue, [key]: unsafeProperties.includes(key) ? '**hidden**' : value }
+  }, {} as Record<string, any>)
+}
+
 const t = initTRPC.context<Context>().create()
 
 const isAuthed = t.middleware(async ({ next, ctx }) => {
@@ -16,7 +26,7 @@ const isAuthed = t.middleware(async ({ next, ctx }) => {
 const withLog = t.middleware(async ({ next, ctx }) => {
   const { req } = ctx;
 
-  ctx.logger.info(`${req.url || 'Unknown'} request started`, { body: req.body })
+  ctx.logger.info(`${req.url || 'Unknown'} request started`, { body: removeUnsafeBody(req.body) })
 
   const results = await next({ ctx });
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { hash } from 'bcryptjs';
 
 import { router, publicProcedure } from "../trpc";
-import { nhost } from "~/utils/nhost";
+import { auth as nhostAuth } from "~/utils/backend/nhost";
 import { createCustomer, getCustomerByEmail } from "~/lib/stripe";
 import { logUserSignedUp } from "~/lib/logsnag";
 import { backendIdentify, trackUserSignedUp } from "~/lib/analytics";
@@ -17,19 +17,18 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ ctx: { logger, db }, input: { email, password, name }}) => {
-      const { error, session } = await nhost.auth.signUp({ email, password, options: { displayName: name }});
-      logger.info("Attempted to sign user up in nhost", { error, session })
-      if ( error ) { return { error }};
-
+      const { error, session } = await nhostAuth.signUp({ email, password, options: { displayName: name }});
+      logger.info("Attempted to sign user up in nhost", { error, session: !!session })
+      if ( error ) { return { error, session: null }};
       const userId = session?.user.id!;
-      const passwordHash = await hash(password, 26);
 
+      const passwordHash = await hash(password, 6);
       const customer = await getCustomerByEmail({ email })
         .then(response => {
           logger.info("Fetched customer", { response });
           if ( response && !response.deleted ) { return response; };
           return createCustomer({ email })
-            .then(response => {
+            .then(({ lastResponse, ...response }) => {
               logger.info("Created customer", { response });
               return response;
             })
@@ -61,7 +60,7 @@ export const userRouter = router({
         })
       ])
 
-      return { error: null }
+      return { error: null, session }
     })
 
 })

@@ -31,6 +31,7 @@ importers:
       '@logtail/js': ^0.1.14
       '@logtail/winston': ^0.1.14
       '@nhost/core': 0.9.4
+      '@nhost/hasura-auth-js': ^1.7.0
       '@nhost/hasura-storage-js': ^0.7.4
       '@nhost/nextjs': ^1.9.2
       '@nhost/react': ^0.15.1
@@ -94,6 +95,7 @@ importers:
       '@logtail/js': 0.1.14
       '@logtail/winston': 0.1.14_winston@3.8.2
       '@nhost/core': 0.9.4
+      '@nhost/hasura-auth-js': 1.7.0
       '@nhost/hasura-storage-js': 0.7.4_@nhost+core@0.9.4
       '@nhost/nextjs': 1.9.3_tukfghzwslfq4ay5mbgxnfvkxm
       '@nhost/react': 0.15.2_f47u4fyrpsztifti3kd5wz3pee
@@ -4080,6 +4082,18 @@ packages:
     dependencies:
       '@nhost/core': 0.9.4
       axios: 1.2.1
+      jwt-decode: 3.1.2
+      xstate: 4.35.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-auth-js/1.7.0:
+    resolution: {integrity: sha512-1xsvpSF8/Ec2UsswcFOvwqiL1zb2r8zzv40hQf1ONBvTlgc7kDlSOC1QM79DYMNVK7uNVQwzJe4iJzbZ+mujqA==}
+    dependencies:
+      '@simplewebauthn/browser': 6.2.2
+      axios: 1.2.1
+      js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.35.0
     transitivePeerDependencies:
