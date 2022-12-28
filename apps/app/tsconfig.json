@@ -7,6 +7,6 @@
     "paths": {
       "~/*": ["*"]
     },
-    "strict": false
+    "strict": true
   }
 }
