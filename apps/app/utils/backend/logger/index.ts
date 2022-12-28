@@ -196,7 +196,7 @@ export class Logger {
     targetTable?: string;
   }) {
     return this.logsnagPublish({
-      channel: LogSnagChannel.ACTIVITY,
+      channel: LogSnagChannel.SYNCS,
       event: isSuccess ? LogSnagEvent.SYNC_COMPLETED : LogSnagEvent.SYNC_FAILED,
       description: `Trigger: ${trigger} \n${ error ? `Error: ${error}` : `${institutionsSynced} institution(s) synced`}${ targetTable ? `\nTarget Table: ${targetTable}`: ""}`,
       icon: isSuccess ? '☑️' : '⏹',
