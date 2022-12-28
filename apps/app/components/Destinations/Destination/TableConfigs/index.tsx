@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import { CheckIcon, Cross1Icon } from "@radix-ui/react-icons";
 
 import { Integrations_Enum, useUpdateDestinationMutation } from "~/graphql/frontend";
-import { DestinationAuthentication, DestinationErrorCode, DestinationTableTypes, AirtableAuthentication, TableConfig as TableConfigType, TableConfigs as TableConfigsType, TransactionsTableFields } from "~/types/shared/models";
+import { DestinationAuthentication, DestinationErrorCode, DestinationTableTypes, AirtableAuthentication, TableConfig as TableConfigType, TableConfigs as TableConfigsType, TransactionsTableFields, DestinationError } from "~/types/shared/models";
 import { useLogger } from "~/utils/frontend/useLogger";
 import { validateDestinationTableConfigs, getDestinationTables } from "~/utils/frontend/functions";
 import { GetDestinationTablesResponse } from "~/types/shared/functions";
@@ -33,7 +33,7 @@ export const TableConfigs = ({ destinationId, integrationId, authentication, tab
   const [ tableConfigs, setTablesConfig ] = useState<TableConfigsType>(originalTableConfigs);
   const [ isValidated, setIsValidated ] = useState(false);
   const [ isValidating, setIsValidating ] = useState(false);
-  const [ errors, setErrors ] = useState<TableConfigErrorType[]>([]);
+  const [ errors, setErrors ] = useState<TableConfigErrorType[] | DestinationError[]>([]);
   const [ updateDestinationMutation, { loading: isUpdatingDestination } ] = useUpdateDestinationMutation();
 
   const refreshTables = useCallback(() => {
@@ -77,7 +77,7 @@ export const TableConfigs = ({ destinationId, integrationId, authentication, tab
 
     setIsValidating(true);
     
-    validateDestinationTableConfigs({ integrationId, tableConfigs, authentication })
+    validateDestinationTableConfigs({ integrationId, tableConfigs, authentication: authentication! })
     .then(({ isValid, errors }) => {
       setErrors(errors || []);
       if ( !isValid ) {
@@ -130,7 +130,7 @@ export const TableConfigs = ({ destinationId, integrationId, authentication, tab
             onChange = { newTableConfig => onChange(tableType, newTableConfig )}
             isLoadingTables = { isLoadingTables }
             integrationId = { integrationId }
-            errors = { errors.filter(error => error.tableType === tableType) }
+            errors = { (errors as TableConfigErrorType[]).filter(error => error.tableType === tableType) }
             key = { tableType }
             isLegacyAirtable = { integrationId === Integrations_Enum.Airtable && !!(authentication as AirtableAuthentication)?.api_key}
           />

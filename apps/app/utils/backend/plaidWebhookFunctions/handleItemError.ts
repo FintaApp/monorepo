@@ -14,7 +14,7 @@ export const handleItemError = async ({ item, data, logger }: { logger: Logger, 
     userId: item.user.id,
     institution: item.institution.name,
     itemId: item.id,
-    error: error_code
+    error: error_code!
   })
 
   await graphql.UpdatePlaidItem({ plaidItemId: item.id, _set: { error: error_code }})
@@ -23,7 +23,7 @@ export const handleItemError = async ({ item, data, logger }: { logger: Logger, 
       segment.trackInstitutionErrorTriggered({
         userId: user.id,
         institution: institution.name,
-        error: error_code,
+        error: error_code!,
         plaidItemId: item.id
       })
     ])

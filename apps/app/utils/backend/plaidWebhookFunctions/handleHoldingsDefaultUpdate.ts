@@ -48,7 +48,7 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, asAdmin,
         accounts: accounts.filter(account => destinationAccounts.includes(account.account_id)),
         holdings: holdings.filter(holding => destinationAccounts.includes(holding.account_id)),
         securities,
-        timezone: destination.user.profile.timezone
+        timezone: destination.user.profile.timezone!
       })
 
       return graphql.InsertDestinationSyncLog({
@@ -67,7 +67,7 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, asAdmin,
       return Promise.all([
         segment.trackDestinationErrorTriggered({
           userId: item.user.id,
-          error: destinationCheck.error,
+          error: destinationCheck.error!,
           integration: destination.integration.id,
           destinationName: destination.name,
           destinationId: destination.id,
@@ -77,7 +77,7 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, asAdmin,
           userId: item.user.id,
           syncLogId: syncLog.id,
           destinationId: destination.id,
-          error: destinationCheck.error
+          error: destinationCheck.error!
         }),
         graphql.InsertDestinationSyncLog({
           destination_sync_log: {

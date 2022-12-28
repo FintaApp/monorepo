@@ -35,7 +35,7 @@ export const LoginForm = () => {
             return;
           }
           
-          alias({ userId: session.user.id })
+          alias({ userId: session!.user.id })
 
           const onLoginRedirect = router.query.next as string || "/";
           router.push(onLoginRedirect);

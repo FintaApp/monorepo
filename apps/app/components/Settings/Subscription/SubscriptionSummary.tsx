@@ -4,7 +4,7 @@ import { Text } from "@chakra-ui/react";
 import { useAuth } from "~/utils/frontend/useAuth";
 import { StripeSubscription } from "~/graphql/frontend";
 
-const getSummaryText = ({ subscription, trialEndsAt }: { subscription: StripeSubscription, trialEndsAt: Date }) => {
+const getSummaryText = ({ subscription, trialEndsAt }: { subscription?: StripeSubscription | null, trialEndsAt: Date }) => {
   const trialEndsAtMoment = moment(trialEndsAt)
   const isTrialOver = trialEndsAtMoment.isBefore(moment());
 

@@ -10,10 +10,10 @@ import * as formatter from "./formatter";
 import { parseSheetProperties } from "./formatter/helper";
 
 export class Google extends IntegrationBase {
-  doc: GoogleSpreadsheet;
-  spreadsheetId: string;
-  sheets: sheets_v4.Sheets;
-  drive: drive_v3.Drive;
+  doc?: GoogleSpreadsheet;
+  spreadsheetId?: string;
+  sheets?: sheets_v4.Sheets;
+  drive?: drive_v3.Drive;
 
   constructor({ authentication, logger, userId }: IntegrationBaseProps) { 
     super({ authentication, userId, logger }); 
@@ -21,7 +21,7 @@ export class Google extends IntegrationBase {
     this.isGoogle = true;
   }
 
-  formatter = formatter;
+  formatter = formatter as any;
 
   async init(): Promise<void> {
     const { spreadsheetId } = this.authentication as GoogleSheetsAuthentication
@@ -41,10 +41,10 @@ export class Google extends IntegrationBase {
       return { isValid: false, errorCode: DestinationErrorCode.TEMPLATE_DESTINATION, message: "You cannot setup a destination with the template's spreadsheet ID" }
     }
 
-    return this.sheets.spreadsheets.get({ spreadsheetId })
+    return this.sheets!.spreadsheets.get({ spreadsheetId })
       .then(async response => {
         this.logger.info("Get spreadsheet response", { response: response.data });
-        return this.drive.permissions.list({ fileId: spreadsheetId, supportsAllDrives: true })
+        return this.drive!.permissions.list({ fileId: spreadsheetId, supportsAllDrives: true })
           .then(response => {
             this.logger.info("List permissions response", { response: response.data });
             return { isValid: true }
@@ -81,7 +81,7 @@ export class Google extends IntegrationBase {
   }
 
   async getTables(): Promise<GetDestinationTablesResponse> {
-    const sheets = this.doc.sheetsById;
+    const sheets = this.doc!.sheetsById;
     const tables = await Promise.all(Object.entries(sheets).map(async ([ sheetId, sheet ]: [string, GoogleSpreadsheetWorksheet ]) => {
       return sheet.loadHeaderRow()
       .then(() => ({ 
@@ -97,7 +97,7 @@ export class Google extends IntegrationBase {
   }
 
   async queryTable({ tableId, tableConfigFields }: { tableId: string; tableConfigFields: { field: TableConfigFields; field_id: string; }[]; }): Promise<IntegrationRecord[]> {
-    const sheet = this.doc.sheetsById[tableId];
+    const sheet = this.doc!.sheetsById[tableId];
     if ( !sheet ) { return [] };
     const rows = await sheet.getRows();
     return rows.map(row => ({
@@ -108,7 +108,7 @@ export class Google extends IntegrationBase {
   }
 
   async createRecords({ tableId, data, tableConfigFields }: { tableId: string, data: Record<string, any>[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> { 
-    return this.doc.sheetsById[tableId].addRows(data)
+    return this.doc!.sheetsById[tableId].addRows(data)
       .then(rows => rows.map(row => ({ id: row.rowIndex, properties: parseSheetProperties({ row, tableConfigFields }), object: row })))
 
     // return this.sheets.spreadsheets.values.append({
@@ -122,12 +122,12 @@ export class Google extends IntegrationBase {
   }
 
   async updateRecords({ tableId, data, tableConfigFields }: { tableId: string, data: { fields: Record<string, any>, record: IntegrationRecord }[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> { 
-    const sheet = this.doc.sheetsById[tableId];
+    const sheet = this.doc!.sheetsById[tableId];
 
     return Promise.all(data.map(async ({ record, fields }) => {
       const row = record.object;
       for ( const [ key, value ] of Object.entries(fields) ) {
-        if ( value ) { row[key] = value }
+        if ( value ) { (row as GoogleSpreadsheetRow)[key as any] = value }
       };
       return (row as GoogleSpreadsheetRow).save().then(() => record );
     }))

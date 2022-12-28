@@ -22,7 +22,7 @@ export const investmentTransaction = {
     }
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedTransaction[field.field];
+      const value = formattedTransaction[field.field  as keyof typeof formattedTransaction];
       return [ field.field_id, value ]
     }))
   }

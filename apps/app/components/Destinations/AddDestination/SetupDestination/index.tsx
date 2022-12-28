@@ -92,7 +92,7 @@ export const SetupDestination = ({ integration, onBack, onClose }: SetupDestinat
         return;
       }
 
-      setAuthError(message)
+      setAuthError(message || "")
     })
     .catch(error => logger.error(error, {}, true))
     .finally(() => setIsLoading(false))
@@ -168,7 +168,7 @@ export const SetupDestination = ({ integration, onBack, onClose }: SetupDestinat
             <Step title = "Select Accounts" setActiveStep = { setActiveStep }>
               <StepContent>
                 <DestinationAccounts 
-                  selectedAccountIds = { connectedAccountIds } 
+                  selectedAccountIds = { connectedAccountIds || [] } 
                   onChange = { setConnectedAccountIds } 
                 />
                 <Navigation onBack = { prevStep } onNext = { nextStep } />

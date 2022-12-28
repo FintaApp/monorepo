@@ -13,7 +13,7 @@ type WrappedFunctionResponse = Promise<{ status: number; message: any }>;
 
 export type User = { id: string, displayName: string; email: string, createdAt: string }
 
-export type WrappedFunction = ({ req, logger, user, destination, plaidEnv }: { req: NextApiRequest; logger: Logger; user: User; destination: DestinationModel, plaidEnv: PlaidEnv }) => WrappedFunctionResponse;
+export type WrappedFunction = ({ req, logger, user, destination, plaidEnv }: { req: NextApiRequest; logger: Logger; user: User; destination: DestinationModel | null, plaidEnv: PlaidEnv }) => WrappedFunctionResponse;
 
 export const wrapper = (type: 'public' | 'client' | 'oauth', fn: WrappedFunction) => async (req: NextApiRequest, res: NextApiResponse) => {
   const route = req.url;
@@ -50,9 +50,9 @@ export const wrapper = (type: 'public' | 'client' | 'oauth', fn: WrappedFunction
     logger.addContext({ user })
   }
 
-  let destination: DestinationModel
+  let destination = null as DestinationModel | null
   if ( type === 'oauth' ) {
-    const tokenHash = hash(token);
+    const tokenHash = hash(token!);
     destination = await graphql.GetDestinations({ where: { authentication: { _contains: { access_token_hash: tokenHash }}}})
       .then(response => {
         logger.info("Fetched destination", { tokenHash, response });

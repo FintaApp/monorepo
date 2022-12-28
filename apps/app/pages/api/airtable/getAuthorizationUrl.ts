@@ -34,8 +34,8 @@ export default wrapper('client', async function handler({ req, user, logger }) {
   authorizationUrl.searchParams.set('code_challenge', codeChallenge);
   authorizationUrl.searchParams.set('code_challenge_method', codeChallengeMethod);
   authorizationUrl.searchParams.set('state', state);
-  authorizationUrl.searchParams.set('client_id', process.env.AIRTABLE_OAUTH_CLIENT_ID );
-  authorizationUrl.searchParams.set('redirect_uri', redirectUriByEnv[process.env.VERCEL_ENV || 'production']);
+  authorizationUrl.searchParams.set('client_id', process.env.AIRTABLE_OAUTH_CLIENT_ID! );
+  authorizationUrl.searchParams.set('redirect_uri', redirectUriByEnv[(process.env.VERCEL_ENV || 'production') as keyof typeof redirectUriByEnv]);
   authorizationUrl.searchParams.set('response_type', 'code');
   authorizationUrl.searchParams.set('scope', 'data.records:read data.records:write schema.bases:read schema.bases:write');
 

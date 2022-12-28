@@ -34,7 +34,7 @@ export const DestinationName = ({ destinationId, value, onChange }: DestinationN
           />
         : <Input
             value = { value }
-            onChange = { e => onChange(e.target.value) }
+            onChange = { e => onChange && onChange(e.target.value) }
           />
       }
       { destinationId ? null : <FormHelperText>Enter a nickname for this destination.</FormHelperText>}

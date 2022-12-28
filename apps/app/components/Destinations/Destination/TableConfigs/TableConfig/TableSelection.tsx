@@ -28,7 +28,7 @@ export const TableSelection = ({ isLegacyAirtable, integrationId, errorMessage, 
             <Flex width = "full" justifyContent = "space-between">
               <Select
                 options = { tableOptions }
-                onChange = { (item: typeof tableOptions[0]) => onChange(item.value) }
+                onChange = { (item: any) => onChange(item.value) }
                 isMulti = { false }
                 value = { tableOptions.find(option => option.value === tableId) }
               />
@@ -64,4 +64,6 @@ const getConstants = (integrationId: Integrations_Enum ): { label: string; toolt
       tooltipText: "After saving the destination, you are free to change the name of the database in your Notion workspace. Missing a database? Make sure that Finta has access to the pages containing the database by clicking 'Reauthorize Finta' within the 'Credentials' section.",
     }
   }
+
+  return { label: '', tooltipText: ''}
 }
