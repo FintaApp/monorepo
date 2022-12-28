@@ -27,7 +27,6 @@ export const OnSuccess = ({ plaidItem, onFinish, institutionName }: OnSuccessPro
   const { data: destinations } = trpc.destinations.getAllDestinations.useQuery(undefined, { enabled: !!plaidItem });
   const { mutateAsync: connectDestinations, isLoading: isConnectingDestinations } = trpc.plaid.connectDestinationsToPlaidAccounts.useMutation();
   const [ selectedDestinations, setSelectedDestinations ] = useState<string[]>([]);
-  console.log(plaidItem, destinations)
   if ( !destinations ) { return <></> };
 
   const accounts = plaidItem?.accounts || [];
@@ -35,7 +34,9 @@ export const OnSuccess = ({ plaidItem, onFinish, institutionName }: OnSuccessPro
   const onSubmit = () => {
     if ( !plaidItem ) { return; }
     connectDestinations({ plaidItemId: plaidItem.id, destinationIds: selectedDestinations})
-      .then(onFinish)
+      .then(() => {
+        onFinish();
+      })
   }
 
   if ( destinations.length === 0 || accounts.length === 0 ) {

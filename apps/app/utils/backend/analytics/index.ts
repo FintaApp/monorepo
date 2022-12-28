@@ -36,26 +36,6 @@ export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; it
     properties: { plaidItemId: itemId }
   })
 
-export const trackDestinationErrorTriggered = ({ userId, integration, destinationName, destinationId, trigger, error }: {
-  userId: string;
-  integration: Integrations_Enum;
-  destinationName: string;
-  destinationId: string;
-  trigger: string;
-  error: DestinationError
-}) =>
-  track({
-    userId,
-    event: SegmentEvent.DESTINATION_ERROR_TRIGGERED,
-    properties: {
-      integration,
-      destinationName,
-      destinationId,
-      trigger,
-      ...error
-    }
-  })
-
 export const trackInstitutionErrorTriggered = ({ userId, institution, error, plaidItemId }: {
   userId: string;
   institution: string;

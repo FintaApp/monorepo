@@ -34,6 +34,8 @@ export const LinkTokenScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.L
 
 export const NotionCredentialScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.NotionCredentialScalarFieldEnum);
 
+export const NullableJsonNullValueInputSchema = z.enum(['DbNull', 'JsonNull',]).transform((v) => transformJsonNull(v));
+
 export const PlaidAccountScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.PlaidAccountScalarFieldEnum);
 
 export const PlaidInstitutionScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.PlaidInstitutionScalarFieldEnum);
@@ -45,6 +47,10 @@ export const SessionScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.Ses
 export const SortOrderSchema = z.nativeEnum(PrismaClient.Prisma.SortOrder);
 
 export const SyncLogScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.SyncLogScalarFieldEnum);
+
+export const SyncMetadataScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.SyncMetadataScalarFieldEnum);
+
+export const SyncScalarFieldEnumSchema = z.nativeEnum(PrismaClient.Prisma.SyncScalarFieldEnum);
 
 export const TransactionIsolationLevelSchema = z.nativeEnum(PrismaClient.Prisma.TransactionIsolationLevel);
 
@@ -64,6 +70,10 @@ export const TableSchema = z.nativeEnum(PrismaClient.Table);
 export const FieldSchema = z.nativeEnum(PrismaClient.Field);
 
 export const SyncErrorSchema = z.nativeEnum(PrismaClient.SyncError);
+
+export const SyncTriggerSchema = z.nativeEnum(PrismaClient.SyncTrigger);
+
+export const SyncEventSchema = z.nativeEnum(PrismaClient.SyncEvent);
 
 /////////////////////////////////////////
 // HELPER TYPES
@@ -320,12 +330,61 @@ export const NotionCredentialSchema = z.object({
   updatedAt: z.date(),
 });
 
+// SYNC
+//------------------------------------------------------
+
+export const SyncSchema = z.object({
+  trigger: SyncTriggerSchema,
+  error: SyncErrorSchema.nullish(),
+  id: z.string(),
+  isSuccess: z.boolean().nullish(),
+  errorMetadata: NullableJsonValue.optional(),
+  triggerDestinationId: z.string().nullish(),
+  triggerPlaidItemId: z.string().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  endedAt: z.date().nullish(),
+});
+
+// SYNC METADATA
+//------------------------------------------------------
+
+export const SyncMetadataSchema = z.object({
+  error: SyncErrorSchema.nullish(),
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+  institutionsAdded: z.number(),
+  institutionsUpdated: z.number(),
+  accountsAdded: z.number(),
+  accountsUpdated: z.number(),
+  categoriesAdded: z.number(),
+  transactionsAdded: z.number(),
+  transactionsUpdated: z.number(),
+  transactionsRemoved: z.number(),
+  securitiesAdded: z.number(),
+  securitiesUpdated: z.number(),
+  holdingsAdded: z.number(),
+  holdingsUpdated: z.number(),
+  investmentTransactionsAdded: z.number(),
+  shouldSyncInstitution: z.boolean().nullish(),
+  shouldSyncAccounts: z.boolean().nullish(),
+  shouldSyncTransactions: z.boolean().nullish(),
+  shouldSyncHoldings: z.boolean().nullish(),
+  shouldSyncInvestmentTransactions: z.boolean().nullish(),
+  shouldSyncSecurities: z.boolean().nullish(),
+  shouldSyncCategories: z.boolean().nullish(),
+});
+
 // SYNC LOG
 //------------------------------------------------------
 
 export const SyncLogSchema = z.object({
-  error: SyncErrorSchema.nullish(),
-  id: z.string(),
+  event: SyncEventSchema,
+  syncId: z.string(),
+  startedAt: z.date(),
+  finishedAt: z.date().nullish(),
+  isSuccess: z.boolean().nullish(),
 });
 
 /////////////////////////////////////////
@@ -484,6 +543,8 @@ export const PlaidItemIncludeSchema: z.ZodType<PrismaClient.Prisma.PlaidItemIncl
   user: z.union([z.boolean(), z.lazy(() => UserArgsSchema)]).optional(),
   institution: z.union([z.boolean(), z.lazy(() => PlaidInstitutionArgsSchema)]).optional(),
   accounts: z.union([z.boolean(), z.lazy(() => PlaidAccountFindManyArgsSchema)]).optional(),
+  syncMetadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggeredSyncs: z.union([z.boolean(), z.lazy(() => SyncFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => PlaidItemCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -493,6 +554,8 @@ export const PlaidItemCountOutputTypeArgsSchema: z.ZodType<PrismaClient.Prisma.P
 
 export const PlaidItemCountOutputTypeSelectSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCountOutputTypeSelect> = z.object({
   accounts: z.boolean().optional(),
+  syncMetadata: z.boolean().optional(),
+  triggeredSyncs: z.boolean().optional(),
 }).strict();
 
 export const PlaidItemSelectSchema: z.ZodType<PrismaClient.Prisma.PlaidItemSelect> = z.object({
@@ -514,6 +577,8 @@ export const PlaidItemSelectSchema: z.ZodType<PrismaClient.Prisma.PlaidItemSelec
   user: z.union([z.boolean(), z.lazy(() => UserArgsSchema)]).optional(),
   institution: z.union([z.boolean(), z.lazy(() => PlaidInstitutionArgsSchema)]).optional(),
   accounts: z.union([z.boolean(), z.lazy(() => PlaidAccountFindManyArgsSchema)]).optional(),
+  syncMetadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggeredSyncs: z.union([z.boolean(), z.lazy(() => SyncFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => PlaidItemCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -585,6 +650,8 @@ export const DestinationIncludeSchema: z.ZodType<PrismaClient.Prisma.Destination
   notionCredential: z.union([z.boolean(), z.lazy(() => NotionCredentialArgsSchema)]).optional(),
   accounts: z.union([z.boolean(), z.lazy(() => PlaidAccountFindManyArgsSchema)]).optional(),
   tableConfigs: z.union([z.boolean(), z.lazy(() => DestinationTableConfigFindManyArgsSchema)]).optional(),
+  syncMetadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggeredSyncs: z.union([z.boolean(), z.lazy(() => SyncFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => DestinationCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -595,6 +662,8 @@ export const DestinationCountOutputTypeArgsSchema: z.ZodType<PrismaClient.Prisma
 export const DestinationCountOutputTypeSelectSchema: z.ZodType<PrismaClient.Prisma.DestinationCountOutputTypeSelect> = z.object({
   accounts: z.boolean().optional(),
   tableConfigs: z.boolean().optional(),
+  syncMetadata: z.boolean().optional(),
+  triggeredSyncs: z.boolean().optional(),
 }).strict();
 
 export const DestinationSelectSchema: z.ZodType<PrismaClient.Prisma.DestinationSelect> = z.object({
@@ -616,6 +685,8 @@ export const DestinationSelectSchema: z.ZodType<PrismaClient.Prisma.DestinationS
   disabledAt: z.boolean().optional(),
   accounts: z.union([z.boolean(), z.lazy(() => PlaidAccountFindManyArgsSchema)]).optional(),
   tableConfigs: z.union([z.boolean(), z.lazy(() => DestinationTableConfigFindManyArgsSchema)]).optional(),
+  syncMetadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggeredSyncs: z.union([z.boolean(), z.lazy(() => SyncFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(), z.lazy(() => DestinationCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
@@ -813,12 +884,112 @@ export const NotionCredentialSelectSchema: z.ZodType<PrismaClient.Prisma.NotionC
   _count: z.union([z.boolean(), z.lazy(() => NotionCredentialCountOutputTypeArgsSchema)]).optional(),
 }).strict();
 
+// SYNC
+//------------------------------------------------------
+
+export const SyncArgsSchema: z.ZodType<PrismaClient.Prisma.SyncArgs> = z.object({
+  select: z.lazy(() => SyncSelectSchema).optional(),
+  include: z.lazy(() => SyncIncludeSchema).optional(),
+}).strict();
+
+export const SyncIncludeSchema: z.ZodType<PrismaClient.Prisma.SyncInclude> = z.object({
+  logs: z.union([z.boolean(), z.lazy(() => SyncLogFindManyArgsSchema)]).optional(),
+  metadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggerDestination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
+  triggerPlaidItem: z.union([z.boolean(), z.lazy(() => PlaidItemArgsSchema)]).optional(),
+  _count: z.union([z.boolean(), z.lazy(() => SyncCountOutputTypeArgsSchema)]).optional(),
+}).strict();
+
+export const SyncCountOutputTypeArgsSchema: z.ZodType<PrismaClient.Prisma.SyncCountOutputTypeArgs> = z.object({
+  select: z.lazy(() => SyncCountOutputTypeSelectSchema).nullish(),
+}).strict();
+
+export const SyncCountOutputTypeSelectSchema: z.ZodType<PrismaClient.Prisma.SyncCountOutputTypeSelect> = z.object({
+  logs: z.boolean().optional(),
+  metadata: z.boolean().optional(),
+}).strict();
+
+export const SyncSelectSchema: z.ZodType<PrismaClient.Prisma.SyncSelect> = z.object({
+  id: z.boolean().optional(),
+  trigger: z.boolean().optional(),
+  isSuccess: z.boolean().optional(),
+  error: z.boolean().optional(),
+  errorMetadata: z.boolean().optional(),
+  triggerDestinationId: z.boolean().optional(),
+  triggerPlaidItemId: z.boolean().optional(),
+  createdAt: z.boolean().optional(),
+  updatedAt: z.boolean().optional(),
+  endedAt: z.boolean().optional(),
+  logs: z.union([z.boolean(), z.lazy(() => SyncLogFindManyArgsSchema)]).optional(),
+  metadata: z.union([z.boolean(), z.lazy(() => SyncMetadataFindManyArgsSchema)]).optional(),
+  triggerDestination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
+  triggerPlaidItem: z.union([z.boolean(), z.lazy(() => PlaidItemArgsSchema)]).optional(),
+  _count: z.union([z.boolean(), z.lazy(() => SyncCountOutputTypeArgsSchema)]).optional(),
+}).strict();
+
+// SYNC METADATA
+//------------------------------------------------------
+
+export const SyncMetadataArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataArgs> = z.object({
+  select: z.lazy(() => SyncMetadataSelectSchema).optional(),
+  include: z.lazy(() => SyncMetadataIncludeSchema).optional(),
+}).strict();
+
+export const SyncMetadataIncludeSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataInclude> = z.object({
+  sync: z.union([z.boolean(), z.lazy(() => SyncArgsSchema)]).optional(),
+  plaidItem: z.union([z.boolean(), z.lazy(() => PlaidItemArgsSchema)]).optional(),
+  destination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
+}).strict();
+
+export const SyncMetadataSelectSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataSelect> = z.object({
+  syncId: z.boolean().optional(),
+  plaidItemId: z.boolean().optional(),
+  destinationId: z.boolean().optional(),
+  error: z.boolean().optional(),
+  institutionsAdded: z.boolean().optional(),
+  institutionsUpdated: z.boolean().optional(),
+  accountsAdded: z.boolean().optional(),
+  accountsUpdated: z.boolean().optional(),
+  categoriesAdded: z.boolean().optional(),
+  transactionsAdded: z.boolean().optional(),
+  transactionsUpdated: z.boolean().optional(),
+  transactionsRemoved: z.boolean().optional(),
+  securitiesAdded: z.boolean().optional(),
+  securitiesUpdated: z.boolean().optional(),
+  holdingsAdded: z.boolean().optional(),
+  holdingsUpdated: z.boolean().optional(),
+  investmentTransactionsAdded: z.boolean().optional(),
+  shouldSyncInstitution: z.boolean().optional(),
+  shouldSyncAccounts: z.boolean().optional(),
+  shouldSyncTransactions: z.boolean().optional(),
+  shouldSyncHoldings: z.boolean().optional(),
+  shouldSyncInvestmentTransactions: z.boolean().optional(),
+  shouldSyncSecurities: z.boolean().optional(),
+  shouldSyncCategories: z.boolean().optional(),
+  sync: z.union([z.boolean(), z.lazy(() => SyncArgsSchema)]).optional(),
+  plaidItem: z.union([z.boolean(), z.lazy(() => PlaidItemArgsSchema)]).optional(),
+  destination: z.union([z.boolean(), z.lazy(() => DestinationArgsSchema)]).optional(),
+}).strict();
+
 // SYNC LOG
 //------------------------------------------------------
 
+export const SyncLogArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogArgs> = z.object({
+  select: z.lazy(() => SyncLogSelectSchema).optional(),
+  include: z.lazy(() => SyncLogIncludeSchema).optional(),
+}).strict();
+
+export const SyncLogIncludeSchema: z.ZodType<PrismaClient.Prisma.SyncLogInclude> = z.object({
+  sync: z.union([z.boolean(), z.lazy(() => SyncArgsSchema)]).optional(),
+}).strict();
+
 export const SyncLogSelectSchema: z.ZodType<PrismaClient.Prisma.SyncLogSelect> = z.object({
-  id: z.boolean().optional(),
-  error: z.boolean().optional(),
+  syncId: z.boolean().optional(),
+  event: z.boolean().optional(),
+  startedAt: z.boolean().optional(),
+  finishedAt: z.boolean().optional(),
+  isSuccess: z.boolean().optional(),
+  sync: z.union([z.boolean(), z.lazy(() => SyncArgsSchema)]).optional(),
 }).strict();
 
 /////////////////////////////////////////
@@ -1138,6 +1309,8 @@ export const PlaidItemWhereInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemW
   user: z.union([z.lazy(() => UserRelationFilterSchema), z.lazy(() => UserWhereInputSchema)]).optional(),
   institution: z.union([z.lazy(() => PlaidInstitutionRelationFilterSchema), z.lazy(() => PlaidInstitutionWhereInputSchema)]).optional(),
   accounts: z.lazy(() => PlaidAccountListRelationFilterSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataListRelationFilterSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncListRelationFilterSchema).optional(),
 }).strict();
 
 export const PlaidItemOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemOrderByWithRelationInput> = z.object({
@@ -1159,6 +1332,8 @@ export const PlaidItemOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Pri
   user: z.lazy(() => UserOrderByWithRelationInputSchema).optional(),
   institution: z.lazy(() => PlaidInstitutionOrderByWithRelationInputSchema).optional(),
   accounts: z.lazy(() => PlaidAccountOrderByRelationAggregateInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataOrderByRelationAggregateInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncOrderByRelationAggregateInputSchema).optional(),
 }).strict();
 
 export const PlaidItemWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemWhereUniqueInput> = z.object({
@@ -1323,6 +1498,8 @@ export const DestinationWhereInputSchema: z.ZodType<PrismaClient.Prisma.Destinat
   disabledAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountListRelationFilterSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigListRelationFilterSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataListRelationFilterSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncListRelationFilterSchema).optional(),
 }).strict();
 
 export const DestinationOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.DestinationOrderByWithRelationInput> = z.object({
@@ -1344,6 +1521,8 @@ export const DestinationOrderByWithRelationInputSchema: z.ZodType<PrismaClient.P
   disabledAt: z.lazy(() => SortOrderSchema).optional(),
   accounts: z.lazy(() => PlaidAccountOrderByRelationAggregateInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigOrderByRelationAggregateInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataOrderByRelationAggregateInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncOrderByRelationAggregateInputSchema).optional(),
 }).strict();
 
 export const DestinationWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.DestinationWhereUniqueInput> = z.object({
@@ -1788,26 +1967,239 @@ export const NotionCredentialScalarWhereWithAggregatesInputSchema: z.ZodType<Pri
   updatedAt: z.union([z.lazy(() => DateTimeWithAggregatesFilterSchema), z.date()]).optional(),
 }).strict();
 
+export const SyncWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncWhereInput> = z.object({
+  AND: z.union([z.lazy(() => SyncWhereInputSchema), z.lazy(() => SyncWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncWhereInputSchema), z.lazy(() => SyncWhereInputSchema).array()]).optional(),
+  id: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  trigger: z.union([z.lazy(() => EnumSyncTriggerFilterSchema), z.lazy(() => SyncTriggerSchema)]).optional(),
+  isSuccess: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  errorMetadata: z.lazy(() => JsonNullableFilterSchema).optional(),
+  triggerDestinationId: z.union([z.lazy(() => StringNullableFilterSchema), z.string()]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.lazy(() => StringNullableFilterSchema), z.string()]).optional().nullable(),
+  createdAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  updatedAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  endedAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
+  logs: z.lazy(() => SyncLogListRelationFilterSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataListRelationFilterSchema).optional(),
+  triggerDestination: z.union([z.lazy(() => DestinationRelationFilterSchema), z.lazy(() => DestinationWhereInputSchema)]).optional().nullable(),
+  triggerPlaidItem: z.union([z.lazy(() => PlaidItemRelationFilterSchema), z.lazy(() => PlaidItemWhereInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.SyncOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  trigger: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  errorMetadata: z.lazy(() => SortOrderSchema).optional(),
+  triggerDestinationId: z.lazy(() => SortOrderSchema).optional(),
+  triggerPlaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  endedAt: z.lazy(() => SortOrderSchema).optional(),
+  logs: z.lazy(() => SyncLogOrderByRelationAggregateInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataOrderByRelationAggregateInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationOrderByWithRelationInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemOrderByWithRelationInputSchema).optional(),
+}).strict();
+
+export const SyncWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.SyncWhereUniqueInput> = z.object({
+  id: z.string().optional(),
+}).strict();
+
+export const SyncOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.SyncOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  trigger: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  errorMetadata: z.lazy(() => SortOrderSchema).optional(),
+  triggerDestinationId: z.lazy(() => SortOrderSchema).optional(),
+  triggerPlaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  endedAt: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => SyncCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => SyncMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => SyncMinOrderByAggregateInputSchema).optional(),
+}).strict();
+
+export const SyncScalarWhereWithAggregatesInputSchema: z.ZodType<PrismaClient.Prisma.SyncScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([z.lazy(() => SyncScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  id: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  trigger: z.union([z.lazy(() => EnumSyncTriggerWithAggregatesFilterSchema), z.lazy(() => SyncTriggerSchema)]).optional(),
+  isSuccess: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableWithAggregatesFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  errorMetadata: z.lazy(() => JsonNullableWithAggregatesFilterSchema).optional(),
+  triggerDestinationId: z.union([z.lazy(() => StringNullableWithAggregatesFilterSchema), z.string()]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.lazy(() => StringNullableWithAggregatesFilterSchema), z.string()]).optional().nullable(),
+  createdAt: z.union([z.lazy(() => DateTimeWithAggregatesFilterSchema), z.date()]).optional(),
+  updatedAt: z.union([z.lazy(() => DateTimeWithAggregatesFilterSchema), z.date()]).optional(),
+  endedAt: z.union([z.lazy(() => DateTimeNullableWithAggregatesFilterSchema), z.date()]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataWhereInput> = z.object({
+  AND: z.union([z.lazy(() => SyncMetadataWhereInputSchema), z.lazy(() => SyncMetadataWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncMetadataWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncMetadataWhereInputSchema), z.lazy(() => SyncMetadataWhereInputSchema).array()]).optional(),
+  syncId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  plaidItemId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  destinationId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  institutionsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  accountsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  accountsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  categoriesAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsRemoved: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  securitiesAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  securitiesUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  holdingsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  holdingsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  investmentTransactionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  shouldSyncInstitution: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncCategories: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  sync: z.union([z.lazy(() => SyncRelationFilterSchema), z.lazy(() => SyncWhereInputSchema)]).optional(),
+  plaidItem: z.union([z.lazy(() => PlaidItemRelationFilterSchema), z.lazy(() => PlaidItemWhereInputSchema)]).optional().nullable(),
+  destination: z.union([z.lazy(() => DestinationRelationFilterSchema), z.lazy(() => DestinationWhereInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataOrderByWithRelationInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  plaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  destinationId: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInstitution: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncAccounts: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncHoldings: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInvestmentTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncSecurities: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncCategories: z.lazy(() => SortOrderSchema).optional(),
+  sync: z.lazy(() => SyncOrderByWithRelationInputSchema).optional(),
+  plaidItem: z.lazy(() => PlaidItemOrderByWithRelationInputSchema).optional(),
+  destination: z.lazy(() => DestinationOrderByWithRelationInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataWhereUniqueInput> = z.object({
+  syncId_plaidItemId_destinationId: z.lazy(() => SyncMetadataSyncIdPlaidItemIdDestinationIdCompoundUniqueInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataOrderByWithAggregationInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  plaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  destinationId: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInstitution: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncAccounts: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncHoldings: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInvestmentTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncSecurities: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncCategories: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => SyncMetadataCountOrderByAggregateInputSchema).optional(),
+  _avg: z.lazy(() => SyncMetadataAvgOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => SyncMetadataMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => SyncMetadataMinOrderByAggregateInputSchema).optional(),
+  _sum: z.lazy(() => SyncMetadataSumOrderByAggregateInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataScalarWhereWithAggregatesInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([z.lazy(() => SyncMetadataScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncMetadataScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncMetadataScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncMetadataScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncMetadataScalarWhereWithAggregatesInputSchema).array()]).optional(),
+  syncId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  plaidItemId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  destinationId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableWithAggregatesFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  institutionsUpdated: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  accountsAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  accountsUpdated: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  categoriesAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  transactionsAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  transactionsUpdated: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  transactionsRemoved: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  securitiesAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  securitiesUpdated: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  holdingsAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  holdingsUpdated: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  investmentTransactionsAdded: z.union([z.lazy(() => IntWithAggregatesFilterSchema), z.number()]).optional(),
+  shouldSyncInstitution: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncCategories: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
+}).strict();
+
 export const SyncLogWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogWhereInput> = z.object({
   AND: z.union([z.lazy(() => SyncLogWhereInputSchema), z.lazy(() => SyncLogWhereInputSchema).array()]).optional(),
   OR: z.lazy(() => SyncLogWhereInputSchema).array().optional(),
   NOT: z.union([z.lazy(() => SyncLogWhereInputSchema), z.lazy(() => SyncLogWhereInputSchema).array()]).optional(),
-  id: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
-  error: z.union([z.lazy(() => EnumSyncErrorNullableFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  syncId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  event: z.union([z.lazy(() => EnumSyncEventFilterSchema), z.lazy(() => SyncEventSchema)]).optional(),
+  startedAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  finishedAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
+  isSuccess: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  sync: z.union([z.lazy(() => SyncRelationFilterSchema), z.lazy(() => SyncWhereInputSchema)]).optional(),
 }).strict();
 
 export const SyncLogOrderByWithRelationInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogOrderByWithRelationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  event: z.lazy(() => SortOrderSchema).optional(),
+  startedAt: z.lazy(() => SortOrderSchema).optional(),
+  finishedAt: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+  sync: z.lazy(() => SyncOrderByWithRelationInputSchema).optional(),
 }).strict();
 
 export const SyncLogWhereUniqueInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogWhereUniqueInput> = z.object({
-  id: z.string().optional(),
+  syncId_event: z.lazy(() => SyncLogSyncIdEventCompoundUniqueInputSchema).optional(),
 }).strict();
 
 export const SyncLogOrderByWithAggregationInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogOrderByWithAggregationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  event: z.lazy(() => SortOrderSchema).optional(),
+  startedAt: z.lazy(() => SortOrderSchema).optional(),
+  finishedAt: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => SyncLogCountOrderByAggregateInputSchema).optional(),
   _max: z.lazy(() => SyncLogMaxOrderByAggregateInputSchema).optional(),
   _min: z.lazy(() => SyncLogMinOrderByAggregateInputSchema).optional(),
@@ -1817,8 +2209,11 @@ export const SyncLogScalarWhereWithAggregatesInputSchema: z.ZodType<PrismaClient
   AND: z.union([z.lazy(() => SyncLogScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncLogScalarWhereWithAggregatesInputSchema).array()]).optional(),
   OR: z.lazy(() => SyncLogScalarWhereWithAggregatesInputSchema).array().optional(),
   NOT: z.union([z.lazy(() => SyncLogScalarWhereWithAggregatesInputSchema), z.lazy(() => SyncLogScalarWhereWithAggregatesInputSchema).array()]).optional(),
-  id: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
-  error: z.union([z.lazy(() => EnumSyncErrorNullableWithAggregatesFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  syncId: z.union([z.lazy(() => StringWithAggregatesFilterSchema), z.string()]).optional(),
+  event: z.union([z.lazy(() => EnumSyncEventWithAggregatesFilterSchema), z.lazy(() => SyncEventSchema)]).optional(),
+  startedAt: z.union([z.lazy(() => DateTimeWithAggregatesFilterSchema), z.date()]).optional(),
+  finishedAt: z.union([z.lazy(() => DateTimeNullableWithAggregatesFilterSchema), z.date()]).optional().nullable(),
+  isSuccess: z.union([z.lazy(() => BoolNullableWithAggregatesFilterSchema), z.boolean()]).optional().nullable(),
 }).strict();
 
 export const AccountCreateInputSchema: z.ZodType<PrismaClient.Prisma.AccountCreateInput> = z.object({
@@ -2221,6 +2616,8 @@ export const PlaidItemCreateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItem
   user: z.lazy(() => UserCreateNestedOneWithoutPlaidItemsInputSchema),
   institution: z.lazy(() => PlaidInstitutionCreateNestedOneWithoutItemsInputSchema),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateInput> = z.object({
@@ -2240,6 +2637,8 @@ export const PlaidItemUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUpdateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpdateInput> = z.object({
@@ -2259,6 +2658,8 @@ export const PlaidItemUpdateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItem
   user: z.lazy(() => UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema).optional(),
   institution: z.lazy(() => PlaidInstitutionUpdateOneRequiredWithoutItemsNestedInputSchema).optional(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateInput> = z.object({
@@ -2278,6 +2679,8 @@ export const PlaidItemUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateManyInput> = z.object({
@@ -2454,6 +2857,8 @@ export const DestinationCreateInputSchema: z.ZodType<PrismaClient.Prisma.Destina
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateInput> = z.object({
@@ -2471,6 +2876,8 @@ export const DestinationUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prism
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUpdateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateInput> = z.object({
@@ -2488,6 +2895,8 @@ export const DestinationUpdateInputSchema: z.ZodType<PrismaClient.Prisma.Destina
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateInput> = z.object({
@@ -2505,6 +2914,8 @@ export const DestinationUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prism
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateManyInput> = z.object({
@@ -3040,39 +3451,342 @@ export const NotionCredentialUncheckedUpdateManyInputSchema: z.ZodType<PrismaCli
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
 }).strict();
 
-export const SyncLogCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateInput> = z.object({
+export const SyncCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateInput> = z.object({
   id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
   error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutSyncInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+}).strict();
+
+export const SyncUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUpdateManyWithoutSyncNestedInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+}).strict();
+
+export const SyncCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+}).strict();
+
+export const SyncUpdateManyMutationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyMutationInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncUncheckedUpdateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateManyInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateInput> = z.object({
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+  sync: z.lazy(() => SyncCreateNestedOneWithoutMetadataInputSchema),
+  plaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+  destination: z.lazy(() => DestinationCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateInput> = z.object({
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateInput> = z.object({
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  sync: z.lazy(() => SyncUpdateOneRequiredWithoutMetadataNestedInputSchema).optional(),
+  plaidItem: z.lazy(() => PlaidItemUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+  destination: z.lazy(() => DestinationUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateInput> = z.object({
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidItemId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyInput> = z.object({
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataUpdateManyMutationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyMutationInput> = z.object({
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyInput> = z.object({
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidItemId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncLogCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateInput> = z.object({
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
+  sync: z.lazy(() => SyncCreateNestedOneWithoutLogsInputSchema),
 }).strict();
 
 export const SyncLogUncheckedCreateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedCreateInput> = z.object({
-  id: z.string().optional(),
-  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  syncId: z.string(),
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
 }).strict();
 
 export const SyncLogUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateInput> = z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
-  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  sync: z.lazy(() => SyncUpdateOneRequiredWithoutLogsNestedInputSchema).optional(),
 }).strict();
 
 export const SyncLogUncheckedUpdateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedUpdateInput> = z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
-  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const SyncLogCreateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateManyInput> = z.object({
-  id: z.string().optional(),
-  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  syncId: z.string(),
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
 }).strict();
 
 export const SyncLogUpdateManyMutationInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateManyMutationInput> = z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
-  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const SyncLogUncheckedUpdateManyInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedUpdateManyInput> = z.object({
-  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
-  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 export const StringFilterSchema: z.ZodType<PrismaClient.Prisma.StringFilter> = z.object({
@@ -3467,7 +4181,27 @@ export const PlaidAccountListRelationFilterSchema: z.ZodType<PrismaClient.Prisma
   none: z.lazy(() => PlaidAccountWhereInputSchema).optional(),
 }).strict();
 
+export const SyncMetadataListRelationFilterSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataListRelationFilter> = z.object({
+  every: z.lazy(() => SyncMetadataWhereInputSchema).optional(),
+  some: z.lazy(() => SyncMetadataWhereInputSchema).optional(),
+  none: z.lazy(() => SyncMetadataWhereInputSchema).optional(),
+}).strict();
+
+export const SyncListRelationFilterSchema: z.ZodType<PrismaClient.Prisma.SyncListRelationFilter> = z.object({
+  every: z.lazy(() => SyncWhereInputSchema).optional(),
+  some: z.lazy(() => SyncWhereInputSchema).optional(),
+  none: z.lazy(() => SyncWhereInputSchema).optional(),
+}).strict();
+
 export const PlaidAccountOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMetadataOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
@@ -3547,8 +4281,8 @@ export const DestinationListRelationFilterSchema: z.ZodType<PrismaClient.Prisma.
 }).strict();
 
 export const PlaidItemRelationFilterSchema: z.ZodType<PrismaClient.Prisma.PlaidItemRelationFilter> = z.object({
-  is: z.lazy(() => PlaidItemWhereInputSchema).optional(),
-  isNot: z.lazy(() => PlaidItemWhereInputSchema).optional(),
+  is: z.lazy(() => PlaidItemWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => PlaidItemWhereInputSchema).optional().nullable(),
 }).strict();
 
 export const DestinationOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.DestinationOrderByRelationAggregateInput> = z.object({
@@ -3958,6 +4692,18 @@ export const NotionCredentialMinOrderByAggregateInputSchema: z.ZodType<PrismaCli
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
 }).strict();
 
+export const EnumSyncTriggerFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncTriggerFilter> = z.object({
+  equals: z.lazy(() => SyncTriggerSchema).optional(),
+  in: z.lazy(() => SyncTriggerSchema).array().optional(),
+  notIn: z.lazy(() => SyncTriggerSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => NestedEnumSyncTriggerFilterSchema)]).optional(),
+}).strict();
+
+export const BoolNullableFilterSchema: z.ZodType<PrismaClient.Prisma.BoolNullableFilter> = z.object({
+  equals: z.boolean().optional().nullable(),
+  not: z.union([z.boolean(), z.lazy(() => NestedBoolNullableFilterSchema)]).optional().nullable(),
+}).strict();
+
 export const EnumSyncErrorNullableFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncErrorNullableFilter> = z.object({
   equals: z.lazy(() => SyncErrorSchema).optional().nullable(),
   in: z.lazy(() => SyncErrorSchema).array().optional().nullable(),
@@ -3965,19 +4711,85 @@ export const EnumSyncErrorNullableFilterSchema: z.ZodType<PrismaClient.Prisma.En
   not: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NestedEnumSyncErrorNullableFilterSchema)]).optional().nullable(),
 }).strict();
 
-export const SyncLogCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCountOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
+export const JsonNullableFilterSchema: z.ZodType<PrismaClient.Prisma.JsonNullableFilter> = z.object({
+  equals: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
 }).strict();
 
-export const SyncLogMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogMaxOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  error: z.lazy(() => SortOrderSchema).optional(),
+export const SyncLogListRelationFilterSchema: z.ZodType<PrismaClient.Prisma.SyncLogListRelationFilter> = z.object({
+  every: z.lazy(() => SyncLogWhereInputSchema).optional(),
+  some: z.lazy(() => SyncLogWhereInputSchema).optional(),
+  none: z.lazy(() => SyncLogWhereInputSchema).optional(),
 }).strict();
 
-export const SyncLogMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogMinOrderByAggregateInput> = z.object({
+export const SyncLogOrderByRelationAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  trigger: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
   error: z.lazy(() => SortOrderSchema).optional(),
+  errorMetadata: z.lazy(() => SortOrderSchema).optional(),
+  triggerDestinationId: z.lazy(() => SortOrderSchema).optional(),
+  triggerPlaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  endedAt: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  trigger: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  triggerDestinationId: z.lazy(() => SortOrderSchema).optional(),
+  triggerPlaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  endedAt: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  trigger: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  triggerDestinationId: z.lazy(() => SortOrderSchema).optional(),
+  triggerPlaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  endedAt: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const EnumSyncTriggerWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncTriggerWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => SyncTriggerSchema).optional(),
+  in: z.lazy(() => SyncTriggerSchema).array().optional(),
+  notIn: z.lazy(() => SyncTriggerSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => NestedEnumSyncTriggerWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumSyncTriggerFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumSyncTriggerFilterSchema).optional(),
+}).strict();
+
+export const BoolNullableWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.BoolNullableWithAggregatesFilter> = z.object({
+  equals: z.boolean().optional().nullable(),
+  not: z.union([z.boolean(), z.lazy(() => NestedBoolNullableWithAggregatesFilterSchema)]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedBoolNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedBoolNullableFilterSchema).optional(),
 }).strict();
 
 export const EnumSyncErrorNullableWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncErrorNullableWithAggregatesFilter> = z.object({
@@ -3988,6 +4800,222 @@ export const EnumSyncErrorNullableWithAggregatesFilterSchema: z.ZodType<PrismaCl
   _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumSyncErrorNullableFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumSyncErrorNullableFilterSchema).optional(),
+}).strict();
+
+export const JsonNullableWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.JsonNullableWithAggregatesFilter> = z.object({
+  equals: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedJsonNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedJsonNullableFilterSchema).optional(),
+}).strict();
+
+export const IntFilterSchema: z.ZodType<PrismaClient.Prisma.IntFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([z.number(), z.lazy(() => NestedIntFilterSchema)]).optional(),
+}).strict();
+
+export const SyncRelationFilterSchema: z.ZodType<PrismaClient.Prisma.SyncRelationFilter> = z.object({
+  is: z.lazy(() => SyncWhereInputSchema).optional(),
+  isNot: z.lazy(() => SyncWhereInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataSyncIdPlaidItemIdDestinationIdCompoundUniqueInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataSyncIdPlaidItemIdDestinationIdCompoundUniqueInput> = z.object({
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+}).strict();
+
+export const SyncMetadataCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCountOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  plaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  destinationId: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInstitution: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncAccounts: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncHoldings: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInvestmentTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncSecurities: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncCategories: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMetadataAvgOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataAvgOrderByAggregateInput> = z.object({
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMetadataMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataMaxOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  plaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  destinationId: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInstitution: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncAccounts: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncHoldings: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInvestmentTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncSecurities: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncCategories: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMetadataMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataMinOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  plaidItemId: z.lazy(() => SortOrderSchema).optional(),
+  destinationId: z.lazy(() => SortOrderSchema).optional(),
+  error: z.lazy(() => SortOrderSchema).optional(),
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInstitution: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncAccounts: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncHoldings: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncInvestmentTransactions: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncSecurities: z.lazy(() => SortOrderSchema).optional(),
+  shouldSyncCategories: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncMetadataSumOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataSumOrderByAggregateInput> = z.object({
+  institutionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  institutionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  accountsAdded: z.lazy(() => SortOrderSchema).optional(),
+  accountsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  categoriesAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+  transactionsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  transactionsRemoved: z.lazy(() => SortOrderSchema).optional(),
+  securitiesAdded: z.lazy(() => SortOrderSchema).optional(),
+  securitiesUpdated: z.lazy(() => SortOrderSchema).optional(),
+  holdingsAdded: z.lazy(() => SortOrderSchema).optional(),
+  holdingsUpdated: z.lazy(() => SortOrderSchema).optional(),
+  investmentTransactionsAdded: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const IntWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.IntWithAggregatesFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([z.number(), z.lazy(() => NestedIntWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _avg: z.lazy(() => NestedFloatFilterSchema).optional(),
+  _sum: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedIntFilterSchema).optional(),
+  _max: z.lazy(() => NestedIntFilterSchema).optional(),
+}).strict();
+
+export const EnumSyncEventFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncEventFilter> = z.object({
+  equals: z.lazy(() => SyncEventSchema).optional(),
+  in: z.lazy(() => SyncEventSchema).array().optional(),
+  notIn: z.lazy(() => SyncEventSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => NestedEnumSyncEventFilterSchema)]).optional(),
+}).strict();
+
+export const SyncLogSyncIdEventCompoundUniqueInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogSyncIdEventCompoundUniqueInput> = z.object({
+  syncId: z.string(),
+  event: z.lazy(() => SyncEventSchema),
+}).strict();
+
+export const SyncLogCountOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCountOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  event: z.lazy(() => SortOrderSchema).optional(),
+  startedAt: z.lazy(() => SortOrderSchema).optional(),
+  finishedAt: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncLogMaxOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogMaxOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  event: z.lazy(() => SortOrderSchema).optional(),
+  startedAt: z.lazy(() => SortOrderSchema).optional(),
+  finishedAt: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const SyncLogMinOrderByAggregateInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogMinOrderByAggregateInput> = z.object({
+  syncId: z.lazy(() => SortOrderSchema).optional(),
+  event: z.lazy(() => SortOrderSchema).optional(),
+  startedAt: z.lazy(() => SortOrderSchema).optional(),
+  finishedAt: z.lazy(() => SortOrderSchema).optional(),
+  isSuccess: z.lazy(() => SortOrderSchema).optional(),
+}).strict();
+
+export const EnumSyncEventWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.EnumSyncEventWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => SyncEventSchema).optional(),
+  in: z.lazy(() => SyncEventSchema).array().optional(),
+  notIn: z.lazy(() => SyncEventSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => NestedEnumSyncEventWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumSyncEventFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumSyncEventFilterSchema).optional(),
 }).strict();
 
 export const UserCreateNestedOneWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateNestedOneWithoutAccountsInput> = z.object({
@@ -4345,11 +5373,39 @@ export const PlaidAccountCreateNestedManyWithoutItemInputSchema: z.ZodType<Prism
   connect: z.union([z.lazy(() => PlaidAccountWhereUniqueInputSchema), z.lazy(() => PlaidAccountWhereUniqueInputSchema).array()]).optional(),
 }).strict();
 
+export const SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateNestedManyWithoutPlaidItemInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyPlaidItemInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateNestedManyWithoutTriggerPlaidItemInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerPlaidItemInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
 export const PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUncheckedCreateNestedManyWithoutItemInput> = z.object({
   create: z.union([z.lazy(() => PlaidAccountCreateWithoutItemInputSchema), z.lazy(() => PlaidAccountCreateWithoutItemInputSchema).array(), z.lazy(() => PlaidAccountUncheckedCreateWithoutItemInputSchema), z.lazy(() => PlaidAccountUncheckedCreateWithoutItemInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => PlaidAccountCreateOrConnectWithoutItemInputSchema), z.lazy(() => PlaidAccountCreateOrConnectWithoutItemInputSchema).array()]).optional(),
   createMany: z.lazy(() => PlaidAccountCreateManyItemInputEnvelopeSchema).optional(),
   connect: z.union([z.lazy(() => PlaidAccountWhereUniqueInputSchema), z.lazy(() => PlaidAccountWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyPlaidItemInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerPlaidItemInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
 }).strict();
 
 export const UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema: z.ZodType<PrismaClient.Prisma.UserUpdateOneRequiredWithoutPlaidItemsNestedInput> = z.object({
@@ -4382,6 +5438,34 @@ export const PlaidAccountUpdateManyWithoutItemNestedInputSchema: z.ZodType<Prism
   deleteMany: z.union([z.lazy(() => PlaidAccountScalarWhereInputSchema), z.lazy(() => PlaidAccountScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
+export const SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithoutPlaidItemNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyPlaidItemInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutPlaidItemInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyWithoutTriggerPlaidItemNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerPlaidItemInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
 export const PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUncheckedUpdateManyWithoutItemNestedInput> = z.object({
   create: z.union([z.lazy(() => PlaidAccountCreateWithoutItemInputSchema), z.lazy(() => PlaidAccountCreateWithoutItemInputSchema).array(), z.lazy(() => PlaidAccountUncheckedCreateWithoutItemInputSchema), z.lazy(() => PlaidAccountUncheckedCreateWithoutItemInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => PlaidAccountCreateOrConnectWithoutItemInputSchema), z.lazy(() => PlaidAccountCreateOrConnectWithoutItemInputSchema).array()]).optional(),
@@ -4394,6 +5478,34 @@ export const PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema: z.ZodT
   update: z.union([z.lazy(() => PlaidAccountUpdateWithWhereUniqueWithoutItemInputSchema), z.lazy(() => PlaidAccountUpdateWithWhereUniqueWithoutItemInputSchema).array()]).optional(),
   updateMany: z.union([z.lazy(() => PlaidAccountUpdateManyWithWhereWithoutItemInputSchema), z.lazy(() => PlaidAccountUpdateManyWithWhereWithoutItemInputSchema).array()]).optional(),
   deleteMany: z.union([z.lazy(() => PlaidAccountScalarWhereInputSchema), z.lazy(() => PlaidAccountScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyPlaidItemInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutPlaidItemInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerPlaidItemInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerPlaidItemInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
 export const DestinationCreateNestedManyWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateNestedManyWithoutAccountsInput> = z.object({
@@ -4499,6 +5611,20 @@ export const DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema
   connect: z.union([z.lazy(() => DestinationTableConfigWhereUniqueInputSchema), z.lazy(() => DestinationTableConfigWhereUniqueInputSchema).array()]).optional(),
 }).strict();
 
+export const SyncMetadataCreateNestedManyWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateNestedManyWithoutDestinationInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyDestinationInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncCreateNestedManyWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateNestedManyWithoutTriggerDestinationInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerDestinationInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
 export const PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInput> = z.object({
   create: z.union([z.lazy(() => PlaidAccountCreateWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountCreateWithoutDestinationsInputSchema).array(), z.lazy(() => PlaidAccountUncheckedCreateWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountUncheckedCreateWithoutDestinationsInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => PlaidAccountCreateOrConnectWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountCreateOrConnectWithoutDestinationsInputSchema).array()]).optional(),
@@ -4510,6 +5636,20 @@ export const DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationIn
   connectOrCreate: z.union([z.lazy(() => DestinationTableConfigCreateOrConnectWithoutDestinationInputSchema), z.lazy(() => DestinationTableConfigCreateOrConnectWithoutDestinationInputSchema).array()]).optional(),
   createMany: z.lazy(() => DestinationTableConfigCreateManyDestinationInputEnvelopeSchema).optional(),
   connect: z.union([z.lazy(() => DestinationTableConfigWhereUniqueInputSchema), z.lazy(() => DestinationTableConfigWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateNestedManyWithoutDestinationInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyDestinationInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateNestedManyWithoutTriggerDestinationInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerDestinationInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
 }).strict();
 
 export const AirtableCredentialUpdateOneWithoutDestinationNestedInputSchema: z.ZodType<PrismaClient.Prisma.AirtableCredentialUpdateOneWithoutDestinationNestedInput> = z.object({
@@ -4583,6 +5723,34 @@ export const DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema
   deleteMany: z.union([z.lazy(() => DestinationTableConfigScalarWhereInputSchema), z.lazy(() => DestinationTableConfigScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
+export const SyncMetadataUpdateManyWithoutDestinationNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithoutDestinationNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyDestinationInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutDestinationInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutDestinationInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUpdateManyWithoutTriggerDestinationNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyWithoutTriggerDestinationNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerDestinationInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerDestinationInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerDestinationInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
 export const PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInput> = z.object({
   create: z.union([z.lazy(() => PlaidAccountCreateWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountCreateWithoutDestinationsInputSchema).array(), z.lazy(() => PlaidAccountUncheckedCreateWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountUncheckedCreateWithoutDestinationsInputSchema).array()]).optional(),
   connectOrCreate: z.union([z.lazy(() => PlaidAccountCreateOrConnectWithoutDestinationsInputSchema), z.lazy(() => PlaidAccountCreateOrConnectWithoutDestinationsInputSchema).array()]).optional(),
@@ -4608,6 +5776,34 @@ export const DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedIn
   update: z.union([z.lazy(() => DestinationTableConfigUpdateWithWhereUniqueWithoutDestinationInputSchema), z.lazy(() => DestinationTableConfigUpdateWithWhereUniqueWithoutDestinationInputSchema).array()]).optional(),
   updateMany: z.union([z.lazy(() => DestinationTableConfigUpdateManyWithWhereWithoutDestinationInputSchema), z.lazy(() => DestinationTableConfigUpdateManyWithWhereWithoutDestinationInputSchema).array()]).optional(),
   deleteMany: z.union([z.lazy(() => DestinationTableConfigScalarWhereInputSchema), z.lazy(() => DestinationTableConfigScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutDestinationInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManyDestinationInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutDestinationInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutDestinationInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema).array(), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema), z.lazy(() => SyncCreateOrConnectWithoutTriggerDestinationInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpsertWithWhereUniqueWithoutTriggerDestinationInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncCreateManyTriggerDestinationInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncWhereUniqueInputSchema), z.lazy(() => SyncWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpdateWithWhereUniqueWithoutTriggerDestinationInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUpdateManyWithWhereWithoutTriggerDestinationInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
 export const DestinationCreateNestedOneWithoutTableConfigsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateNestedOneWithoutTableConfigsInput> = z.object({
@@ -4854,8 +6050,204 @@ export const DestinationUncheckedUpdateManyWithoutNotionCredentialNestedInputSch
   deleteMany: z.union([z.lazy(() => DestinationScalarWhereInputSchema), z.lazy(() => DestinationScalarWhereInputSchema).array()]).optional(),
 }).strict();
 
+export const SyncLogCreateNestedManyWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateNestedManyWithoutSyncInput> = z.object({
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncLogCreateManySyncInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataCreateNestedManyWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateNestedManyWithoutSyncInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManySyncInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const DestinationCreateNestedOneWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateNestedOneWithoutTriggeredSyncsInput> = z.object({
+  create: z.union([z.lazy(() => DestinationCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutTriggeredSyncsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => DestinationCreateOrConnectWithoutTriggeredSyncsInputSchema).optional(),
+  connect: z.lazy(() => DestinationWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const PlaidItemCreateNestedOneWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateNestedOneWithoutTriggeredSyncsInput> = z.object({
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutTriggeredSyncsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => PlaidItemCreateOrConnectWithoutTriggeredSyncsInputSchema).optional(),
+  connect: z.lazy(() => PlaidItemWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const SyncLogUncheckedCreateNestedManyWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedCreateNestedManyWithoutSyncInput> = z.object({
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncLogCreateManySyncInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateNestedManyWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateNestedManyWithoutSyncInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManySyncInputEnvelopeSchema).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+}).strict();
+
+export const EnumSyncTriggerFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.EnumSyncTriggerFieldUpdateOperationsInput> = z.object({
+  set: z.lazy(() => SyncTriggerSchema).optional(),
+}).strict();
+
+export const NullableBoolFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.NullableBoolFieldUpdateOperationsInput> = z.object({
+  set: z.boolean().optional().nullable(),
+}).strict();
+
 export const NullableEnumSyncErrorFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.NullableEnumSyncErrorFieldUpdateOperationsInput> = z.object({
   set: z.lazy(() => SyncErrorSchema).optional().nullable(),
+}).strict();
+
+export const SyncLogUpdateManyWithoutSyncNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateManyWithoutSyncNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncLogUpsertWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncLogUpsertWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncLogCreateManySyncInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncLogUpdateWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncLogUpdateWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncLogUpdateManyWithWhereWithoutSyncInputSchema), z.lazy(() => SyncLogUpdateManyWithWhereWithoutSyncInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncLogScalarWhereInputSchema), z.lazy(() => SyncLogScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUpdateManyWithoutSyncNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithoutSyncNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManySyncInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutSyncInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const DestinationUpdateOneWithoutTriggeredSyncsNestedInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateOneWithoutTriggeredSyncsNestedInput> = z.object({
+  create: z.union([z.lazy(() => DestinationCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutTriggeredSyncsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => DestinationCreateOrConnectWithoutTriggeredSyncsInputSchema).optional(),
+  upsert: z.lazy(() => DestinationUpsertWithoutTriggeredSyncsInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => DestinationWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => DestinationUpdateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedUpdateWithoutTriggeredSyncsInputSchema)]).optional(),
+}).strict();
+
+export const PlaidItemUpdateOneWithoutTriggeredSyncsNestedInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpdateOneWithoutTriggeredSyncsNestedInput> = z.object({
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutTriggeredSyncsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => PlaidItemCreateOrConnectWithoutTriggeredSyncsInputSchema).optional(),
+  upsert: z.lazy(() => PlaidItemUpsertWithoutTriggeredSyncsInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => PlaidItemWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => PlaidItemUpdateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedUpdateWithoutTriggeredSyncsInputSchema)]).optional(),
+}).strict();
+
+export const SyncLogUncheckedUpdateManyWithoutSyncNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedUpdateManyWithoutSyncNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncLogCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncLogUpsertWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncLogUpsertWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncLogCreateManySyncInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncLogWhereUniqueInputSchema), z.lazy(() => SyncLogWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncLogUpdateWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncLogUpdateWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncLogUpdateManyWithWhereWithoutSyncInputSchema), z.lazy(() => SyncLogUpdateManyWithWhereWithoutSyncInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncLogScalarWhereInputSchema), z.lazy(() => SyncLogScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyWithoutSyncNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyWithoutSyncNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema).array(), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema).array()]).optional(),
+  connectOrCreate: z.union([z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema), z.lazy(() => SyncMetadataCreateOrConnectWithoutSyncInputSchema).array()]).optional(),
+  upsert: z.union([z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpsertWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  createMany: z.lazy(() => SyncMetadataCreateManySyncInputEnvelopeSchema).optional(),
+  set: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  disconnect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  delete: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  connect: z.union([z.lazy(() => SyncMetadataWhereUniqueInputSchema), z.lazy(() => SyncMetadataWhereUniqueInputSchema).array()]).optional(),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpdateWithWhereUniqueWithoutSyncInputSchema).array()]).optional(),
+  updateMany: z.union([z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutSyncInputSchema), z.lazy(() => SyncMetadataUpdateManyWithWhereWithoutSyncInputSchema).array()]).optional(),
+  deleteMany: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+}).strict();
+
+export const SyncCreateNestedOneWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateNestedOneWithoutMetadataInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedCreateWithoutMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => SyncCreateOrConnectWithoutMetadataInputSchema).optional(),
+  connect: z.lazy(() => SyncWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const PlaidItemCreateNestedOneWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateNestedOneWithoutSyncMetadataInput> = z.object({
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutSyncMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => PlaidItemCreateOrConnectWithoutSyncMetadataInputSchema).optional(),
+  connect: z.lazy(() => PlaidItemWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const DestinationCreateNestedOneWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateNestedOneWithoutSyncMetadataInput> = z.object({
+  create: z.union([z.lazy(() => DestinationCreateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutSyncMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => DestinationCreateOrConnectWithoutSyncMetadataInputSchema).optional(),
+  connect: z.lazy(() => DestinationWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const IntFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.IntFieldUpdateOperationsInput> = z.object({
+  set: z.number().optional(),
+  increment: z.number().optional(),
+  decrement: z.number().optional(),
+  multiply: z.number().optional(),
+  divide: z.number().optional(),
+}).strict();
+
+export const SyncUpdateOneRequiredWithoutMetadataNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateOneRequiredWithoutMetadataNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedCreateWithoutMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => SyncCreateOrConnectWithoutMetadataInputSchema).optional(),
+  upsert: z.lazy(() => SyncUpsertWithoutMetadataInputSchema).optional(),
+  connect: z.lazy(() => SyncWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutMetadataInputSchema)]).optional(),
+}).strict();
+
+export const PlaidItemUpdateOneWithoutSyncMetadataNestedInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpdateOneWithoutSyncMetadataNestedInput> = z.object({
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutSyncMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => PlaidItemCreateOrConnectWithoutSyncMetadataInputSchema).optional(),
+  upsert: z.lazy(() => PlaidItemUpsertWithoutSyncMetadataInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => PlaidItemWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => PlaidItemUpdateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedUpdateWithoutSyncMetadataInputSchema)]).optional(),
+}).strict();
+
+export const DestinationUpdateOneWithoutSyncMetadataNestedInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateOneWithoutSyncMetadataNestedInput> = z.object({
+  create: z.union([z.lazy(() => DestinationCreateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutSyncMetadataInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => DestinationCreateOrConnectWithoutSyncMetadataInputSchema).optional(),
+  upsert: z.lazy(() => DestinationUpsertWithoutSyncMetadataInputSchema).optional(),
+  disconnect: z.boolean().optional(),
+  delete: z.boolean().optional(),
+  connect: z.lazy(() => DestinationWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => DestinationUpdateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedUpdateWithoutSyncMetadataInputSchema)]).optional(),
+}).strict();
+
+export const SyncCreateNestedOneWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateNestedOneWithoutLogsInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedCreateWithoutLogsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => SyncCreateOrConnectWithoutLogsInputSchema).optional(),
+  connect: z.lazy(() => SyncWhereUniqueInputSchema).optional(),
+}).strict();
+
+export const EnumSyncEventFieldUpdateOperationsInputSchema: z.ZodType<PrismaClient.Prisma.EnumSyncEventFieldUpdateOperationsInput> = z.object({
+  set: z.lazy(() => SyncEventSchema).optional(),
+}).strict();
+
+export const SyncUpdateOneRequiredWithoutLogsNestedInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateOneRequiredWithoutLogsNestedInput> = z.object({
+  create: z.union([z.lazy(() => SyncCreateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedCreateWithoutLogsInputSchema)]).optional(),
+  connectOrCreate: z.lazy(() => SyncCreateOrConnectWithoutLogsInputSchema).optional(),
+  upsert: z.lazy(() => SyncUpsertWithoutLogsInputSchema).optional(),
+  connect: z.lazy(() => SyncWhereUniqueInputSchema).optional(),
+  update: z.union([z.lazy(() => SyncUpdateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutLogsInputSchema)]).optional(),
 }).strict();
 
 export const NestedStringFilterSchema: z.ZodType<PrismaClient.Prisma.NestedStringFilter> = z.object({
@@ -5089,11 +6481,41 @@ export const NestedEnumFieldWithAggregatesFilterSchema: z.ZodType<PrismaClient.P
   _max: z.lazy(() => NestedEnumFieldFilterSchema).optional(),
 }).strict();
 
+export const NestedEnumSyncTriggerFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncTriggerFilter> = z.object({
+  equals: z.lazy(() => SyncTriggerSchema).optional(),
+  in: z.lazy(() => SyncTriggerSchema).array().optional(),
+  notIn: z.lazy(() => SyncTriggerSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => NestedEnumSyncTriggerFilterSchema)]).optional(),
+}).strict();
+
+export const NestedBoolNullableFilterSchema: z.ZodType<PrismaClient.Prisma.NestedBoolNullableFilter> = z.object({
+  equals: z.boolean().optional().nullable(),
+  not: z.union([z.boolean(), z.lazy(() => NestedBoolNullableFilterSchema)]).optional().nullable(),
+}).strict();
+
 export const NestedEnumSyncErrorNullableFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncErrorNullableFilter> = z.object({
   equals: z.lazy(() => SyncErrorSchema).optional().nullable(),
   in: z.lazy(() => SyncErrorSchema).array().optional().nullable(),
   notIn: z.lazy(() => SyncErrorSchema).array().optional().nullable(),
   not: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NestedEnumSyncErrorNullableFilterSchema)]).optional().nullable(),
+}).strict();
+
+export const NestedEnumSyncTriggerWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncTriggerWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => SyncTriggerSchema).optional(),
+  in: z.lazy(() => SyncTriggerSchema).array().optional(),
+  notIn: z.lazy(() => SyncTriggerSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => NestedEnumSyncTriggerWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumSyncTriggerFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumSyncTriggerFilterSchema).optional(),
+}).strict();
+
+export const NestedBoolNullableWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.NestedBoolNullableWithAggregatesFilter> = z.object({
+  equals: z.boolean().optional().nullable(),
+  not: z.union([z.boolean(), z.lazy(() => NestedBoolNullableWithAggregatesFilterSchema)]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedBoolNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedBoolNullableFilterSchema).optional(),
 }).strict();
 
 export const NestedEnumSyncErrorNullableWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncErrorNullableWithAggregatesFilter> = z.object({
@@ -5104,6 +6526,66 @@ export const NestedEnumSyncErrorNullableWithAggregatesFilterSchema: z.ZodType<Pr
   _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumSyncErrorNullableFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumSyncErrorNullableFilterSchema).optional(),
+}).strict();
+
+export const NestedJsonNullableFilterSchema: z.ZodType<PrismaClient.Prisma.NestedJsonNullableFilter> = z.object({
+  equals: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([InputJsonValue, z.lazy(() => JsonNullValueFilterSchema)]).optional(),
+}).strict();
+
+export const NestedIntWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.NestedIntWithAggregatesFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([z.number(), z.lazy(() => NestedIntWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _avg: z.lazy(() => NestedFloatFilterSchema).optional(),
+  _sum: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedIntFilterSchema).optional(),
+  _max: z.lazy(() => NestedIntFilterSchema).optional(),
+}).strict();
+
+export const NestedFloatFilterSchema: z.ZodType<PrismaClient.Prisma.NestedFloatFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([z.number(), z.lazy(() => NestedFloatFilterSchema)]).optional(),
+}).strict();
+
+export const NestedEnumSyncEventFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncEventFilter> = z.object({
+  equals: z.lazy(() => SyncEventSchema).optional(),
+  in: z.lazy(() => SyncEventSchema).array().optional(),
+  notIn: z.lazy(() => SyncEventSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => NestedEnumSyncEventFilterSchema)]).optional(),
+}).strict();
+
+export const NestedEnumSyncEventWithAggregatesFilterSchema: z.ZodType<PrismaClient.Prisma.NestedEnumSyncEventWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => SyncEventSchema).optional(),
+  in: z.lazy(() => SyncEventSchema).array().optional(),
+  notIn: z.lazy(() => SyncEventSchema).array().optional(),
+  not: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => NestedEnumSyncEventWithAggregatesFilterSchema)]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumSyncEventFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumSyncEventFilterSchema).optional(),
 }).strict();
 
 export const UserCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutAccountsInput> = z.object({
@@ -5398,6 +6880,8 @@ export const PlaidItemCreateWithoutUserInputSchema: z.ZodType<PrismaClient.Prism
   disabledAt: z.date().optional().nullable(),
   institution: z.lazy(() => PlaidInstitutionCreateNestedOneWithoutItemsInputSchema),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedCreateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateWithoutUserInput> = z.object({
@@ -5416,6 +6900,8 @@ export const PlaidItemUncheckedCreateWithoutUserInputSchema: z.ZodType<PrismaCli
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemCreateOrConnectWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateOrConnectWithoutUserInput> = z.object({
@@ -5669,6 +7155,8 @@ export const PlaidItemCreateWithoutInstitutionInputSchema: z.ZodType<PrismaClien
   disabledAt: z.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutPlaidItemsInputSchema),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedCreateWithoutInstitutionInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateWithoutInstitutionInput> = z.object({
@@ -5687,6 +7175,8 @@ export const PlaidItemUncheckedCreateWithoutInstitutionInputSchema: z.ZodType<Pr
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemCreateOrConnectWithoutInstitutionInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateOrConnectWithoutInstitutionInput> = z.object({
@@ -5809,6 +7299,106 @@ export const PlaidAccountCreateManyItemInputEnvelopeSchema: z.ZodType<PrismaClie
   skipDuplicates: z.boolean().optional(),
 }).strict();
 
+export const SyncMetadataCreateWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateWithoutPlaidItemInput> = z.object({
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+  sync: z.lazy(() => SyncCreateNestedOneWithoutMetadataInputSchema),
+  destination: z.lazy(() => DestinationCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateWithoutPlaidItemInput> = z.object({
+  syncId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateOrConnectWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateOrConnectWithoutPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncMetadataCreateManyPlaidItemInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyPlaidItemInputEnvelope> = z.object({
+  data: z.lazy(() => SyncMetadataCreateManyPlaidItemInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const SyncCreateWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateWithoutTriggerPlaidItemInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutSyncInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateWithoutTriggerPlaidItemInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+}).strict();
+
+export const SyncCreateOrConnectWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateOrConnectWithoutTriggerPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncCreateManyTriggerPlaidItemInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyTriggerPlaidItemInputEnvelope> = z.object({
+  data: z.lazy(() => SyncCreateManyTriggerPlaidItemInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
 export const UserUpsertWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Prisma.UserUpsertWithoutPlaidItemsInput> = z.object({
   update: z.union([z.lazy(() => UserUpdateWithoutPlaidItemsInputSchema), z.lazy(() => UserUncheckedUpdateWithoutPlaidItemsInputSchema)]),
   create: z.union([z.lazy(() => UserCreateWithoutPlaidItemsInputSchema), z.lazy(() => UserUncheckedCreateWithoutPlaidItemsInputSchema)]),
@@ -5903,6 +7493,84 @@ export const PlaidAccountScalarWhereInputSchema: z.ZodType<PrismaClient.Prisma.P
   updatedAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
 }).strict();
 
+export const SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpsertWithWhereUniqueWithoutPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutPlaidItemInputSchema)]),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithWhereUniqueWithoutPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateWithoutPlaidItemInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateManyWithWhereWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithWhereWithoutPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncMetadataScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateManyMutationInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const SyncMetadataScalarWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataScalarWhereInput> = z.object({
+  AND: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncMetadataScalarWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncMetadataScalarWhereInputSchema), z.lazy(() => SyncMetadataScalarWhereInputSchema).array()]).optional(),
+  syncId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  plaidItemId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  destinationId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  institutionsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  accountsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  accountsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  categoriesAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  transactionsRemoved: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  securitiesAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  securitiesUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  holdingsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  holdingsUpdated: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  investmentTransactionsAdded: z.union([z.lazy(() => IntFilterSchema), z.number()]).optional(),
+  shouldSyncInstitution: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  shouldSyncCategories: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+}).strict();
+
+export const SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpsertWithWhereUniqueWithoutTriggerPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncUpdateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutTriggerPlaidItemInputSchema)]),
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithWhereUniqueWithoutTriggerPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncUpdateWithoutTriggerPlaidItemInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutTriggerPlaidItemInputSchema)]),
+}).strict();
+
+export const SyncUpdateManyWithWhereWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyWithWhereWithoutTriggerPlaidItemInput> = z.object({
+  where: z.lazy(() => SyncScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncUpdateManyMutationInputSchema), z.lazy(() => SyncUncheckedUpdateManyWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
+export const SyncScalarWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncScalarWhereInput> = z.object({
+  AND: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncScalarWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncScalarWhereInputSchema), z.lazy(() => SyncScalarWhereInputSchema).array()]).optional(),
+  id: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  trigger: z.union([z.lazy(() => EnumSyncTriggerFilterSchema), z.lazy(() => SyncTriggerSchema)]).optional(),
+  isSuccess: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+  error: z.union([z.lazy(() => EnumSyncErrorNullableFilterSchema), z.lazy(() => SyncErrorSchema)]).optional().nullable(),
+  errorMetadata: z.lazy(() => JsonNullableFilterSchema).optional(),
+  triggerDestinationId: z.union([z.lazy(() => StringNullableFilterSchema), z.string()]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.lazy(() => StringNullableFilterSchema), z.string()]).optional().nullable(),
+  createdAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  updatedAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  endedAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
+}).strict();
+
 export const DestinationCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutAccountsInput> = z.object({
   id: z.string().optional(),
   userId: z.string(),
@@ -5917,6 +7585,8 @@ export const DestinationCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutAccountsInput> = z.object({
@@ -5933,6 +7603,8 @@ export const DestinationUncheckedCreateWithoutAccountsInputSchema: z.ZodType<Pri
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutAccountsInput> = z.object({
@@ -5956,6 +7628,8 @@ export const PlaidItemCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.P
   disabledAt: z.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutPlaidItemsInputSchema),
   institution: z.lazy(() => PlaidInstitutionCreateNestedOneWithoutItemsInputSchema),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedCreateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateWithoutAccountsInput> = z.object({
@@ -5974,6 +7648,8 @@ export const PlaidItemUncheckedCreateWithoutAccountsInputSchema: z.ZodType<Prism
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
 }).strict();
 
 export const PlaidItemCreateOrConnectWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateOrConnectWithoutAccountsInput> = z.object({
@@ -6036,6 +7712,8 @@ export const PlaidItemUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.P
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema).optional(),
   institution: z.lazy(() => PlaidInstitutionUpdateOneRequiredWithoutItemsNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateWithoutAccountsInput> = z.object({
@@ -6054,6 +7732,8 @@ export const PlaidItemUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<Prism
   createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const UserCreateWithoutLinkTokensInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutLinkTokensInput> = z.object({
@@ -6287,6 +7967,106 @@ export const DestinationTableConfigCreateManyDestinationInputEnvelopeSchema: z.Z
   skipDuplicates: z.boolean().optional(),
 }).strict();
 
+export const SyncMetadataCreateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateWithoutDestinationInput> = z.object({
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+  sync: z.lazy(() => SyncCreateNestedOneWithoutMetadataInputSchema),
+  plaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateWithoutDestinationInput> = z.object({
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateOrConnectWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateOrConnectWithoutDestinationInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema)]),
+}).strict();
+
+export const SyncMetadataCreateManyDestinationInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyDestinationInputEnvelope> = z.object({
+  data: z.lazy(() => SyncMetadataCreateManyDestinationInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const SyncCreateWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateWithoutTriggerDestinationInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutSyncInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedCreateWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateWithoutTriggerDestinationInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+}).strict();
+
+export const SyncCreateOrConnectWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateOrConnectWithoutTriggerDestinationInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema)]),
+}).strict();
+
+export const SyncCreateManyTriggerDestinationInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyTriggerDestinationInputEnvelope> = z.object({
+  data: z.lazy(() => SyncCreateManyTriggerDestinationInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
 export const AirtableCredentialUpsertWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.AirtableCredentialUpsertWithoutDestinationInput> = z.object({
   update: z.union([z.lazy(() => AirtableCredentialUpdateWithoutDestinationInputSchema), z.lazy(() => AirtableCredentialUncheckedUpdateWithoutDestinationInputSchema)]),
   create: z.union([z.lazy(() => AirtableCredentialCreateWithoutDestinationInputSchema), z.lazy(() => AirtableCredentialUncheckedCreateWithoutDestinationInputSchema)]),
@@ -6414,6 +8194,38 @@ export const DestinationTableConfigScalarWhereInputSchema: z.ZodType<PrismaClien
   tableId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
 }).strict();
 
+export const SyncMetadataUpsertWithWhereUniqueWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpsertWithWhereUniqueWithoutDestinationInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutDestinationInputSchema)]),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutDestinationInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateWithWhereUniqueWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithWhereUniqueWithoutDestinationInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateWithoutDestinationInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutDestinationInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateManyWithWhereWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithWhereWithoutDestinationInput> = z.object({
+  where: z.lazy(() => SyncMetadataScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateManyMutationInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const SyncUpsertWithWhereUniqueWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpsertWithWhereUniqueWithoutTriggerDestinationInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncUpdateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutTriggerDestinationInputSchema)]),
+  create: z.union([z.lazy(() => SyncCreateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedCreateWithoutTriggerDestinationInputSchema)]),
+}).strict();
+
+export const SyncUpdateWithWhereUniqueWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithWhereUniqueWithoutTriggerDestinationInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncUpdateWithoutTriggerDestinationInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutTriggerDestinationInputSchema)]),
+}).strict();
+
+export const SyncUpdateManyWithWhereWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyWithWhereWithoutTriggerDestinationInput> = z.object({
+  where: z.lazy(() => SyncScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncUpdateManyMutationInputSchema), z.lazy(() => SyncUncheckedUpdateManyWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
 export const DestinationCreateWithoutTableConfigsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutTableConfigsInput> = z.object({
   id: z.string().optional(),
   userId: z.string(),
@@ -6428,6 +8240,8 @@ export const DestinationCreateWithoutTableConfigsInputSchema: z.ZodType<PrismaCl
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutTableConfigsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutTableConfigsInput> = z.object({
@@ -6444,6 +8258,8 @@ export const DestinationUncheckedCreateWithoutTableConfigsInputSchema: z.ZodType
   updatedAt: z.date().optional(),
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutTableConfigsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutTableConfigsInput> = z.object({
@@ -6492,6 +8308,8 @@ export const DestinationUpdateWithoutTableConfigsInputSchema: z.ZodType<PrismaCl
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutTableConfigsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutTableConfigsInput> = z.object({
@@ -6508,6 +8326,8 @@ export const DestinationUncheckedUpdateWithoutTableConfigsInputSchema: z.ZodType
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationFieldConfigUpsertWithWhereUniqueWithoutTableConfigInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigUpsertWithWhereUniqueWithoutTableConfigInput> = z.object({
@@ -6592,6 +8412,8 @@ export const DestinationCreateWithoutAirtableCredentialInputSchema: z.ZodType<Pr
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutAirtableCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutAirtableCredentialInput> = z.object({
@@ -6608,6 +8430,8 @@ export const DestinationUncheckedCreateWithoutAirtableCredentialInputSchema: z.Z
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutAirtableCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutAirtableCredentialInput> = z.object({
@@ -6634,6 +8458,8 @@ export const DestinationUpdateWithoutAirtableCredentialInputSchema: z.ZodType<Pr
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutAirtableCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutAirtableCredentialInput> = z.object({
@@ -6650,6 +8476,8 @@ export const DestinationUncheckedUpdateWithoutAirtableCredentialInputSchema: z.Z
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const UserCreateWithoutAirtableAuthorizationCacheInputSchema: z.ZodType<PrismaClient.Prisma.UserCreateWithoutAirtableAuthorizationCacheInput> = z.object({
@@ -6862,6 +8690,8 @@ export const DestinationCreateWithoutCodaCredentialInputSchema: z.ZodType<Prisma
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutCodaCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutCodaCredentialInput> = z.object({
@@ -6878,6 +8708,8 @@ export const DestinationUncheckedCreateWithoutCodaCredentialInputSchema: z.ZodTy
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutCodaCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutCodaCredentialInput> = z.object({
@@ -6904,6 +8736,8 @@ export const DestinationUpdateWithoutCodaCredentialInputSchema: z.ZodType<Prisma
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutCodaCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutCodaCredentialInput> = z.object({
@@ -6920,6 +8754,8 @@ export const DestinationUncheckedUpdateWithoutCodaCredentialInputSchema: z.ZodTy
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateWithoutGoogleSheetsCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutGoogleSheetsCredentialInput> = z.object({
@@ -6936,6 +8772,8 @@ export const DestinationCreateWithoutGoogleSheetsCredentialInputSchema: z.ZodTyp
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutGoogleSheetsCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutGoogleSheetsCredentialInput> = z.object({
@@ -6952,6 +8790,8 @@ export const DestinationUncheckedCreateWithoutGoogleSheetsCredentialInputSchema:
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutGoogleSheetsCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutGoogleSheetsCredentialInput> = z.object({
@@ -6978,6 +8818,8 @@ export const DestinationUpdateWithoutGoogleSheetsCredentialInputSchema: z.ZodTyp
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutGoogleSheetsCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutGoogleSheetsCredentialInput> = z.object({
@@ -6994,6 +8836,8 @@ export const DestinationUncheckedUpdateWithoutGoogleSheetsCredentialInputSchema:
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateWithoutNotionCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutNotionCredentialInput> = z.object({
@@ -7010,6 +8854,8 @@ export const DestinationCreateWithoutNotionCredentialInputSchema: z.ZodType<Pris
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedCreateWithoutNotionCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutNotionCredentialInput> = z.object({
@@ -7026,6 +8872,8 @@ export const DestinationUncheckedCreateWithoutNotionCredentialInputSchema: z.Zod
   disabledAt: z.date().optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
 }).strict();
 
 export const DestinationCreateOrConnectWithoutNotionCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutNotionCredentialInput> = z.object({
@@ -7052,6 +8900,611 @@ export const DestinationUpdateWithWhereUniqueWithoutNotionCredentialInputSchema:
 export const DestinationUpdateManyWithWhereWithoutNotionCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateManyWithWhereWithoutNotionCredentialInput> = z.object({
   where: z.lazy(() => DestinationScalarWhereInputSchema),
   data: z.union([z.lazy(() => DestinationUpdateManyMutationInputSchema), z.lazy(() => DestinationUncheckedUpdateManyWithoutDestinationsInputSchema)]),
+}).strict();
+
+export const SyncLogCreateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateWithoutSyncInput> = z.object({
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncLogUncheckedCreateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedCreateWithoutSyncInput> = z.object({
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncLogCreateOrConnectWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateOrConnectWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncLogWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncLogCreateManySyncInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateManySyncInputEnvelope> = z.object({
+  data: z.lazy(() => SyncLogCreateManySyncInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const SyncMetadataCreateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateWithoutSyncInput> = z.object({
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+  plaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+  destination: z.lazy(() => DestinationCreateNestedOneWithoutSyncMetadataInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedCreateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedCreateWithoutSyncInput> = z.object({
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateOrConnectWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateOrConnectWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncMetadataCreateManySyncInputEnvelopeSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManySyncInputEnvelope> = z.object({
+  data: z.lazy(() => SyncMetadataCreateManySyncInputSchema).array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const DestinationCreateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutTriggeredSyncsInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  airtableCredential: z.lazy(() => AirtableCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  codaCredential: z.lazy(() => CodaCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  googleSheetsCredential: z.lazy(() => GoogleSheetsCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  notionCredential: z.lazy(() => NotionCredentialCreateNestedOneWithoutDestinationsInputSchema).optional(),
+  integration: z.lazy(() => IntegrationSchema),
+  name: z.string(),
+  syncStartDate: z.string(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutDestinationInputSchema).optional(),
+}).strict();
+
+export const DestinationUncheckedCreateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutTriggeredSyncsInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  airtableCredentialId: z.string().optional().nullable(),
+  codaCredentialId: z.string().optional().nullable(),
+  googleSheetsCredentialId: z.string().optional().nullable(),
+  notionCredentialId: z.string().optional().nullable(),
+  integration: z.lazy(() => IntegrationSchema),
+  name: z.string(),
+  syncStartDate: z.string(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+}).strict();
+
+export const DestinationCreateOrConnectWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutTriggeredSyncsInput> = z.object({
+  where: z.lazy(() => DestinationWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => DestinationCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
+export const PlaidItemCreateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateWithoutTriggeredSyncsInput> = z.object({
+  id: z.string(),
+  isInitialUpdateComplete: z.boolean().optional(),
+  isHistoricalUpdateComplete: z.boolean().optional(),
+  error: z.string().optional().nullable(),
+  accessToken: z.string(),
+  plaidSyncCursor: z.string().optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  lastSyncedAt: z.date().optional().nullable(),
+  consentExpiresAt: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  user: z.lazy(() => UserCreateNestedOneWithoutPlaidItemsInputSchema),
+  institution: z.lazy(() => PlaidInstitutionCreateNestedOneWithoutItemsInputSchema),
+  accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUncheckedCreateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateWithoutTriggeredSyncsInput> = z.object({
+  id: z.string(),
+  institutionId: z.string(),
+  userId: z.string(),
+  isInitialUpdateComplete: z.boolean().optional(),
+  isHistoricalUpdateComplete: z.boolean().optional(),
+  error: z.string().optional().nullable(),
+  accessToken: z.string(),
+  plaidSyncCursor: z.string().optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  lastSyncedAt: z.date().optional().nullable(),
+  consentExpiresAt: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutPlaidItemInputSchema).optional(),
+}).strict();
+
+export const PlaidItemCreateOrConnectWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateOrConnectWithoutTriggeredSyncsInput> = z.object({
+  where: z.lazy(() => PlaidItemWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
+export const SyncLogUpsertWithWhereUniqueWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpsertWithWhereUniqueWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncLogWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncLogUpdateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedUpdateWithoutSyncInputSchema)]),
+  create: z.union([z.lazy(() => SyncLogCreateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedCreateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncLogUpdateWithWhereUniqueWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateWithWhereUniqueWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncLogWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncLogUpdateWithoutSyncInputSchema), z.lazy(() => SyncLogUncheckedUpdateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncLogUpdateManyWithWhereWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateManyWithWhereWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncLogScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncLogUpdateManyMutationInputSchema), z.lazy(() => SyncLogUncheckedUpdateManyWithoutLogsInputSchema)]),
+}).strict();
+
+export const SyncLogScalarWhereInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogScalarWhereInput> = z.object({
+  AND: z.union([z.lazy(() => SyncLogScalarWhereInputSchema), z.lazy(() => SyncLogScalarWhereInputSchema).array()]).optional(),
+  OR: z.lazy(() => SyncLogScalarWhereInputSchema).array().optional(),
+  NOT: z.union([z.lazy(() => SyncLogScalarWhereInputSchema), z.lazy(() => SyncLogScalarWhereInputSchema).array()]).optional(),
+  syncId: z.union([z.lazy(() => StringFilterSchema), z.string()]).optional(),
+  event: z.union([z.lazy(() => EnumSyncEventFilterSchema), z.lazy(() => SyncEventSchema)]).optional(),
+  startedAt: z.union([z.lazy(() => DateTimeFilterSchema), z.date()]).optional(),
+  finishedAt: z.union([z.lazy(() => DateTimeNullableFilterSchema), z.date()]).optional().nullable(),
+  isSuccess: z.union([z.lazy(() => BoolNullableFilterSchema), z.boolean()]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataUpsertWithWhereUniqueWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpsertWithWhereUniqueWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  update: z.union([z.lazy(() => SyncMetadataUpdateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutSyncInputSchema)]),
+  create: z.union([z.lazy(() => SyncMetadataCreateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedCreateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateWithWhereUniqueWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithWhereUniqueWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncMetadataWhereUniqueInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateWithoutSyncInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateWithoutSyncInputSchema)]),
+}).strict();
+
+export const SyncMetadataUpdateManyWithWhereWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyWithWhereWithoutSyncInput> = z.object({
+  where: z.lazy(() => SyncMetadataScalarWhereInputSchema),
+  data: z.union([z.lazy(() => SyncMetadataUpdateManyMutationInputSchema), z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutMetadataInputSchema)]),
+}).strict();
+
+export const DestinationUpsertWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpsertWithoutTriggeredSyncsInput> = z.object({
+  update: z.union([z.lazy(() => DestinationUpdateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedUpdateWithoutTriggeredSyncsInputSchema)]),
+  create: z.union([z.lazy(() => DestinationCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
+export const DestinationUpdateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateWithoutTriggeredSyncsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  airtableCredential: z.lazy(() => AirtableCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  codaCredential: z.lazy(() => CodaCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  googleSheetsCredential: z.lazy(() => GoogleSheetsCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  notionCredential: z.lazy(() => NotionCredentialUpdateOneWithoutDestinationsNestedInputSchema).optional(),
+  integration: z.union([z.lazy(() => IntegrationSchema), z.lazy(() => EnumIntegrationFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  syncStartDate: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+}).strict();
+
+export const DestinationUncheckedUpdateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutTriggeredSyncsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  airtableCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  codaCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  googleSheetsCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  notionCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  integration: z.union([z.lazy(() => IntegrationSchema), z.lazy(() => EnumIntegrationFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  syncStartDate: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUpsertWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpsertWithoutTriggeredSyncsInput> = z.object({
+  update: z.union([z.lazy(() => PlaidItemUpdateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedUpdateWithoutTriggeredSyncsInputSchema)]),
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutTriggeredSyncsInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutTriggeredSyncsInputSchema)]),
+}).strict();
+
+export const PlaidItemUpdateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpdateWithoutTriggeredSyncsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isInitialUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isHistoricalUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidSyncCursor: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  lastSyncedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  consentExpiresAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  user: z.lazy(() => UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema).optional(),
+  institution: z.lazy(() => PlaidInstitutionUpdateOneRequiredWithoutItemsNestedInputSchema).optional(),
+  accounts: z.lazy(() => PlaidAccountUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUncheckedUpdateWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateWithoutTriggeredSyncsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  institutionId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isInitialUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isHistoricalUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidSyncCursor: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  lastSyncedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  consentExpiresAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+}).strict();
+
+export const SyncCreateWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateWithoutMetadataInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogCreateNestedManyWithoutSyncInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedCreateWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateWithoutMetadataInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+}).strict();
+
+export const SyncCreateOrConnectWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateOrConnectWithoutMetadataInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncCreateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedCreateWithoutMetadataInputSchema)]),
+}).strict();
+
+export const PlaidItemCreateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateWithoutSyncMetadataInput> = z.object({
+  id: z.string(),
+  isInitialUpdateComplete: z.boolean().optional(),
+  isHistoricalUpdateComplete: z.boolean().optional(),
+  error: z.string().optional().nullable(),
+  accessToken: z.string(),
+  plaidSyncCursor: z.string().optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  lastSyncedAt: z.date().optional().nullable(),
+  consentExpiresAt: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  user: z.lazy(() => UserCreateNestedOneWithoutPlaidItemsInputSchema),
+  institution: z.lazy(() => PlaidInstitutionCreateNestedOneWithoutItemsInputSchema),
+  accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUncheckedCreateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedCreateWithoutSyncMetadataInput> = z.object({
+  id: z.string(),
+  institutionId: z.string(),
+  userId: z.string(),
+  isInitialUpdateComplete: z.boolean().optional(),
+  isHistoricalUpdateComplete: z.boolean().optional(),
+  error: z.string().optional().nullable(),
+  accessToken: z.string(),
+  plaidSyncCursor: z.string().optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]),
+  lastSyncedAt: z.date().optional().nullable(),
+  consentExpiresAt: z.date().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutItemInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerPlaidItemInputSchema).optional(),
+}).strict();
+
+export const PlaidItemCreateOrConnectWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemCreateOrConnectWithoutSyncMetadataInput> = z.object({
+  where: z.lazy(() => PlaidItemWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const DestinationCreateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateWithoutSyncMetadataInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  airtableCredential: z.lazy(() => AirtableCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  codaCredential: z.lazy(() => CodaCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  googleSheetsCredential: z.lazy(() => GoogleSheetsCredentialCreateNestedOneWithoutDestinationInputSchema).optional(),
+  notionCredential: z.lazy(() => NotionCredentialCreateNestedOneWithoutDestinationsInputSchema).optional(),
+  integration: z.lazy(() => IntegrationSchema),
+  name: z.string(),
+  syncStartDate: z.string(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
+}).strict();
+
+export const DestinationUncheckedCreateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedCreateWithoutSyncMetadataInput> = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  airtableCredentialId: z.string().optional().nullable(),
+  codaCredentialId: z.string().optional().nullable(),
+  googleSheetsCredentialId: z.string().optional().nullable(),
+  notionCredentialId: z.string().optional().nullable(),
+  integration: z.lazy(() => IntegrationSchema),
+  name: z.string(),
+  syncStartDate: z.string(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  disabledAt: z.date().optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedCreateNestedManyWithoutDestinationsInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUncheckedCreateNestedManyWithoutDestinationInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedCreateNestedManyWithoutTriggerDestinationInputSchema).optional(),
+}).strict();
+
+export const DestinationCreateOrConnectWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationCreateOrConnectWithoutSyncMetadataInput> = z.object({
+  where: z.lazy(() => DestinationWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => DestinationCreateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const SyncUpsertWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpsertWithoutMetadataInput> = z.object({
+  update: z.union([z.lazy(() => SyncUpdateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutMetadataInputSchema)]),
+  create: z.union([z.lazy(() => SyncCreateWithoutMetadataInputSchema), z.lazy(() => SyncUncheckedCreateWithoutMetadataInputSchema)]),
+}).strict();
+
+export const SyncUpdateWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithoutMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUpdateManyWithoutSyncNestedInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateWithoutMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUpsertWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpsertWithoutSyncMetadataInput> = z.object({
+  update: z.union([z.lazy(() => PlaidItemUpdateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedUpdateWithoutSyncMetadataInputSchema)]),
+  create: z.union([z.lazy(() => PlaidItemCreateWithoutSyncMetadataInputSchema), z.lazy(() => PlaidItemUncheckedCreateWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const PlaidItemUpdateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUpdateWithoutSyncMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isInitialUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isHistoricalUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidSyncCursor: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  lastSyncedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  consentExpiresAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  user: z.lazy(() => UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema).optional(),
+  institution: z.lazy(() => PlaidInstitutionUpdateOneRequiredWithoutItemsNestedInputSchema).optional(),
+  accounts: z.lazy(() => PlaidAccountUpdateManyWithoutItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
+}).strict();
+
+export const PlaidItemUncheckedUpdateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateWithoutSyncMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  institutionId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  isInitialUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  isHistoricalUpdateComplete: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accessToken: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidSyncCursor: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  availableProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  billedProducts: z.union([z.lazy(() => JsonNullValueInputSchema), InputJsonValue]).optional(),
+  lastSyncedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  consentExpiresAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
+}).strict();
+
+export const DestinationUpsertWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpsertWithoutSyncMetadataInput> = z.object({
+  update: z.union([z.lazy(() => DestinationUpdateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedUpdateWithoutSyncMetadataInputSchema)]),
+  create: z.union([z.lazy(() => DestinationCreateWithoutSyncMetadataInputSchema), z.lazy(() => DestinationUncheckedCreateWithoutSyncMetadataInputSchema)]),
+}).strict();
+
+export const DestinationUpdateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateWithoutSyncMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  airtableCredential: z.lazy(() => AirtableCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  codaCredential: z.lazy(() => CodaCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  googleSheetsCredential: z.lazy(() => GoogleSheetsCredentialUpdateOneWithoutDestinationNestedInputSchema).optional(),
+  notionCredential: z.lazy(() => NotionCredentialUpdateOneWithoutDestinationsNestedInputSchema).optional(),
+  integration: z.union([z.lazy(() => IntegrationSchema), z.lazy(() => EnumIntegrationFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  syncStartDate: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
+}).strict();
+
+export const DestinationUncheckedUpdateWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutSyncMetadataInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  airtableCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  codaCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  googleSheetsCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  notionCredentialId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  integration: z.union([z.lazy(() => IntegrationSchema), z.lazy(() => EnumIntegrationFieldUpdateOperationsInputSchema)]).optional(),
+  name: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  syncStartDate: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
+  tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
+}).strict();
+
+export const SyncCreateWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateWithoutLogsInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  metadata: z.lazy(() => SyncMetadataCreateNestedManyWithoutSyncInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemCreateNestedOneWithoutTriggeredSyncsInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedCreateWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedCreateWithoutLogsInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
+  metadata: z.lazy(() => SyncMetadataUncheckedCreateNestedManyWithoutSyncInputSchema).optional(),
+}).strict();
+
+export const SyncCreateOrConnectWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateOrConnectWithoutLogsInput> = z.object({
+  where: z.lazy(() => SyncWhereUniqueInputSchema),
+  create: z.union([z.lazy(() => SyncCreateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedCreateWithoutLogsInputSchema)]),
+}).strict();
+
+export const SyncUpsertWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpsertWithoutLogsInput> = z.object({
+  update: z.union([z.lazy(() => SyncUpdateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedUpdateWithoutLogsInputSchema)]),
+  create: z.union([z.lazy(() => SyncCreateWithoutLogsInputSchema), z.lazy(() => SyncUncheckedCreateWithoutLogsInputSchema)]),
+}).strict();
+
+export const SyncUpdateWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithoutLogsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  metadata: z.lazy(() => SyncMetadataUpdateManyWithoutSyncNestedInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateWithoutLogsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  triggerPlaidItemId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  metadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
 }).strict();
 
 export const LinkTokenCreateManyUserInputSchema: z.ZodType<PrismaClient.Prisma.LinkTokenCreateManyUserInput> = z.object({
@@ -7200,6 +9653,8 @@ export const PlaidItemUpdateWithoutUserInputSchema: z.ZodType<PrismaClient.Prism
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   institution: z.lazy(() => PlaidInstitutionUpdateOneRequiredWithoutItemsNestedInputSchema).optional(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateWithoutUserInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateWithoutUserInput> = z.object({
@@ -7218,6 +9673,8 @@ export const PlaidItemUncheckedUpdateWithoutUserInputSchema: z.ZodType<PrismaCli
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateManyWithoutPlaidItemsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateManyWithoutPlaidItemsInput> = z.object({
@@ -7309,6 +9766,8 @@ export const PlaidItemUpdateWithoutInstitutionInputSchema: z.ZodType<PrismaClien
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutPlaidItemsNestedInputSchema).optional(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateWithoutInstitutionInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateWithoutInstitutionInput> = z.object({
@@ -7327,6 +9786,8 @@ export const PlaidItemUncheckedUpdateWithoutInstitutionInputSchema: z.ZodType<Pr
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutItemNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutPlaidItemNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerPlaidItemNestedInputSchema).optional(),
 }).strict();
 
 export const PlaidItemUncheckedUpdateManyWithoutItemsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidItemUncheckedUpdateManyWithoutItemsInput> = z.object({
@@ -7352,6 +9813,44 @@ export const PlaidAccountCreateManyItemInputSchema: z.ZodType<PrismaClient.Prism
   mask: z.string().optional().nullable(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
+}).strict();
+
+export const SyncMetadataCreateManyPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyPlaidItemInput> = z.object({
+  syncId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncCreateManyTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyTriggerPlaidItemInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
 }).strict();
 
 export const PlaidAccountUpdateWithoutItemInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUpdateWithoutItemInput> = z.object({
@@ -7380,6 +9879,124 @@ export const PlaidAccountUncheckedUpdateManyWithoutAccountsInputSchema: z.ZodTyp
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
 }).strict();
 
+export const SyncMetadataUpdateWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithoutPlaidItemInput> = z.object({
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  sync: z.lazy(() => SyncUpdateOneRequiredWithoutMetadataNestedInputSchema).optional(),
+  destination: z.lazy(() => DestinationUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateWithoutPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateWithoutPlaidItemInput> = z.object({
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyWithoutSyncMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyWithoutSyncMetadataInput> = z.object({
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncUpdateWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithoutTriggerPlaidItemInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUpdateManyWithoutSyncNestedInputSchema).optional(),
+  triggerDestination: z.lazy(() => DestinationUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateWithoutTriggerPlaidItemInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateWithoutTriggerPlaidItemInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateManyWithoutTriggeredSyncsInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateManyWithoutTriggeredSyncsInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerDestinationId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
 export const DestinationUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUpdateWithoutAccountsInput> = z.object({
   id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
   userId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
@@ -7394,6 +10011,8 @@ export const DestinationUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutAccountsInput> = z.object({
@@ -7410,6 +10029,8 @@ export const DestinationUncheckedUpdateWithoutAccountsInputSchema: z.ZodType<Pri
   updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateManyWithoutDestinationsInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateManyWithoutDestinationsInput> = z.object({
@@ -7432,6 +10053,44 @@ export const DestinationTableConfigCreateManyDestinationInputSchema: z.ZodType<P
   isEnabled: z.boolean().optional(),
   table: z.lazy(() => TableSchema),
   tableId: z.string(),
+}).strict();
+
+export const SyncMetadataCreateManyDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyDestinationInput> = z.object({
+  syncId: z.string(),
+  plaidItemId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncCreateManyTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyTriggerDestinationInput> = z.object({
+  id: z.string().optional(),
+  trigger: z.lazy(() => SyncTriggerSchema),
+  isSuccess: z.boolean().optional().nullable(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerPlaidItemId: z.string().optional().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  endedAt: z.date().optional().nullable(),
 }).strict();
 
 export const PlaidAccountUpdateWithoutDestinationsInputSchema: z.ZodType<PrismaClient.Prisma.PlaidAccountUpdateWithoutDestinationsInput> = z.object({
@@ -7473,6 +10132,86 @@ export const DestinationTableConfigUncheckedUpdateManyWithoutTableConfigsInputSc
   isEnabled: z.union([z.boolean(), z.lazy(() => BoolFieldUpdateOperationsInputSchema)]).optional(),
   table: z.union([z.lazy(() => TableSchema), z.lazy(() => EnumTableFieldUpdateOperationsInputSchema)]).optional(),
   tableId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+}).strict();
+
+export const SyncMetadataUpdateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithoutDestinationInput> = z.object({
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  sync: z.lazy(() => SyncUpdateOneRequiredWithoutMetadataNestedInputSchema).optional(),
+  plaidItem: z.lazy(() => PlaidItemUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateWithoutDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateWithoutDestinationInput> = z.object({
+  syncId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  plaidItemId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncUpdateWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateWithoutTriggerDestinationInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUpdateManyWithoutSyncNestedInputSchema).optional(),
+  triggerPlaidItem: z.lazy(() => PlaidItemUpdateOneWithoutTriggeredSyncsNestedInputSchema).optional(),
+}).strict();
+
+export const SyncUncheckedUpdateWithoutTriggerDestinationInputSchema: z.ZodType<PrismaClient.Prisma.SyncUncheckedUpdateWithoutTriggerDestinationInput> = z.object({
+  id: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  trigger: z.union([z.lazy(() => SyncTriggerSchema), z.lazy(() => EnumSyncTriggerFieldUpdateOperationsInputSchema)]).optional(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  errorMetadata: z.union([z.lazy(() => NullableJsonNullValueInputSchema), InputJsonValue]).optional(),
+  triggerPlaidItemId: z.union([z.string(), z.lazy(() => NullableStringFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  createdAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  updatedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  endedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  logs: z.lazy(() => SyncLogUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
+  metadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutSyncNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationFieldConfigCreateManyTableConfigInputSchema: z.ZodType<PrismaClient.Prisma.DestinationFieldConfigCreateManyTableConfigInput> = z.object({
@@ -7527,6 +10266,8 @@ export const DestinationUpdateWithoutNotionCredentialInputSchema: z.ZodType<Pris
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
 }).strict();
 
 export const DestinationUncheckedUpdateWithoutNotionCredentialInputSchema: z.ZodType<PrismaClient.Prisma.DestinationUncheckedUpdateWithoutNotionCredentialInput> = z.object({
@@ -7543,6 +10284,140 @@ export const DestinationUncheckedUpdateWithoutNotionCredentialInputSchema: z.Zod
   disabledAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
   accounts: z.lazy(() => PlaidAccountUncheckedUpdateManyWithoutDestinationsNestedInputSchema).optional(),
   tableConfigs: z.lazy(() => DestinationTableConfigUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  syncMetadata: z.lazy(() => SyncMetadataUncheckedUpdateManyWithoutDestinationNestedInputSchema).optional(),
+  triggeredSyncs: z.lazy(() => SyncUncheckedUpdateManyWithoutTriggerDestinationNestedInputSchema).optional(),
+}).strict();
+
+export const SyncLogCreateManySyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateManySyncInput> = z.object({
+  event: z.lazy(() => SyncEventSchema),
+  startedAt: z.date().optional(),
+  finishedAt: z.date().optional().nullable(),
+  isSuccess: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncMetadataCreateManySyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManySyncInput> = z.object({
+  plaidItemId: z.string(),
+  destinationId: z.string(),
+  error: z.lazy(() => SyncErrorSchema).optional().nullable(),
+  institutionsAdded: z.number().optional(),
+  institutionsUpdated: z.number().optional(),
+  accountsAdded: z.number().optional(),
+  accountsUpdated: z.number().optional(),
+  categoriesAdded: z.number().optional(),
+  transactionsAdded: z.number().optional(),
+  transactionsUpdated: z.number().optional(),
+  transactionsRemoved: z.number().optional(),
+  securitiesAdded: z.number().optional(),
+  securitiesUpdated: z.number().optional(),
+  holdingsAdded: z.number().optional(),
+  holdingsUpdated: z.number().optional(),
+  investmentTransactionsAdded: z.number().optional(),
+  shouldSyncInstitution: z.boolean().optional().nullable(),
+  shouldSyncAccounts: z.boolean().optional().nullable(),
+  shouldSyncTransactions: z.boolean().optional().nullable(),
+  shouldSyncHoldings: z.boolean().optional().nullable(),
+  shouldSyncInvestmentTransactions: z.boolean().optional().nullable(),
+  shouldSyncSecurities: z.boolean().optional().nullable(),
+  shouldSyncCategories: z.boolean().optional().nullable(),
+}).strict();
+
+export const SyncLogUpdateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateWithoutSyncInput> = z.object({
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncLogUncheckedUpdateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedUpdateWithoutSyncInput> = z.object({
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncLogUncheckedUpdateManyWithoutLogsInputSchema: z.ZodType<PrismaClient.Prisma.SyncLogUncheckedUpdateManyWithoutLogsInput> = z.object({
+  event: z.union([z.lazy(() => SyncEventSchema), z.lazy(() => EnumSyncEventFieldUpdateOperationsInputSchema)]).optional(),
+  startedAt: z.union([z.date(), z.lazy(() => DateTimeFieldUpdateOperationsInputSchema)]).optional(),
+  finishedAt: z.union([z.date(), z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  isSuccess: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataUpdateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateWithoutSyncInput> = z.object({
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  plaidItem: z.lazy(() => PlaidItemUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+  destination: z.lazy(() => DestinationUpdateOneWithoutSyncMetadataNestedInputSchema).optional(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateWithoutSyncInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateWithoutSyncInput> = z.object({
+  plaidItemId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+}).strict();
+
+export const SyncMetadataUncheckedUpdateManyWithoutMetadataInputSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUncheckedUpdateManyWithoutMetadataInput> = z.object({
+  plaidItemId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  destinationId: z.union([z.string(), z.lazy(() => StringFieldUpdateOperationsInputSchema)]).optional(),
+  error: z.union([z.lazy(() => SyncErrorSchema), z.lazy(() => NullableEnumSyncErrorFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  institutionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  institutionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  accountsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  categoriesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  transactionsRemoved: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  securitiesUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  holdingsUpdated: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  investmentTransactionsAdded: z.union([z.number(), z.lazy(() => IntFieldUpdateOperationsInputSchema)]).optional(),
+  shouldSyncInstitution: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncAccounts: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncHoldings: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncInvestmentTransactions: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncSecurities: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
+  shouldSyncCategories: z.union([z.boolean(), z.lazy(() => NullableBoolFieldUpdateOperationsInputSchema)]).optional().nullable(),
 }).strict();
 
 /////////////////////////////////////////
@@ -8664,8 +11539,141 @@ export const NotionCredentialFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClient
   where: NotionCredentialWhereUniqueInputSchema,
 }).strict();
 
+export const SyncFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.SyncFindFirstArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereInputSchema.optional(),
+  orderBy: z.union([SyncOrderByWithRelationInputSchema.array(), SyncOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncFindFirstOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncFindFirstOrThrowArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereInputSchema.optional(),
+  orderBy: z.union([SyncOrderByWithRelationInputSchema.array(), SyncOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncFindManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncFindManyArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereInputSchema.optional(),
+  orderBy: z.union([SyncOrderByWithRelationInputSchema.array(), SyncOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncAggregateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncAggregateArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereInputSchema.optional(),
+  orderBy: z.union([SyncOrderByWithRelationInputSchema.array(), SyncOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const SyncGroupByArgsSchema: z.ZodType<PrismaClient.Prisma.SyncGroupByArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereInputSchema.optional(),
+  orderBy: z.union([SyncOrderByWithAggregationInputSchema.array(), SyncOrderByWithAggregationInputSchema]).optional(),
+  by: SyncScalarFieldEnumSchema.array(),
+  having: SyncScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const SyncFindUniqueArgsSchema: z.ZodType<PrismaClient.Prisma.SyncFindUniqueArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereUniqueInputSchema,
+}).strict();
+
+export const SyncFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncFindUniqueOrThrowArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereUniqueInputSchema,
+}).strict();
+
+export const SyncMetadataFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataFindFirstArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereInputSchema.optional(),
+  orderBy: z.union([SyncMetadataOrderByWithRelationInputSchema.array(), SyncMetadataOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncMetadataWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncMetadataScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncMetadataFindFirstOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataFindFirstOrThrowArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereInputSchema.optional(),
+  orderBy: z.union([SyncMetadataOrderByWithRelationInputSchema.array(), SyncMetadataOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncMetadataWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncMetadataScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncMetadataFindManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataFindManyArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereInputSchema.optional(),
+  orderBy: z.union([SyncMetadataOrderByWithRelationInputSchema.array(), SyncMetadataOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncMetadataWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: SyncMetadataScalarFieldEnumSchema.array().optional(),
+}).strict();
+
+export const SyncMetadataAggregateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataAggregateArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereInputSchema.optional(),
+  orderBy: z.union([SyncMetadataOrderByWithRelationInputSchema.array(), SyncMetadataOrderByWithRelationInputSchema]).optional(),
+  cursor: SyncMetadataWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const SyncMetadataGroupByArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataGroupByArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereInputSchema.optional(),
+  orderBy: z.union([SyncMetadataOrderByWithAggregationInputSchema.array(), SyncMetadataOrderByWithAggregationInputSchema]).optional(),
+  by: SyncMetadataScalarFieldEnumSchema.array(),
+  having: SyncMetadataScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict();
+
+export const SyncMetadataFindUniqueArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataFindUniqueArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereUniqueInputSchema,
+}).strict();
+
+export const SyncMetadataFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataFindUniqueOrThrowArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereUniqueInputSchema,
+}).strict();
+
 export const SyncLogFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFindFirstArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereInputSchema.optional(),
   orderBy: z.union([SyncLogOrderByWithRelationInputSchema.array(), SyncLogOrderByWithRelationInputSchema]).optional(),
   cursor: SyncLogWhereUniqueInputSchema.optional(),
@@ -8676,6 +11684,7 @@ export const SyncLogFindFirstArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFi
 
 export const SyncLogFindFirstOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFindFirstOrThrowArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereInputSchema.optional(),
   orderBy: z.union([SyncLogOrderByWithRelationInputSchema.array(), SyncLogOrderByWithRelationInputSchema]).optional(),
   cursor: SyncLogWhereUniqueInputSchema.optional(),
@@ -8686,6 +11695,7 @@ export const SyncLogFindFirstOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.Sy
 
 export const SyncLogFindManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFindManyArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereInputSchema.optional(),
   orderBy: z.union([SyncLogOrderByWithRelationInputSchema.array(), SyncLogOrderByWithRelationInputSchema]).optional(),
   cursor: SyncLogWhereUniqueInputSchema.optional(),
@@ -8696,6 +11706,7 @@ export const SyncLogFindManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFin
 
 export const SyncLogAggregateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogAggregateArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereInputSchema.optional(),
   orderBy: z.union([SyncLogOrderByWithRelationInputSchema.array(), SyncLogOrderByWithRelationInputSchema]).optional(),
   cursor: SyncLogWhereUniqueInputSchema.optional(),
@@ -8705,6 +11716,7 @@ export const SyncLogAggregateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogAg
 
 export const SyncLogGroupByArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogGroupByArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereInputSchema.optional(),
   orderBy: z.union([SyncLogOrderByWithAggregationInputSchema.array(), SyncLogOrderByWithAggregationInputSchema]).optional(),
   by: SyncLogScalarFieldEnumSchema.array(),
@@ -8715,11 +11727,13 @@ export const SyncLogGroupByArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogGrou
 
 export const SyncLogFindUniqueArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFindUniqueArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereUniqueInputSchema,
 }).strict();
 
 export const SyncLogFindUniqueOrThrowArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogFindUniqueOrThrowArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereUniqueInputSchema,
 }).strict();
 
@@ -9416,13 +12430,97 @@ export const NotionCredentialDeleteManyArgsSchema: z.ZodType<PrismaClient.Prisma
   where: NotionCredentialWhereInputSchema.optional(),
 }).strict();
 
+export const SyncCreateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncCreateArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  data: z.union([SyncCreateInputSchema, SyncUncheckedCreateInputSchema]),
+}).strict();
+
+export const SyncUpsertArgsSchema: z.ZodType<PrismaClient.Prisma.SyncUpsertArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereUniqueInputSchema,
+  create: z.union([SyncCreateInputSchema, SyncUncheckedCreateInputSchema]),
+  update: z.union([SyncUpdateInputSchema, SyncUncheckedUpdateInputSchema]),
+}).strict();
+
+export const SyncCreateManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncCreateManyArgs> = z.object({
+  data: SyncCreateManyInputSchema.array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const SyncDeleteArgsSchema: z.ZodType<PrismaClient.Prisma.SyncDeleteArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  where: SyncWhereUniqueInputSchema,
+}).strict();
+
+export const SyncUpdateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateArgs> = z.object({
+  select: SyncSelectSchema.optional(),
+  include: SyncIncludeSchema.optional(),
+  data: z.union([SyncUpdateInputSchema, SyncUncheckedUpdateInputSchema]),
+  where: SyncWhereUniqueInputSchema,
+}).strict();
+
+export const SyncUpdateManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncUpdateManyArgs> = z.object({
+  data: z.union([SyncUpdateManyMutationInputSchema, SyncUncheckedUpdateManyInputSchema]),
+  where: SyncWhereInputSchema.optional(),
+}).strict();
+
+export const SyncDeleteManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncDeleteManyArgs> = z.object({
+  where: SyncWhereInputSchema.optional(),
+}).strict();
+
+export const SyncMetadataCreateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  data: z.union([SyncMetadataCreateInputSchema, SyncMetadataUncheckedCreateInputSchema]),
+}).strict();
+
+export const SyncMetadataUpsertArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpsertArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereUniqueInputSchema,
+  create: z.union([SyncMetadataCreateInputSchema, SyncMetadataUncheckedCreateInputSchema]),
+  update: z.union([SyncMetadataUpdateInputSchema, SyncMetadataUncheckedUpdateInputSchema]),
+}).strict();
+
+export const SyncMetadataCreateManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataCreateManyArgs> = z.object({
+  data: SyncMetadataCreateManyInputSchema.array(),
+  skipDuplicates: z.boolean().optional(),
+}).strict();
+
+export const SyncMetadataDeleteArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataDeleteArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  where: SyncMetadataWhereUniqueInputSchema,
+}).strict();
+
+export const SyncMetadataUpdateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateArgs> = z.object({
+  select: SyncMetadataSelectSchema.optional(),
+  include: SyncMetadataIncludeSchema.optional(),
+  data: z.union([SyncMetadataUpdateInputSchema, SyncMetadataUncheckedUpdateInputSchema]),
+  where: SyncMetadataWhereUniqueInputSchema,
+}).strict();
+
+export const SyncMetadataUpdateManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataUpdateManyArgs> = z.object({
+  data: z.union([SyncMetadataUpdateManyMutationInputSchema, SyncMetadataUncheckedUpdateManyInputSchema]),
+  where: SyncMetadataWhereInputSchema.optional(),
+}).strict();
+
+export const SyncMetadataDeleteManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncMetadataDeleteManyArgs> = z.object({
+  where: SyncMetadataWhereInputSchema.optional(),
+}).strict();
+
 export const SyncLogCreateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogCreateArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   data: z.union([SyncLogCreateInputSchema, SyncLogUncheckedCreateInputSchema]),
 }).strict();
 
 export const SyncLogUpsertArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpsertArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereUniqueInputSchema,
   create: z.union([SyncLogCreateInputSchema, SyncLogUncheckedCreateInputSchema]),
   update: z.union([SyncLogUpdateInputSchema, SyncLogUncheckedUpdateInputSchema]),
@@ -9435,11 +12533,13 @@ export const SyncLogCreateManyArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogC
 
 export const SyncLogDeleteArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogDeleteArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   where: SyncLogWhereUniqueInputSchema,
 }).strict();
 
 export const SyncLogUpdateArgsSchema: z.ZodType<PrismaClient.Prisma.SyncLogUpdateArgs> = z.object({
   select: SyncLogSelectSchema.optional(),
+  include: SyncLogIncludeSchema.optional(),
   data: z.union([SyncLogUpdateInputSchema, SyncLogUncheckedUpdateInputSchema]),
   where: SyncLogWhereUniqueInputSchema,
 }).strict();

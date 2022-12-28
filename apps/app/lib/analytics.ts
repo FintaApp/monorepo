@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
-import { Frequency, Integration, User } from '@prisma/client'
+import { Field, Frequency, Integration, SyncError, Table, User } from '@prisma/client'
 import { Analytics } from "@segment/analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
@@ -101,6 +101,26 @@ export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; fi
     userId,
     event: Event.INSTITUTION_ACCOUNT_UPDATED,
     properties: { field }
+  })
+
+export const trackDestinationErrorTriggered = ({ userId, integration, destinationName, destinationId, trigger, error }: {
+  userId: string;
+  integration: Integration;
+  destinationName: string;
+  destinationId: string;
+  trigger: string;
+  error: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; };
+}) =>
+  track({
+    userId,
+    event: Event.DESTINATION_ERROR_TRIGGERED,
+    properties: {
+      integration,
+      destinationName,
+      destinationId,
+      trigger,
+      ...error
+    }
   })
 
 // Types

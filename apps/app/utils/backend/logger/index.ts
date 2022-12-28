@@ -229,25 +229,6 @@ export class Logger {
     })
   }
 
-  async logDestinationErrorTriggered({ userId, destinationId, error, syncLogId }: {
-    userId: string;
-    destinationId: string;
-    error: DestinationError;
-    syncLogId: string
-  }) {
-    return this.logsnagPublish({
-      channel: LogSnagChannel.SYNCS,
-      event: LogSnagEvent.DESTINATION_ERROR_TRIGGERED,
-      description: JSON.stringify(error),
-      icon: '🗺',
-      tags: {
-        [LogSnagTag.USER_ID]: userId,
-        [LogSnagTag.DESTINATION_ID]: destinationId,
-        [LogSnagTag.SYNC_LOG_ID]: syncLogId
-      }
-    })
-  }
-
   async logUserDeleted({ userId }: { userId: string }) {
     return this.logsnagPublish({
       channel: LogSnagChannel.ACTIVITY,

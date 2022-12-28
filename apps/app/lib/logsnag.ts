@@ -1,4 +1,4 @@
-import { Integration } from '@prisma/client';
+import { Field, Integration, SyncError, Table } from '@prisma/client';
 import { LogSnag, PublishOptions } from 'logsnag';
 import { Logger, log } from "next-axiom";
 
@@ -113,6 +113,24 @@ export const logAirtableTokenAdded = ({ userId }: { userId: string }) =>
       tags: { [Tag.USER_ID]: userId }
   })
 
+export const logDestinationErrorTriggered = ({ userId, destinationId, error, syncId }: {
+  userId: string;
+  destinationId: string;
+  error: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; };
+  syncId: string
+}) => 
+  logsnagPublish({
+    channel: Channel.SYNCS,
+    event: Event.DESTINATION_ERROR_TRIGGERED,
+    description: JSON.stringify(error),
+    icon: '🗺',
+    tags: {
+      [Tag.USER_ID]: userId,
+      [Tag.DESTINATION_ID]: destinationId,
+      [Tag.SYNC_ID]: syncId
+    }
+  })
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -124,10 +142,12 @@ enum Event {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_DELETED = "Destination Deleted",
+  DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
+  SYNC_COMPLETED = "Sync Completed",
   UNHANDLED = "Unhandled",
   USER_SIGNED_UP = "User Signed Up",
 }
@@ -136,7 +156,7 @@ enum Tag {
   USER_ID = 'user-id',
   INSTITUTION = 'institution',
   ITEM_ID = 'item-id',
-  SYNC_LOG_ID = 'sync-log-id',
+  SYNC_ID = 'sync-id',
   DESTINATION_ID = 'destination-id',
   INTEGRATION = 'integration'
 }

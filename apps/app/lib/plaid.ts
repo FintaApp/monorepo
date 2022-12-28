@@ -157,3 +157,51 @@ export const initiateProducts = async ({ accessToken, availableProducts }: { acc
     if ( product === 'transactions' ) { return transactionsSync({ accessToken, count: 1 }).catch(() => null )}
   }))
 }
+
+export const getAllTransactions = async ({ accessToken, startDate, endDate, options = {} }: {
+  accessToken: string;
+  startDate: string;
+  endDate: string;
+  options?: TransactionsGetRequestOptions
+}) => {
+  const params = {
+    accessToken,
+    startDate,
+    endDate
+  }
+  const response = await getTransactions({ ...params, options })
+  let transactions = response.data.transactions as Transaction[];
+  const accounts = response.data.accounts;
+  const total_transactions = response.data.total_transactions;
+
+  while ( transactions.length < total_transactions ) {
+    const paginatedRequest = await getTransactions({ ...params, options: { ...options, offset: transactions.length }});
+    transactions = transactions.concat(paginatedRequest.data.transactions)
+  }
+
+  return { transactions, accounts }
+}
+
+export const getAllInvestmentTransactions = async ({ accessToken, startDate, endDate, options = {} }: {
+  accessToken: string;
+  startDate: string;
+  endDate: string;
+  options?: InvestmentsTransactionsGetRequestOptions
+}) => {
+  const params = {
+    accessToken,
+    startDate,
+    endDate
+  }
+
+  const response = await getInvestmentTransactions({ ...params, options})
+  let investmentTransactions = response.data.investment_transactions as InvestmentTransaction[];
+  const { accounts, total_investment_transactions, securities } = response.data;
+
+  while ( investmentTransactions.length < total_investment_transactions ) {
+    const paginatedRequest = await getInvestmentTransactions({ ...params, options: { ...options, offset: investmentTransactions.length }});
+    investmentTransactions = investmentTransactions.concat(paginatedRequest.data.investment_transactions);
+  }
+
+  return { investmentTransactions, accounts, securities }
+}

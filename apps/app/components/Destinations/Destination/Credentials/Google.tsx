@@ -46,7 +46,7 @@ export const Google = () => {
           <FormLabelWithTooltip tooltipText = 'Your spreadsheet ID can be found in its URL after the "/d"'>Spreadsheet ID</FormLabelWithTooltip>
           <Stack direction = {{ base: 'column', lg: 'row' }}>
             <Input 
-              value = { googleSpreadsheetId }
+              value = { googleSpreadsheetId || "" }
               onChange = { e => setGoogleSpreadsheetId(e.target.value) }
               variant = { isEditMode ? 'outline' : 'flushed' }
               onFocus = { () => !isEditMode && setIsEditMode(true) }

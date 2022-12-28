@@ -4,7 +4,7 @@ import { DestinationFieldType, TableConfig } from "~/types/shared/models";
 
 import * as types from "./types";
 import { tableConfigsMeta } from "../../tableConfigsMeta";
-import { AccountBase, CreditCardLiability, Holding, InvestmentTransaction, LiabilitiesGetResponse, MortgageLiability, Security, StudentLoan, Transaction } from "plaid";
+import { AccountBase, CreditCardLiability, Holding, InvestmentTransaction, MortgageLiability, Security, StudentLoan, Transaction } from "plaid";
 
 export class IntegrationBase {
   credentials: AirtableCredential | GoogleSheetsCredential | NotionCredential;
@@ -122,20 +122,21 @@ export class IntegrationBase {
   }
 
   async load({ tableTypes, tableConfigs }: { tableTypes: Table[], tableConfigs: TableConfig[] }): Promise<void> {
-    this.config = await Promise.all(tableConfigs.map(async ({ table, tableId, fieldConfigs, isEnabled }) => {
-      if ( !isEnabled || !tableId || !tableTypes.includes(table) ) { return { table, tableId, fieldConfigs, isEnabled, records: [] }}
+    this.config = await Promise.all(tableTypes.map(async table => {
+      const { isEnabled, tableId, fieldConfigs } = (tableConfigs.find(config => config.table === table) || { table, tableId: '', isEnabled: false, fieldConfigs: [] });
+      if ( !isEnabled || !tableId ) { return { table, tableId, fieldConfigs, isEnabled, records: [] }};
       const records = await this.queryTable({ tableId, fieldConfigs });
       return { table, tableId, fieldConfigs, isEnabled, records }
     }))
   }
 
-  async upsertItem({ item }: { item: types.PlaidItem }): Promise<types.IntegrationRecord> {
+  async upsertItem({ item }: { item: types.PlaidItem }): Promise<{ record: types.IntegrationRecord, isNew: boolean }> {
     const { tableId, records, fieldConfigs } = this.config!.find(config => config.table === Table.Institutions)! // This should never be null realistically
     const record = records.find(record => record.properties[Field.Id] === item.id);
-    if ( record ) { return record };
+    if ( record ) { return { record, isNew: false } };
 
     const data = this.formatter.institution.new({ item });
-    return this.createRecords({ tableId, data: [ data ], fieldConfigs }).then(response => response[0])
+    return this.createRecords({ tableId, data: [ data ], fieldConfigs }).then(response => ({ record: response[0], isNew: true }))
   }
 
   async updateItemOnFinish({ item, institutionRecord, timezone }: { item: types.PlaidItem; institutionRecord: types.IntegrationRecord; timezone?: string }) {
@@ -152,7 +153,7 @@ export class IntegrationBase {
     })
   }
 
-  async updateAccounts(
+  async upsertAccounts(
     { accounts, item, institutionRecord, creditLiabilities, mortgageLiabilities, studentLiabilities }: 
     { accounts?: AccountBase[], creditLiabilities?: CreditCardLiability[]; mortgageLiabilities?: MortgageLiability[]; studentLiabilities?: StudentLoan[]; item: types.PlaidItem, institutionRecord: types.IntegrationRecord }): Promise<{ records: types.IntegrationRecord[], results: { added: number; updated: number }}> {
     const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Accounts) || defaultConfig;

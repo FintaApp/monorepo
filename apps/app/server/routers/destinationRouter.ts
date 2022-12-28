@@ -1,6 +1,5 @@
-import { AirtableCredential, Field, GoogleSheetsCredential, Integration, NotionCredential, Table } from "@prisma/client";
+import { AirtableCredential, Field, GoogleSheetsCredential, Integration, NotionCredential, Table, SyncTrigger } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import moment from "moment-timezone";
 import { z } from "zod";
 import { trackDestinationAccountsUpdated, trackDestinationCreated, trackDestinationDeleted, trackDestinationUpdated } from "~/lib/analytics";
 import { getDestinationObject } from "~/lib/integrations/getDestinationObject";
@@ -9,6 +8,7 @@ import { router, protectedProcedure } from "../trpc";
 import { Context } from "../context";
 import { createToken, hash } from "~/lib/crypto";
 import _ from "lodash";
+import { inngest } from "~/lib/inngest";
 
 export const destinationRouter = router({
   validateCredentials: protectedProcedure
@@ -389,14 +389,49 @@ export const destinationRouter = router({
         const destination = await db.destination.findFirstOrThrow({ where: { id: destinationId }, include: { accounts: { include: { item: true }} }});
         logger.info("Fetched destination", { destination });
         const plaidItems = _.uniqBy(destination.accounts.map(account => account.item).filter(item => item.error !== 'ITEM_LOGIN_REQUIRED'), 'id')
-        if ( destination.integration === Integration.Coda || plaidItems.length === 0 ) { return { syncLogId: null }}
+        if ( destination.integration === Integration.Coda ) { return { syncId: null, code: 'coda_integration' }}
+        if ( plaidItems.length === 0 ) { return { syncId: null, code: 'no_connected_accounts' }}
+        const trigger = startDate === destination.syncStartDate ? SyncTrigger.Refresh : SyncTrigger.HistoricalSync;
 
-        // Create sync log
+        // Create sync
+        const sync = await db.sync.create({
+          data: {
+            trigger,
+            triggerDestinationId: destinationId
+          }
+        })
+        logger.info("Created sync", { sync });
 
         // Trigger inngest event
+        await inngest.send({
+          name: 'destination/sync',
+          data: { 
+            destinationId, 
+            startDate, 
+            syncId: sync.id, 
+            itemIds: plaidItems.map(item => item.id), 
+            tablesToSync: [ 
+              Table.Institutions, Table.Accounts, Table.Categories, Table.Transactions,
+              Table.Holdings, Table.InvestmentTransactions, Table.Securities
+            ],
+            trigger 
+          },
+          user: { id: destination.userId }
+        })
+        logger.info("Inngest event started")
 
         // Return
-      })
+        return { syncId: sync.id, code: null }
+      }),
+    
+    getSync: protectedProcedure
+      .input( z.string())
+      .query(async ({ ctx: { db }, input: syncId }) => {
+        return db.sync.findFirstOrThrow({ 
+          where: { id: syncId }, 
+          include: { metadata: true, logs: true }
+        })
+    })
 })
 
 // Helper

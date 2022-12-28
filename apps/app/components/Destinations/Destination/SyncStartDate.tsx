@@ -8,7 +8,7 @@ import { useDestination } from "../context";
 const TOOLTIP_TEXT = "From what date should we import historical data?"
 
 export const SyncStartDate = () => {
-  const { isSetupMode, syncStartDate, updateSyncStartDate, currentActiveSyncLogId } = useDestination();
+  const { isSetupMode, syncStartDate, updateSyncStartDate, currentActiveSyncId } = useDestination();
   const onChange = async (newDate: Date) => {
     updateSyncStartDate(moment(newDate).utc(true).format("YYYY-MM-DD"))
     if ( isSetupMode ) { return; }
@@ -57,7 +57,7 @@ export const SyncStartDate = () => {
     <FormControl>
       <FormLabelWithTooltip tooltipText = { !isSetupMode && TOOLTIP_TEXT }>Sync Start Date</FormLabelWithTooltip>
       <Box width = "full">
-        <DatePicker isDisabled = { !!currentActiveSyncLogId } selected = { moment(syncStartDate, true).toDate() } onChange = { onChange } />
+        <DatePicker isDisabled = { !!currentActiveSyncId } selected = { moment(syncStartDate, true).toDate() } onChange = { onChange } />
       </Box>
       { isSetupMode && <FormHelperText mt = '1'>{ TOOLTIP_TEXT }</FormHelperText> }
     </FormControl>

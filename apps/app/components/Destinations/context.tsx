@@ -39,8 +39,8 @@ interface DestinationContextType {
   isGettingDefaultTableConfig: boolean;
   credentialsHasChanges: boolean;
   isUpdatingCredentials: boolean;
-  currentActiveSyncLogId?: string;
-  setCurrentActiveSyncLogId: Dispatch<SetStateAction<string>>;
+  currentActiveSyncId?: string;
+  setCurrentActiveSyncId: Dispatch<SetStateAction<string | undefined>>;
 
   googleSpreadsheetId?: string;
   setGoogleSpreadsheetId: Dispatch<SetStateAction<string>>;
@@ -52,13 +52,14 @@ interface DestinationContextType {
   isLegacyAirtable: boolean;
   disableDestination: () => Promise<void>;
   isDisablingDestination: boolean;
+  isTriggeringManualSync: boolean;
 
   name: string;
   updateName: (newName: string, isSubmit: boolean) => Promise<void>
 
   syncStartDate: string;
   updateSyncStartDate: (newDate: string) => Promise<void>;
-  triggerSync: () => Promise<void>;
+  triggerSync: (startDate?: string) => Promise<void>;
   createOauthToken: () => Promise<string>;
   isCreatingOauthToken: boolean;
 
@@ -108,6 +109,7 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
   const { mutateAsync: updateDestination } = trpc.destinations.updateDestination.useMutation();
   const { mutateAsync: disableDestinationMutation, isLoading: isDisablingDestination } = trpc.destinations.disableDestination.useMutation();
   const { mutateAsync: createOauthTokenMutation, isLoading: isCreatingOauthToken } = trpc.destinations.createOauthCode.useMutation();
+  const { mutateAsync: triggerManualSync, isLoading: isTriggeringManualSync } = trpc.destinations.triggerManualSync.useMutation();
   const { data: destination, isLoading: isLoadingDestination, isRefetching: isRefetchingDestination, refetch: refetchDestination } = trpc.destinations.getDestination.useQuery({ id: id! }, { enabled: !!id });
   const integration = (integrationProp || destination?.integration)!;
   const [ name, setName ] = useState( "My Budget");
@@ -118,7 +120,7 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
   const [ airtableBaseId, setAirtableBaseId ] = useState<string | undefined>( destination?.airtableCredential?.baseId );
   const [ airtableApiKey, setAirtableApiKey ] = useState<string | undefined>( destination?.airtableCredential?.apiKey || undefined );
   const [ selectedAccountIds, setSelectedAccountIds ] = useState<string[]>(destination?.accounts.map(account => account.id) || []);
-  const [ currentActiveSyncLogId, setCurrentActiveSyncLogId ] = useState<string>();
+  const [ currentActiveSyncId, setCurrentActiveSyncId ] = useState<string>();
 
   const [ credentialsValidation, setCredentialsValidation ] = useState<RouterOutput['destinations']['validateCredentials']>();
   const { data: tables, isLoading: isLoadingTables, isRefetching: isRefetchingTables, refetch: refetchTables } = trpc.destinations.getTables.useQuery(
@@ -268,18 +270,20 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
     setSyncStartDate(newDate);
 
     if ( destination ) {
-      // Initiate sync
       await Promise.all([
         updateDestination({ destinationId: destination.id, syncStartDate: newDate })
           .then(() => renderToast({ status: 'success', title: "Sync Start Date Updated"})), 
-        setCurrentActiveSyncLogId("123")
+        newDate < destination.syncStartDate ? triggerSync(newDate) : Promise.resolve()
       ])
     }
   }, [ destination ]);
 
-  const triggerSync = useCallback(async () => {
+  const triggerSync = useCallback(async (startDate?: string) => {
     if ( destination ) {
-      setCurrentActiveSyncLogId("123")
+      triggerManualSync({ destinationId: destination.id, startDate: startDate || destination.syncStartDate })
+        .then(({ syncId }) => {
+          if ( syncId ) { setCurrentActiveSyncId(syncId) }
+        })
     }
   }, [ destination ]);
 
@@ -339,14 +343,15 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
         destination,
         refetchDestination,
         isUpdatingCredentials,
-        currentActiveSyncLogId,
-        setCurrentActiveSyncLogId,
+        currentActiveSyncId,
+        setCurrentActiveSyncId,
         disableDestination,
         isDisablingDestination,
         triggerSync,
         createOauthToken, 
         isCreatingOauthToken,
-        toggleTableConfigCoda
+        toggleTableConfigCoda,
+        isTriggeringManualSync
       } as DestinationContextType
     }, [ 
       integration, validateCredentials, isValidatingCredentials, destination, refetchDestination,
@@ -354,8 +359,8 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
       onCancelChanges, selectedAccountIds, onToggleAccountIds, isLoadingTables, isRefetchingTables,
       name, updateName, syncStartDate, updateSyncStartDate, isSetupMode, tables, getDefaultTableConfig, isGettingDefaultTableConfig, tableConfigs,
       onChangeTableConfig, tableConfigsValidation, tableConfigsHasChanges, validateTableConfigs, isValidatingTableConfigs,
-      createDestination, isCreatingDestination, credentialsHasChanges, isUpdatingCredentials, currentActiveSyncLogId, setCurrentActiveSyncLogId,
-      disableDestination, isDisablingDestination, createOauthToken, isCreatingOauthToken, toggleTableConfigCoda
+      createDestination, isCreatingDestination, credentialsHasChanges, isUpdatingCredentials, currentActiveSyncId, setCurrentActiveSyncId,
+      disableDestination, isDisablingDestination, createOauthToken, isCreatingOauthToken, toggleTableConfigCoda, isTriggeringManualSync
     ]
   );
 

@@ -129,6 +129,8 @@ model PlaidItem {
   institution     PlaidInstitution        @relation(fields: [institutionId], references: [id], onDelete: Restrict)
 
   accounts                    PlaidAccount[]
+  syncMetadata                SyncMetadata[]
+  triggeredSyncs              Sync[]
 
   @@map("plaid_items")
   @@index([userId])
@@ -181,6 +183,8 @@ model Destination {
 
   accounts                    PlaidAccount[]
   tableConfigs                DestinationTableConfig[]
+  syncMetadata                SyncMetadata[]
+  triggeredSyncs              Sync[]
 
   @@index([airtableCredentialId])
   @@index([codaCredentialId])
@@ -286,6 +290,7 @@ enum SyncError {
   UnknownError @map("unknown_error")
   IncorrectFieldType @map("incorrect_field_type")
   TemplateDestination
+  ItemError @map("item_error")
 
   @@map("sync_errors")
 }
@@ -368,11 +373,94 @@ model NotionCredential {
   @@map("notion_credentials")
 }
 
-model SyncLog {
-  id                          String      @id @default(uuid())
-  error                       SyncError?
+enum SyncTrigger {
+  HoldingsUpdate              @map("holdings_update")
+  TransactionsUpdate          @map("transactions_update")
+  Destination                 @map("destination")
+  InvestmentTransactionsUpdate  @map("investment_transactions_update")
+  Refresh                     @map("refresh")
+  HistoricalSync              @map("historical_sync")
 
+  @@map("sync_triggers")
+}
+
+model Sync {
+  id                          String      @id @default(uuid())
+  trigger                     SyncTrigger
+  isSuccess                   Boolean?    @map("is_success")
+  error                       SyncError?
+  errorMetadata               Json?       @map("error_metadata")
+  triggerDestinationId        String?     @map("trigger_destination_id")
+  triggerPlaidItemId          String?     @map("trigger_plaid_item_id")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  endedAt                     DateTime?   @map("ended_at")
+
+  logs                        SyncLog[]
+  metadata                    SyncMetadata[]
+  triggerDestination          Destination?  @relation(fields: [triggerDestinationId], references: [id], onDelete: Cascade)
+  triggerPlaidItem            PlaidItem?  @relation(fields: [triggerPlaidItemId], references: [id], onDelete: Cascade)
+  
+  @@map("syncs")
+  @@index([triggerDestinationId])
+  @@index([triggerPlaidItemId])
+}
+
+model SyncMetadata {
+  syncId                      String      @map("sync_id")
+  plaidItemId                 String      @map("plaid_item_id")
+  destinationId               String      @map("destination_id")
+  error                       SyncError?
+  institutionsAdded           Int         @default(0) @map("institutions_added")
+  institutionsUpdated         Int         @default(0) @map("institutions_updated")
+  accountsAdded               Int         @default(0) @map("accounts_added")
+  accountsUpdated             Int         @default(0) @map("accounts_updated")
+  categoriesAdded             Int         @default(0) @map("categories_added")
+  transactionsAdded           Int         @default(0) @map("transactions_added")
+  transactionsUpdated         Int         @default(0) @map("transactions_updated")
+  transactionsRemoved         Int         @default(0) @map("transactions_removed")
+  securitiesAdded             Int         @default(0) @map("securities_added")
+  securitiesUpdated           Int         @default(0) @map("securities_updated")
+  holdingsAdded               Int         @default(0) @map("holdings_added")
+  holdingsUpdated             Int         @default(0) @map("holdings_updated")
+  investmentTransactionsAdded Int         @default(0) @map("investment_transactions_added")
+
+  shouldSyncInstitution       Boolean?     @map("should_sync_institution")
+  shouldSyncAccounts          Boolean?     @map("should_sync_accounts")
+  shouldSyncTransactions      Boolean?     @map("should_sync_transactions")
+  shouldSyncHoldings          Boolean?     @map("should_sync_holdings")
+  shouldSyncInvestmentTransactions  Boolean?     @map("should_sync_investment_transactions")
+  shouldSyncSecurities        Boolean?     @map("should_sync_securities")
+  shouldSyncCategories        Boolean?     @map("should_sync_categories")
+
+  sync                        Sync        @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  plaidItem                   PlaidItem?   @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  destination                 Destination?  @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  
+  @@map("sync_metadata")
+  @@unique([syncId, plaidItemId, destinationId])
+  @@index([plaidItemId])
+  @@index([destinationId])
+}
+
+enum SyncEvent {
+  ValidateCredentials         @map("validate_credentials")
+  ValidateConfiguration       @map("validate_configuration")
+  LoadData                    @map("load_data")
+  
+  @@map("sync_events")
+}
+
+model SyncLog {
+  syncId                      String      @map("sync_id")
+  event                       SyncEvent
+  startedAt                   DateTime    @map("started_at") @default(now())
+  finishedAt                  DateTime?   @map("finished_at")
+  isSuccess                   Boolean?    @map("is_sucess")
+  sync                        Sync        @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  
   @@map("sync_logs")
+  @@unique([syncId, event])
 }
 
 generator zod {

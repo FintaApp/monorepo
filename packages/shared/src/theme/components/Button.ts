@@ -13,6 +13,10 @@ export const Button = {
     size: "sm"
   },
   variants: {
+    primaryLink: (props: StyleFunctionProps) => ({
+      ...theme.components.Button.variants?.link(props),
+      color: mode('primary.light.11', 'primary.dark.11')(props)
+    }),
     primary: (props: StyleFunctionProps) => ({
       color: 'white',
       bg: mode('primary.light.9', 'primary.dark.9')(props),
