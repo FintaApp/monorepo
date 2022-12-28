@@ -108,7 +108,7 @@ export class Google extends IntegrationBase {
   }
 
   async createRecords({ tableId, data, tableConfigFields }: { tableId: string, data: Record<string, any>[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> { 
-    return this.doc!.sheetsById[tableId].addRows(data)
+    return this.doc!.sheetsById[tableId]!.addRows(data)
       .then(rows => rows.map(row => ({ id: row.rowIndex, properties: parseSheetProperties({ row, tableConfigFields }), object: row })))
 
     // return this.sheets.spreadsheets.values.append({

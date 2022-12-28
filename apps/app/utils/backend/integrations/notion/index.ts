@@ -62,7 +62,7 @@ export class Notion extends IntegrationBase {
         const { id, title, properties } = database;
         return {
           tableId: id,
-          name: title[0].plain_text,
+          name: title[0]!.plain_text,
           fields: Object.entries(properties).map(([ name, data ]) => ({ fieldId: data.id, name, type: data.type }))
         }
       })

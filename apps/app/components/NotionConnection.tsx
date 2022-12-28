@@ -41,7 +41,7 @@ export const NotionConnection = ({ notionConnectionId, isInvalid, errorMessage, 
     if ( notionConnections.length > previousNotionConnections.length ) {
       stopPolling();
       if ( notionConnections.length === 1) {
-        onChange && onChange({ value: notionConnections[0].bot_id, label: notionConnections[0].workspace_name || 'Notion Workspace', access_token: notionConnections[0].access_token }, null as any)
+        onChange && onChange({ value: notionConnections[0]?.bot_id, label: notionConnections[0]?.workspace_name || 'Notion Workspace', access_token: notionConnections[0]?.access_token }, null as any)
       }
     }
   }, [ previousData, data, onChange, stopPolling ]);

@@ -27,7 +27,7 @@ export const handleInvoicePaymentSucceeded = async ({ data, customer, user, time
   analytics.trackSubscriptionInvoicePaid({ 
     userId: user.id, 
     revenue, 
-    plan: subscription.items.data[0].plan.interval,
+    plan: subscription.items.data[0]!.plan.interval,
     timestamp
   });
 

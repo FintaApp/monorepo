@@ -247,7 +247,7 @@ export class IntegrationBase {
     if ( record ) { return record };
 
     const formattedItem = this.formatter.institution.new({ item, tableConfigFields: fields });
-    return this.createRecords({ tableId, data: [ formattedItem ], tableConfigFields: fields }).then(response => response[0])
+    return this.createRecords({ tableId, data: [ formattedItem ], tableConfigFields: fields }).then(response => response[0]!)
   }
 
   async upsertAccounts({ accounts, institutionRecord }: { accounts?: AccountBase[]; institutionRecord: IntegrationRecord }): Promise<{ records: IntegrationRecord[], results: { added: string[]; updated: string[] }}> {

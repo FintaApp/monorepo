@@ -23,8 +23,7 @@ const formatTrigger = (trigger: string) => {
 }
 
 export const PlaidItemSyncLog = ({ syncLog }: { syncLog: SyncLogModel }) => {
-  const plaidItemSyncLog = syncLog.plaid_item_sync_logs[0];
-  const plaidItem = plaidItemSyncLog.plaid_item;
+  const plaidItem = syncLog.plaid_item_sync_logs[0]?.plaid_item;
 
   const destinationSyncLogs = syncLog.destination_sync_logs;
 
@@ -40,9 +39,9 @@ export const PlaidItemSyncLog = ({ syncLog }: { syncLog: SyncLogModel }) => {
 
   const syncType = ['destination', 'refresh', 'historical_sync'].includes(syncLog.trigger) ? 'destination' : 'plaidItem';
   const syncLogError = syncLog.error;
-  const destinationLogError = syncType === 'destination' ? destinationSyncLogs[0].error : undefined;
+  const destinationLogError = syncType === 'destination' ? destinationSyncLogs[0]?.error : undefined;
 
-  const logoFileId = plaidItem.institution.logo_file?.id;
+  const logoFileId = plaidItem?.institution.logo_file?.id;
   const logoSrc = logoFileId ? nhost.storage.getPublicUrl({ fileId: logoFileId }): undefined;
 
   return (
@@ -59,7 +58,7 @@ export const PlaidItemSyncLog = ({ syncLog }: { syncLog: SyncLogModel }) => {
               shadow = { mode('xs', 'dark.xs') }
             />
           )}
-          buttonLabel = { `${plaidItem.institution.name} - ${formatTrigger(syncLog.trigger)}` }
+          buttonLabel = { `${plaidItem?.institution.name} - ${formatTrigger(syncLog.trigger)}` }
           buttonChildren = {(
             <Badge alignItems = "center" display = "flex" variant = { syncLog.ended_at ? syncLog.is_success ? 'success' : 'error' : 'outline' }>
               { syncLog.ended_at && <Icon mr = "1" as = { syncLog.is_success ? CheckCircledIcon : CrossCircledIcon } /> }

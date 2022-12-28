@@ -61,7 +61,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
   const transactions = added.concat(modified);
   const categories = _.uniqBy(transactions
     .filter(transaction => !!transaction.category_id && !!transaction.category)
-    .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length -1], category_group: transaction.category![0] }))
+    .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length -1]!, category_group: transaction.category![0]! }))
   , 'id')
   const accounts = await getAccounts({ accessToken }).then(response => response.data.accounts);
   

@@ -90,7 +90,7 @@ type UserTraits = {
 
 // Helpers
 export const formatSubscriptionForIdentify = ({ subscription }: { subscription: Stripe.Subscription }) => ({
-  billing_interval: subscription.items.data[0].plan.interval,
+  billing_interval: subscription.items.data[0]?.plan.interval,
   subscription_status: subscription.status,
   canceled_at: subscription.canceled_at ? moment.unix(subscription.canceled_at).toDate() : undefined,
   current_period_ends_at: moment.unix(subscription.current_period_end).toDate(),

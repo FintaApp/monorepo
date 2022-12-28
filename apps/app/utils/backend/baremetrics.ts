@@ -22,14 +22,14 @@ export const metrics = async () => {
     end_date: date, 
     metric: 'mrr'
   })
-  .then(({ data: { metrics } }: { data: { metrics: Metric[] } }) => { return { mrr: metrics[0]?.value / 100.0 } as { mrr: number }})
+  .then(({ data: { metrics } }: { data: { metrics: Metric[] } }) => { return { mrr: (metrics[0]?.value || 0) / 100.0 } as { mrr: number }})
 
   const arrPromise = sdk.showMetric({
     start_date: date, 
     end_date: date, 
     metric: 'arr'
   })
-  .then(({ data: { metrics } }: { data: { metrics: Metric[] }}) => { return { arr: metrics[0]?.value / 100.0 } as { arr: number }})
+  .then(({ data: { metrics } }: { data: { metrics: Metric[] }}) => { return { arr: (metrics[0]?.value || 0) / 100.0 } as { arr: number }})
 
   const netRevenuePromise = sdk.showMetric({
     start_date: '2020-01-01', 
@@ -42,7 +42,7 @@ export const metrics = async () => {
     start_date: date, 
     end_date: date, 
     metric: 'active_trials'
-  }).then(({ data: { metrics } }: { data: { metrics: Metric[] }}) => ({ trials: metrics[0]?.value }))
+  }).then(({ data: { metrics } }: { data: { metrics: Metric[] }}) => ({ trials: (metrics[0]?.value || 0) }))
 
   const { subscriptions, mrr, arr, net_revenue, trials } = await Promise.all([ planBreakoutPromise, mrrPromise, arrPromise, netRevenuePromise, trialsPromise ]).then(responses => responses.reduce((total, response ) => ({ ...total, ...response }), {}) )
   return { subscriptions, mrr, arr, net_revenue, trials } as { subscriptions: { month: number; year: number }, mrr: number, arr: number , net_revenue: number, trials: number }

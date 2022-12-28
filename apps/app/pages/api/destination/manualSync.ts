@@ -185,7 +185,7 @@ const getPlaidData = async ({ item, accountIds, tableTypes, startDate, endDate }
   const categories = (tableTypes.includes(DestinationTableTypes.CATEGORIES) && products.includes('transactions' as Products)) 
     ? _.uniqBy(transactions?.filter(transaction => !!transaction.category_id && !!transaction.category)
       .filter(transaction => !!transaction.category_id && !!transaction.category)
-      .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length - 1], category_group: transaction.category![0] })) || [], 'id')
+      .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length - 1]!, category_group: transaction.category![0] || "" })) || [], 'id')
     : undefined;
   
   const removedTransactions = (tableTypes.includes(DestinationTableTypes.TRANSACTIONS) && products.includes('transactions' as Products))
