@@ -14,7 +14,7 @@ export const parseAuthError = (error: ErrorPayload) => {
       case "Email already in use":
         response = { field: "email", message: "Account already exists", code: "email_conflict" };
         break;
-      case 'Error validating request body. "email" must be a valid email.':
+      case '"email" must be a valid email':
         response = { field: "email", message: "Invalid email", code: "invalid_email" };
         break;
       case 'User is already signed in':

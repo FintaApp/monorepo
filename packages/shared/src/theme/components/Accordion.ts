@@ -4,10 +4,10 @@ import { createMultiStyleConfigHelpers,  } from '@chakra-ui/react';
 const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(accordionAnatomy.keys)
 
 const baseStyle = definePartsStyle(({ colorMode }) => ({
-  container: { border: '1px' },
+  container: { border: 'none' },
   button: {
     _focus: { boxShadow: 'none' },
-    _hover: { bg: colorMode === 'light' ? 'gray.light.10' : 'gray.dark.1' }
+    _hover: { bg: colorMode === 'light' ? 'gray.light.1' : 'gray.dark.1' }
   }
 }));
 

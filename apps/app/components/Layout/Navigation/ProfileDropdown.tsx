@@ -1,4 +1,3 @@
-import { useSignOut } from '@nhost/nextjs';
 import { ExitIcon, ChevronDownIcon, MixerHorizontalIcon} from '@radix-ui/react-icons';
 import { Menu, MenuButton, HStack, Avatar, Text, forwardRef, MenuList, MenuDivider, MenuItem, Icon } from '@chakra-ui/react';
 
@@ -7,6 +6,7 @@ import { useRouter} from 'next/router';
 import { useUser } from "~/lib/context/useUser";
 import { ShareFeedback } from '~/components/ShareFeedback';
 import { RouterOutput } from '~/lib/trpc';
+import { nhost } from "~/utils/nhost";
 
 const DropdownButton = forwardRef(({ user }: { user: RouterOutput['users']['getUser'] }, ref) => (
   <HStack spacing = {{ base: 1, md: 3 }}  ref = { ref } justifyContent = "space-between">
@@ -18,11 +18,10 @@ const DropdownButton = forwardRef(({ user }: { user: RouterOutput['users']['getU
 
 export const ProfileDropdown = () => {
   const router = useRouter();
-  const { signOut } = useSignOut();
   const { user } = useUser();
 
   const onSignOut = () => {
-    signOut().then(() => {
+    nhost.auth.signOut().then(() => {
       reset();
       router.push('/login');
     })
