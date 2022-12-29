@@ -18,6 +18,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ ctx: { logger, db }, input: { email, password }}) => {
+      await nhostAuth.signOut(); // Make sure user is logged out
       const { error, session } = await nhostAuth.signIn({ email, password });
       logger.info("Attempted to sign user in in nhost", { error, session: !!session })
       if ( error ) { return { error: parseAuthError(error), session: null }};
@@ -80,6 +81,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ ctx: { logger, db }, input: { email, password, name }}) => {
+      await nhostAuth.signOut(); // Make sure user is logged out
       const { error, session } = await nhostAuth.signUp({ email, password, options: { displayName: name }});
       logger.info("Attempted to sign user up in nhost", { error, session: !!session })
       if ( error ) { return { error: parseAuthError(error), session: null }};

@@ -26,7 +26,6 @@ export interface PasswordFieldParams extends InputProps {
   isInvalid?: boolean;
   label?: string;
   showHelpText?: boolean;
-  value: string;
 }
 
 const PasswordVisibilityIcon = ({ isVisible }: { isVisible: boolean }) => (
@@ -36,7 +35,7 @@ const PasswordVisibilityIcon = ({ isVisible }: { isVisible: boolean }) => (
 )
 
 export const PasswordField = forwardRef((params: PasswordFieldParams, ref) => {
-  const { id, isInvalid, label, displayForgotPassword = false, errorMessage, showHelpText, ...inputProps } = params;
+  const { id, isInvalid, label, displayForgotPassword = false, errorMessage, showHelpText, value, ...inputProps } = params;
   const [ isVisible, setIsVisible ] = useBoolean(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const mergeRef = useMergeRefs(inputRef, ref);
@@ -59,7 +58,7 @@ export const PasswordField = forwardRef((params: PasswordFieldParams, ref) => {
   return (
     <FormControl id = { id } isInvalid = { isInvalid }>
       <Flex justify = "space-between">
-        <FormLabel visibility = { inputProps.value?.length > 0 ? "visible" : 'hidden'}>{ label }</FormLabel>
+        <FormLabel>{ label }</FormLabel>
         <Box 
           display = { displayForgotPassword ? "inline-flex" : "none" } 
           as = "a"

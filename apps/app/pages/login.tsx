@@ -6,16 +6,16 @@ import {
 import NextLink from 'next/link';
 
 import { CenteredContent, LogoHeader } from "~/components/Layout";
-import { LoginForm } from "~/components/Forms/LoginForm";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from "~/lib/authGate";
+import { UserAuthForm } from "~/components/Forms/UserAuthForm";
 
 const Login = () => {
   return (
     <CenteredContent>
       <VStack width = 'full'>
         <LogoHeader title = 'Log In' variant = 'full' />
-        <LoginForm />
+        <UserAuthForm mode = 'logIn' />
       </VStack>
 
       <Text mt = "8" align = "center" fontWeight = "medium">

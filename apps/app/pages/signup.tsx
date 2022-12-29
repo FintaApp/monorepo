@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/react";
 
 import { LogoHeader, CenteredContent } from "~/components/Layout";
-import { SignupForm } from "~/components/Forms/SignupForm";
+import { UserAuthForm } from "~/components/Forms/UserAuthForm";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from "~/lib/authGate";
 
@@ -15,7 +15,7 @@ const Signup = () => {
     <CenteredContent>
       <VStack width = 'full'>
         <LogoHeader title = 'Create your Finta account' variant = 'full' />
-        <SignupForm />
+        <UserAuthForm mode = 'signUp' />
       </VStack>
 
       <Text mt = "8" align = "center" fontWeight = "medium">
