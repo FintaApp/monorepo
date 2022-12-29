@@ -12,11 +12,12 @@ import { Input } from "./Input";
 import { Form } from "./Form";
 import { PasswordField } from "./PasswordField";
 import { nhost } from "~/utils/nhost";
-import { alias } from "~/utils/frontend/analytics";
-import { parseAuthError } from "~/lib/parseAuthError";
+import { trpc } from "~/lib/trpc";
 
 export const LoginForm = () => {
+  const { mutateAsync: logIn } = trpc.users.onLogIn.useMutation();
   const router = useRouter();
+
   return (
     <Formik
       initialValues = {{
@@ -24,20 +25,20 @@ export const LoginForm = () => {
         password: ""
       }}
       onSubmit = {({ email, password }, { setSubmitting, setFieldError }) => {
-        nhost.auth.signIn({ email, password })
-        .then(async ({ error, session }) => {
+        logIn({ email, password })
+        .then(async ({ error }) => {
           if ( error ) {
-            const parsedError = parseAuthError(error);
-            if ( parsedError.code === "already_singed_in" ) { router.push('/') }
+            if ( error.code === "already_singed_in" ) { router.push('/') }
             setSubmitting(false);
-            setFieldError(parsedError.field, parsedError.message);
+            setFieldError(error.field, error.message);
             return;
           }
-          
-          alias({ userId: session!.user.id })
 
-          const onLoginRedirect = router.query.next as string || "/";
-          router.push(onLoginRedirect);
+          nhost.auth.signIn({ email, password })
+          .then(() => {
+            const onLoginRedirect = router.query.next as string || "/";
+            router.push(onLoginRedirect);
+          });
         })
       }}
       validate = {({ email }) => {

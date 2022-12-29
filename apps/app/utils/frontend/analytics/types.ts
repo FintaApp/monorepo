@@ -17,10 +17,6 @@ export enum AnalyticsPage {
   SIGN_UP = 'Sign Up'
 }
 
-export interface AliasParams {
-  userId: string;
-}
-
 export interface IdentifyParams {
   userId: string;
   traits?: UserTraits;

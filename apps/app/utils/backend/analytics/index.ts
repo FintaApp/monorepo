@@ -8,13 +8,6 @@ const analytics = new segment(process.env.SEGMENT_KEY!, { flushAt: 1 });
 
 export const flushAnalytics = () => analytics.flush();
 
-export const trackUserSignedUp = ({ userId, createdAt }: { userId: string; createdAt: string; }) => 
-  track({
-    userId,
-    event: SegmentEvent.USER_SIGNED_UP,
-    timestamp: new Date(createdAt)
-  })
-
 export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; field: string }) =>
   track({
     userId,

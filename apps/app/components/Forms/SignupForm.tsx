@@ -16,7 +16,6 @@ import { PasswordField } from "./PasswordField";
 import { TERMS_AND_CONDITIONS_URL, PRIVACY_POLICY_URL } from "~/utils/frontend/constants";
 import { nhost } from "~/utils/nhost";
 import { password as isPasswordValid } from "~/utils/frontend/validate";
-import { alias } from "~/utils/frontend/analytics";
 import { trpc } from "~/lib/trpc";
 
 export const SignupForm = () => {
@@ -32,7 +31,7 @@ export const SignupForm = () => {
       }}
       onSubmit = {({ name, email, password }, { setSubmitting, setFieldError }) => {
         signUp({ name, email, password })
-        .then(async ({ session, error }) => {
+        .then(async ({ error }) => {
           if ( error ) {
             if ( error.code === "already_singed_in" ) { router.push('/') }
             setSubmitting(false);
@@ -40,7 +39,6 @@ export const SignupForm = () => {
             return;
           };
 
-          alias({ userId: session?.user.id! });
           nhost.auth.signIn({ email, password })
           .then(() => router.push('/'))
         })

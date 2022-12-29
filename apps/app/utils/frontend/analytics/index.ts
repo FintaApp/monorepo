@@ -1,16 +1,10 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
 
-import { AnalyticsEvent, AnalyticsPage, AliasParams, IdentifyParams, PageParams, TrackParams } from "./types";
+import { AnalyticsEvent, AnalyticsPage, IdentifyParams, PageParams, TrackParams } from "./types";
 
 const analytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY! });
 
 export { AnalyticsEvent as EventNames, AnalyticsPage }
-
-export const alias = (params: AliasParams) => {
-  const { userId } = params;
-  if ( typeof global === 'undefined' ) { return; };
-  analytics.alias(userId);
-}
 
 export const identify = (params: IdentifyParams) => {
   const { userId, traits } = params;
