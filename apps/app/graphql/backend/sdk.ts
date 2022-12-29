@@ -12255,6 +12255,41 @@ export type UpdateUserMutationVariables = Exact<{
 
 export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
 
+export type AllFrontendUserFieldsFragment = { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } };
+
+export type UpdateUserFrontendMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  _set?: InputMaybe<Users_Set_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
+}>;
+
+
+export type UpdateUserFrontendMutation = { __typename?: 'mutation_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } } | null };
+
+export type AllFrontendUserProfileFieldsFragment = { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null };
+
+export type GetUserProfileFrontendQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetUserProfileFrontendQuery = { __typename?: 'query_root', userProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
+
+export type GetUserFrontendQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetUserFrontendQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } } | null };
+
+export type UpdateUserProfileFrontendMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+  _set: UserProfiles_Set_Input;
+}>;
+
+
+export type UpdateUserProfileFrontendMutation = { __typename?: 'mutation_root', updateUserProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
+
 export const AllBackendAirtableTokenFields = gql`
     fragment AllBackendAirtableTokenFields on airtableTokens {
   id
@@ -12554,6 +12589,33 @@ export const AllBackendUserFields = gql`
       }
     }
   }
+}
+    `;
+export const AllFrontendUserFields = gql`
+    fragment AllFrontendUserFields on users {
+  __typename
+  id
+  displayName
+  email
+  createdAt
+  profile {
+    stripeCustomerId
+    timezone
+    isSubscribedGeneral
+    isSubscribedSyncUpdates
+    syncUpdatesFrequency
+  }
+  metadata
+}
+    `;
+export const AllFrontendUserProfileFields = gql`
+    fragment AllFrontendUserProfileFields on userProfiles {
+  __typename
+  userId
+  timezone
+  isSubscribedGeneral
+  isSubscribedSyncUpdates
+  syncUpdatesFrequency
 }
     `;
 export const GetAirtableToken = gql`
@@ -12901,6 +12963,34 @@ export const UpdateUser = gql`
   }
 }
     ${AllBackendUserFields}`;
+export const UpdateUserFrontend = gql`
+    mutation UpdateUserFrontend($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
+  user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {
+    ...AllFrontendUserFields
+  }
+}
+    ${AllFrontendUserFields}`;
+export const GetUserProfileFrontend = gql`
+    query GetUserProfileFrontend($userId: uuid!) {
+  userProfile(userId: $userId) {
+    ...AllFrontendUserProfileFields
+  }
+}
+    ${AllFrontendUserProfileFields}`;
+export const GetUserFrontend = gql`
+    query GetUserFrontend($userId: uuid!) {
+  user(id: $userId) {
+    ...AllFrontendUserFields
+  }
+}
+    ${AllFrontendUserFields}`;
+export const UpdateUserProfileFrontend = gql`
+    mutation UpdateUserProfileFrontend($userId: uuid!, $_set: userProfiles_set_input!) {
+  updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
+    ...AllFrontendUserProfileFields
+  }
+}
+    ${AllFrontendUserProfileFields}`;
 export const AllBackendAirtableTokenFieldsFragmentDoc = gql`
     fragment AllBackendAirtableTokenFields on airtableTokens {
   id
@@ -13200,6 +13290,33 @@ export const AllBackendUserFieldsFragmentDoc = gql`
       }
     }
   }
+}
+    `;
+export const AllFrontendUserFieldsFragmentDoc = gql`
+    fragment AllFrontendUserFields on users {
+  __typename
+  id
+  displayName
+  email
+  createdAt
+  profile {
+    stripeCustomerId
+    timezone
+    isSubscribedGeneral
+    isSubscribedSyncUpdates
+    syncUpdatesFrequency
+  }
+  metadata
+}
+    `;
+export const AllFrontendUserProfileFieldsFragmentDoc = gql`
+    fragment AllFrontendUserProfileFields on userProfiles {
+  __typename
+  userId
+  timezone
+  isSubscribedGeneral
+  isSubscribedSyncUpdates
+  syncUpdatesFrequency
 }
     `;
 export const GetAirtableTokenDocument = gql`
@@ -13547,6 +13664,34 @@ export const UpdateUserDocument = gql`
   }
 }
     ${AllBackendUserFieldsFragmentDoc}`;
+export const UpdateUserFrontendDocument = gql`
+    mutation UpdateUserFrontend($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
+  user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {
+    ...AllFrontendUserFields
+  }
+}
+    ${AllFrontendUserFieldsFragmentDoc}`;
+export const GetUserProfileFrontendDocument = gql`
+    query GetUserProfileFrontend($userId: uuid!) {
+  userProfile(userId: $userId) {
+    ...AllFrontendUserProfileFields
+  }
+}
+    ${AllFrontendUserProfileFieldsFragmentDoc}`;
+export const GetUserFrontendDocument = gql`
+    query GetUserFrontend($userId: uuid!) {
+  user(id: $userId) {
+    ...AllFrontendUserFields
+  }
+}
+    ${AllFrontendUserFieldsFragmentDoc}`;
+export const UpdateUserProfileFrontendDocument = gql`
+    mutation UpdateUserProfileFrontend($userId: uuid!, $_set: userProfiles_set_input!) {
+  updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
+    ...AllFrontendUserProfileFields
+  }
+}
+    ${AllFrontendUserProfileFieldsFragmentDoc}`;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
@@ -13662,6 +13807,18 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     UpdateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUser', 'mutation');
+    },
+    UpdateUserFrontend(variables: UpdateUserFrontendMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserFrontendMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserFrontendMutation>(UpdateUserFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserFrontend', 'mutation');
+    },
+    GetUserProfileFrontend(variables: GetUserProfileFrontendQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserProfileFrontendQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserProfileFrontendQuery>(GetUserProfileFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserProfileFrontend', 'query');
+    },
+    GetUserFrontend(variables: GetUserFrontendQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserFrontendQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserFrontendQuery>(GetUserFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserFrontend', 'query');
+    },
+    UpdateUserProfileFrontend(variables: UpdateUserProfileFrontendMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserProfileFrontendMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserProfileFrontendMutation>(UpdateUserProfileFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserProfileFrontend', 'mutation');
     }
   };
 }

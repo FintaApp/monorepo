@@ -5,10 +5,10 @@ import {
   HStack,
   Text
 } from "@chakra-ui/react";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { useUser } from "~/lib/context/useUser";
 
 export const Email = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
 
   return (
     <HStack justifyContent = "space-between">

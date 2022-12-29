@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   useDisclosure
 } from "@chakra-ui/react";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { Products } from "plaid";
 
 import { PlaidLink } from "../PlaidLink";
@@ -21,10 +20,11 @@ import { createPlaidLinkToken } from "~/utils/frontend/functions";
 import { OnSuccess } from "./OnSuccess";
 import { SelectBankType } from "./SelectBankType";
 import { LoadingPlaidItem } from "./LoadingPlaidItem";
+import { useUser } from "~/lib/context/useUser";
 
 export const AddBankAccount = () => {
-  const { user } = useAuth();
-  const hasAppAccess = user?.profile.stripeData.hasAppAccess;
+  const { hasAppAccess } = useUser();
+  
   const logger = useLogger();
   const { isOpen, onOpen, onClose } = useDisclosure();
 

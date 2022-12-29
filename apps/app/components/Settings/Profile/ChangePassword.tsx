@@ -15,15 +15,14 @@ import { Formik } from "formik";
 import { Form } from "~/components/Forms/Form";
 import { PasswordField } from "~/components/Forms/PasswordField";
 import { useToast } from "~/utils/frontend/useToast";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { password as isPasswordValid } from "~/utils/frontend/validate";
 import { nhost } from "~/utils/nhost";
 import { trackPasswordChanged} from "~/utils/frontend/analytics";
+import { parseAuthError } from "~/lib/parseAuthError";
 
 
 export const ChangePassword = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { parseAuthError } = useAuth();
   const renderToast = useToast();
 
   return (

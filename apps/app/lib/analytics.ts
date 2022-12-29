@@ -102,7 +102,7 @@ export const formatUserForIdentify = ({ user }: { user: User }) => ({
   email: user.email || undefined,
   created_at: new Date(user.createdAt),
   timezone: user.timezone,
-  unsubscribed: !user.isSubsribedGeneral,
+  unsubscribed: !user.isSubscribedGeneral,
   is_subscribed_periodic_updates: user.isSubscribedPeriodicUpdates,
   periodic_updates_frequency: user.periodicUpdatesFrequency
 })

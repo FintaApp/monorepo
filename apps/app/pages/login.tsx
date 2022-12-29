@@ -1,5 +1,3 @@
-import { GetServerSideProps } from "next";
-import { getNhostSession } from "@nhost/nextjs";
 import {
   Link,
   Text,
@@ -10,6 +8,7 @@ import NextLink from 'next/link';
 import { CenteredContent, LogoHeader } from "~/components/Layout";
 import { LoginForm } from "~/components/Forms/LoginForm";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { authGate } from "~/lib/authGate";
 
 const Login = () => {
   return (
@@ -32,28 +31,9 @@ const Login = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context)
-
-  if ( nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: '/',
-        permanent: false
-      }
-    }
-  }
-
-  return {
-    props: {
-      showNavigation: false,
-      isProtected: false
-    }
-  };
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: false, isProtectedRoute: false }}
+}, false)
 
 Login.analyticsPageName = AnalyticsPage.LOG_IN
 export default Login;

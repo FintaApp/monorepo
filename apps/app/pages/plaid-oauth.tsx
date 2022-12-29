@@ -1,16 +1,15 @@
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { PlaidLink } from "~/components/Accounts/PlaidLink";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { authGate } from "~/lib/authGate";
+import { useUser } from "~/lib/context/useUser";
 
 const PlaidOauth = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
 
   const onExitCallback = useCallback(() => router.push('/accounts'), []);
   const onSuccessCallback = useCallback(() => null, []);
@@ -18,7 +17,7 @@ const PlaidOauth = () => {
 
   if ( !user ) { return <LoadingSpinner /> }
   
-  const linkToken = user.metadata.activeLinkToken;
+  const linkToken = "" //user.metadata.activeLinkToken; TODO: Come back and fix
 
   return (
     <>
@@ -36,28 +35,9 @@ const PlaidOauth = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 PlaidOauth.analyticsPageName = AnalyticsPage.PLAID_OAUTH
 export default PlaidOauth;

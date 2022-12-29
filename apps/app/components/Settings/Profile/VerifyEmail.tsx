@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Button } from "@chakra-ui/react";
 
 import { nhost } from "~/utils/nhost";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { useUser } from "~/lib/context/useUser";
 import { useToast } from "~/utils/frontend/useToast";
 
 export const VerifyEmail = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const toast = useToast();
   const [ isSending, setIsSending ] = useState(false);
   const [ isSent, setIsSent ] = useState(false);

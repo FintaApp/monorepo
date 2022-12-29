@@ -4,8 +4,7 @@ import Stripe from "stripe";
 import * as stripeEventFunctions from "~/utils/backend/stripeEvents";
 import { graphql } from "~/graphql/backend";
 import * as analytics from "~/utils/backend/analytics";
-import * as stripe from "~/utils/backend/stripe";
-import { AllBackendUserFieldsFragment } from "~/graphql/backend/sdk";
+import * as stripe from "~/lib/stripe";
 
 enum WebhookState {
   Processed = 'processed',

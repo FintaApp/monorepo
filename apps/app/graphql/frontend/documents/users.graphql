@@ -51,12 +51,6 @@ query GetUserProfile($userId: uuid!) {
   }
 }
 
-query GetUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllFrontendUserFields
-  } 
-}
-
 mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
   updateUserProfile(pk_columns: { userId: $userId }, _set: $_set) {
     ...AllFrontendUserProfileFields

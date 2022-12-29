@@ -12072,13 +12072,6 @@ export type GetUserProfileQueryVariables = Exact<{
 
 export type GetUserProfileQuery = { __typename?: 'query_root', userProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
 
-export type GetUserQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, hasAppAccess: boolean, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
-
 export type UpdateUserProfileMutationVariables = Exact<{
   userId: Scalars['uuid'];
   _set: UserProfiles_Set_Input;
@@ -12948,41 +12941,6 @@ export function useGetUserProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type GetUserProfileQueryHookResult = ReturnType<typeof useGetUserProfileQuery>;
 export type GetUserProfileLazyQueryHookResult = ReturnType<typeof useGetUserProfileLazyQuery>;
 export type GetUserProfileQueryResult = Apollo.QueryResult<GetUserProfileQuery, GetUserProfileQueryVariables>;
-export const GetUserDocument = gql`
-    query GetUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFieldsFragmentDoc}`;
-
-/**
- * __useGetUserQuery__
- *
- * To run a query within a React component, call `useGetUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserQuery(baseOptions: Apollo.QueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
-      }
-export function useGetUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
-        }
-export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
-export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
-export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const UpdateUserProfileDocument = gql`
     mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
   updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {

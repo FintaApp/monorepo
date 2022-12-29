@@ -9,10 +9,10 @@ import {
 
 import { useUpsertPlaidItemMutation, useDeletePlaidAccountsMutation, useUpdateUserMutation, Plaid_Institutions_Constraint, Plaid_Institutions_Update_Column, PlaidAccounts_Constraint } from "~/graphql/frontend";
 import { PlaidItemModel } from "~/types/frontend/models";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { useLogger } from "~/utils/frontend/useLogger";
 import * as analytics from "~/utils/frontend/analytics";
 import { exchangePlaidPublicToken } from "~/utils/frontend/functions";
+import { useUser } from "~/lib/context/useUser";
 
 
 interface PlaidLinkProps {
@@ -25,7 +25,7 @@ interface PlaidLinkProps {
 
 export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback, linkToken, receivedRedirectUri }: PlaidLinkProps) => {
   const logger = useLogger();
-  const { user } = useAuth();
+  const { user } = useUser();
   if ( !user ) { return <></> }
   const userId = user.id;
 

@@ -1,18 +1,15 @@
-import { useEffect, useState } from "react";
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { useGetOAuthClientQuery } from "~/graphql/frontend";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { AddDestination, ClientError, HasInactiveSubscription } from "~/components/OAuthAuthorize";
+import { authGate } from "~/lib/authGate";
+import { useUser } from "~/lib/context/useUser";
 
 const OauthAuthorize = () => {
   const router = useRouter();
-  const { user } = useAuth();
-  const hasActiveSubscription = !!user?.profile.stripeData.hasAppAccess;
+  const { user, hasAppAccess } = useUser();
 
   const { client_id: clientId, state } = router.query;
 
@@ -27,33 +24,14 @@ const OauthAuthorize = () => {
       { loading ? <LoadingSpinner /> : (
         oauthClient ? <AddDestination oauthClient = { oauthClient } state = { state } /> : <ClientError />
       )}
-      < HasInactiveSubscription isOpen = { !hasActiveSubscription } />
+      < HasInactiveSubscription isOpen = { !hasAppAccess } />
     </>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 OauthAuthorize.analyticsPageName = AnalyticsPage.OAUTH_AUTHORIZE
 export default OauthAuthorize;

@@ -6,8 +6,6 @@ import {
   CardBody,
   Center
 } from "@chakra-ui/react";
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -15,11 +13,12 @@ import { exchangeAirtableToken } from "~/utils/frontend/functions";
 import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { authGate } from '~/lib/authGate';
+import { useUser } from '~/lib/context/useUser';
 
 const AirtableAuthorize = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [ screen, setScreen ] = useState('');
   const { code, error, state } = router.query;
 
@@ -42,27 +41,9 @@ const AirtableAuthorize = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: false
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: false, isProtectedRoute: true }}
+}, true)
 
 AirtableAuthorize.analyticsPageName = AnalyticsPage.AIRTABLE_AUTHORIZE
 export default AirtableAuthorize;

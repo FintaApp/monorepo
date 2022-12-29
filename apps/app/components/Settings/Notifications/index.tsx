@@ -8,11 +8,11 @@ import {
 import { EmailSubscriptions } from "./EmailSubscriptions";
 import { Timezone } from "./Timezone";
 import { HeadingGroup } from "~/components/HeadingGroup";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { useUser } from "~/lib/context/useUser";
 import { useGetUserProfileQuery } from "~/graphql/frontend";
 
 export const Notifications = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const { data } = useGetUserProfileQuery({ variables: { userId: user!.id }, skip: !user });
   const userProfile = data?.userProfile
 

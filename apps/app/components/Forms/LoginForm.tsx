@@ -12,12 +12,11 @@ import { Input } from "./Input";
 import { Form } from "./Form";
 import { PasswordField } from "./PasswordField";
 import { nhost } from "~/utils/nhost";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { alias } from "~/utils/frontend/analytics";
+import { parseAuthError } from "~/lib/parseAuthError";
 
 export const LoginForm = () => {
   const router = useRouter();
-  const { parseAuthError } = useAuth();
   return (
     <Formik
       initialValues = {{
@@ -28,7 +27,7 @@ export const LoginForm = () => {
         nhost.auth.signIn({ email, password })
         .then(async ({ error, session }) => {
           if ( error ) {
-            const parsedError = await parseAuthError(error);
+            const parsedError = parseAuthError(error);
             if ( parsedError.code === "already_singed_in" ) { router.push('/') }
             setSubmitting(false);
             setFieldError(parsedError.field, parsedError.message);
