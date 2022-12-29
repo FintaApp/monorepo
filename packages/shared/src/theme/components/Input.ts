@@ -1,9 +1,13 @@
-import { mode } from '@chakra-ui/theme-tools';
-import { theme, StyleFunctionProps } from '@chakra-ui/react';
+import { inputAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers, theme } from '@chakra-ui/react';
 
-export const Input = {
+import { mode } from '../mode';
+
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(inputAnatomy.keys)
+
+export const Input: any = defineMultiStyleConfig({
   ...theme.components.Input,
-  baseStyle: (props: StyleFunctionProps) => {
+  baseStyle: (props) => {
     const baseStyle = theme.components.Input.baseStyle;
     return {
       ...baseStyle,
@@ -14,12 +18,10 @@ export const Input = {
     }
   },
   defaultProps: {
-    focusBorderColor: "primary.500",
-    errorBorderColor: 'tomato.light.11',
     size: "sm"
   },
   variants: {
-    outline: (props: StyleFunctionProps) => {
+    outline: (props) => {
       const errorColor = mode('tomato.light.7', 'tomato.dark.7')(props);
       const outlineTheme = theme.components.Input.variants?.outline(props);
 
@@ -55,7 +57,7 @@ export const Input = {
         }
       }
     },
-    flushed: (props: StyleFunctionProps) => {
+    flushed: (props) => {
       const errorColor = mode('tomato.light.7', 'tomato.dark.7')(props);
       const focusColor = mode('primary.light.7', 'primary.dark.7')(props);
       const flushedTheme = theme.components.Input.variants?.flushed(props);
@@ -80,4 +82,4 @@ export const Input = {
       }
     }
   }
-}
+})

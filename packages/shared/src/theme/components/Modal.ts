@@ -1,9 +1,11 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { modalAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Modal = {
-  parts: ["closeButton", "dialog", "footer", "modal", "header", "overlay"],
-  baseStyle: (props: StyleFunctionProps) => ({
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(modalAnatomy.keys)
+
+export const Modal: any = defineMultiStyleConfig({
+  baseStyle: (props) => ({
     closeButton: {
       borderRadius: "full",
       _focus: {
@@ -34,7 +36,7 @@ export const Modal = {
     }
   }),
   variants: {
-    fullscreen: (props: StyleFunctionProps) => ({
+    fullscreen: (props) => ({
       dialog: {
         height: "full",
         m: "0",
@@ -49,4 +51,4 @@ export const Modal = {
       }
     })
   }
-};
+});

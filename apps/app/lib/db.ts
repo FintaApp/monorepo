@@ -1,3 +1,4 @@
+import Stripe from "stripe"
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
 
@@ -25,7 +26,7 @@ prisma.$use(async (params, next) => {
     const customer = await getCustomerByEmail({ email })
     .then(response => {
       logger.info("Fetched customer", { response })
-      if ( response && !response.deleted ) { return response; };
+      if ( response && !(response as any as Stripe.DeletedCustomer).deleted ) { return response; };
       return createCustomer({ email })
         .then(response => {
           logger.info("Created customer", { response });

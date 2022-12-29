@@ -85,7 +85,3 @@ enum Frequency {
 
   @@map("frequencies_enum")
 }
-
-generator zod {
-  provider       = "zod-prisma-types"
-}

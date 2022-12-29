@@ -1,6 +1,7 @@
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
+import superjson from 'superjson';
 
 import type { AppRouter } from "~/server/routers";
 
@@ -34,7 +35,8 @@ export const trpc = createTRPCNext<AppRouter>({
             staleTime: Infinity
           }
         }
-      }
+      },
+      transformer: superjson
     }
   },
   ssr: true

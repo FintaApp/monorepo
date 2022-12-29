@@ -1,11 +1,14 @@
-import { StyleFunctionProps, theme } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { cardAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers, theme } from '@chakra-ui/react';
+import { mode } from '../mode';
+
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(cardAnatomy.keys)
 
 const baseTheme = theme.components.Card;
 
-export const Card = {
+export const Card: any = defineMultiStyleConfig({
   ...baseTheme,
-  baseStyle: (props: StyleFunctionProps) => ({
+  baseStyle: (props) => ({
     ...baseTheme.baseStyle,
     container: {
       ...baseTheme.baseStyle?.container,
@@ -17,4 +20,4 @@ export const Card = {
       borderColor: mode("gray.light.6", "transparent")(props)
     }
   })
-}
+})

@@ -241,7 +241,7 @@ const track = ({ userId, event, properties = {}, timestamp }: SegmentTrackProps)
       event,
       properties,
       timestamp
-    }, (err) => {
+    }, (err: any) => {
       if ( err ) {
         reject(err)
       } else {
@@ -260,7 +260,7 @@ export const identify = ({ userId, traits = {}, timestamp }: {
       userId,
       traits,
       timestamp
-    }, ( err ) => {
+    }, ( err: any ) => {
       if ( err ) {
         reject(err)
       } else {

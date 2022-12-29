@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { hash } from 'bcryptjs';
+import Stripe from "stripe";
 
 import { router, publicProcedure } from "../trpc";
 import { auth as nhostAuth } from "~/utils/backend/nhost";
@@ -26,7 +27,7 @@ export const userRouter = router({
       const customer = await getCustomerByEmail({ email })
         .then(response => {
           logger.info("Fetched customer", { response });
-          if ( response && !response.deleted ) { return response; };
+          if ( response && !(response as any as Stripe.DeletedCustomer).deleted ) { return response; };
           return createCustomer({ email })
             .then(({ lastResponse, ...response }) => {
               logger.info("Created customer", { response });
@@ -48,7 +49,7 @@ export const userRouter = router({
 
         logUserSignedUp({ name, email, userId }),
 
-        trackUserSignedUp({ userId, provider: 'email' }),
+        trackUserSignedUp({ userId, provider: 'credentials' }),
 
         backendIdentify({ 
           userId,

@@ -1,14 +1,18 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools'
+import { avatarAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
 
-export const Avatar = {
+const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(avatarAnatomy.keys)
+
+const baseStyle = definePartsStyle(({ colorMode }) => ({
+  container: {
+    bg: colorMode === 'light' ? 'primary.light.4' : 'primary.dark.4',
+    color: colorMode === 'light' ? 'gray.light.12' : 'gray.dark.12'
+  }
+}))
+
+export const Avatar: any = defineMultiStyleConfig({
+  baseStyle,
   defaultProps: {
-    size: "sm"
-  },
-  baseStyle: (props: StyleFunctionProps) => ({
-    container: {
-      bg: mode('primary.light.4', 'primary.dark.4')(props),
-      color: mode('gray.light.12', 'gray.dark.12')(props)
-    }
-  })
-}
+    size: 'sm'
+  }
+});
