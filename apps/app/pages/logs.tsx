@@ -1,12 +1,11 @@
 import { Card, CardBody, Button, ButtonGroup, HStack } from "@chakra-ui/react";
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { useState } from "react";
 import { EmptyState } from "~/components/EmptyState";
 import { PageHeader } from "~/components/Layout/PageHeader";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { SyncLogsList } from "~/components/SyncLogsList";
 import { useGetSyncLogsQuery } from "~/graphql/frontend";
+import { authGate } from "~/lib/authGate";
 import { SyncLogModel } from "~/types/frontend";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";
@@ -54,28 +53,9 @@ const Logs = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 Logs.analyticsPageName = AnalyticsPage.LOGS
 export default Logs;

@@ -1,7 +1,7 @@
 import { graphql } from "~/graphql/backend";
 import { DBEventPayload, DBUser } from "~/types/backend/db";
 import { Logger } from "../logger";
-import { updateCustomer } from "../stripe";
+import { updateCustomer } from "~/lib/stripe";
 import { trackUserUpdated, identify, trackUserDeleted } from "../analytics";
 import { deleteJob } from "../easyCron";
 

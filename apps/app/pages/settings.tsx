@@ -1,19 +1,17 @@
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { Stack } from "@chakra-ui/react";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { SettingsSection, Profile, Subscription } from "~/components/Settings"
 
-
 import { DeleteAccount } from "~/components/Settings/DeleteAccount";
 import { Notifications } from "~/components/Settings/Notifications";
 import { PageHeader } from "~/components/Layout/PageHeader";
-import { useAuth } from "~/utils/frontend/useAuth";
+
+import { authGate } from "~/lib/authGate";
+import { useUser } from "~/lib/context/useUser";
 
 const Settings = () => {
-  const { user } = useAuth();
-  const subscription = user?.profile.stripeData.subscription;
+  const { user, subscription } = useUser();
 
   if ( !user ) { return <></> }
   
@@ -48,28 +46,9 @@ const Settings = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 Settings.analyticsPageName = AnalyticsPage.SETTINGS
 export default Settings;

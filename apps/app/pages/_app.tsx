@@ -6,17 +6,18 @@ import { NhostNextProvider } from "@nhost/nextjs";
 import { NhostApolloProvider } from "@nhost/react-apollo";
 import { InMemoryCache } from '@apollo/client';
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
-import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
+import { QueryClient, QueryClientProvider } from 'react-query' // TODO: Remove this
 
 import { theme } from "@finta/shared";
 import { page as trackPageView, AnalyticsPage } from "~/utils/frontend/analytics";
 import { nhost } from "~/utils/nhost";
 import { LoggerProvider } from '~/utils/frontend/useLogger';
-import { AuthProvider } from '~/utils/frontend/useAuth';
 import { Layout } from '~/components/Layout';
 
 import "./index.css";
 import "./DatePicker.css";
+
+import { UserProvider } from '~/lib/context/useUser';
 import { trpc } from '~/lib/trpc';
 
 type NextPageWithPageName<P = {}, IP = P> = NextPage<P, IP> & {
@@ -49,12 +50,12 @@ const App = ({ Component, pageProps }: AppPropsWithPageName) => {
         <QueryClientProvider client={queryClient}>
           <ChakraProvider theme = { theme }>
             <LoggerProvider>
-              <AuthProvider isProtected = { pageProps.isProtected }>
+              <UserProvider isProtectedRoute = { pageProps.isProtectedRoute }>
                 <ColorModeScript />
                 <Layout showNavigation = { pageProps.showNavigation }>
                   <Component {...pageProps} />
                 </Layout>
-              </AuthProvider>
+              </UserProvider>
             </LoggerProvider>
           </ChakraProvider>
         </QueryClientProvider>

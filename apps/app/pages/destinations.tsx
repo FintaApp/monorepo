@@ -1,17 +1,16 @@
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { PageHeader } from "~/components/Layout/PageHeader";
 import { Accordion, Fade, VStack } from "@chakra-ui/react";
 
 import { useGetDestinationsSubscription } from "~/graphql/frontend";
 import { DestinationModel } from "~/types/frontend";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { EmptyState } from "~/components/EmptyState";
 import { Destination, AddDestination } from "~/components/Destinations";
+import { authGate } from "~/lib/authGate";
+import { useUser } from "~/lib/context/useUser";
 
 const Destinations = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUser();
   const { data } = useGetDestinationsSubscription({ skip: !isAuthenticated });
   const destinations = data?.destinations as DestinationModel[] || [];
 
@@ -39,28 +38,9 @@ const Destinations = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 Destinations.analyticsPageName = AnalyticsPage.DESTINATIONS
 export default Destinations;

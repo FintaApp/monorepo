@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import moment from "moment-timezone"; 
 
 import * as analytics from "~/utils/backend/analytics";
-import * as stripe from "~/utils/backend/stripe";
+import * as stripe from "~/lib/stripe";
 import { graphql } from "~/graphql/backend";
 
 import { AllUserProfileFieldsFragment, Frequencies_Enum } from "~/graphql/backend/sdk";
@@ -205,10 +205,10 @@ export default createServer<{ req: Request; res: Response }>({
               return response as Stripe.Customer // stripeData should always be called after fetching profile, so can assume customer isn't deleted
             })
 
-            const subscription = await stripe.getSubscriptions({ status: 'all', customer: customerId, limit: 1 })
-            .then(response => {
+            const subscription = await stripe.getCustomerSubscription({ customerId })
+            .then(subscription => {
               // logger.info("Subscriptions fetched", { response });
-              return response.data.map(subscription => ({
+              return {
                 id: subscription.id,
                 status: subscription.status,
                 cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -219,11 +219,12 @@ export default createServer<{ req: Request; res: Response }>({
                 currentPeriodStart: moment.unix(subscription.current_period_start).toDate(),
                 currentPeriodEnd: moment.unix(subscription.current_period_end).toDate(),
                 interval: subscription.items.data[0]?.plan.interval,
-                canceledAt: subscription.canceled_at ? moment.unix(subscription.canceled_at).toDate() : undefined
-              }))[0] 
+                canceledAt: subscription.canceled_at ? moment.unix(subscription.canceled_at).toDate() : undefined,
+                trial_end: subscription.trial_end
+              }
             });
 
-            const trialEndsAt = stripe.getTrialEndsAt({ subscriptionTrialEndsAt: subscription?.trialEndedAt, customer })
+            const trialEndsAt = stripe.calculateTrialEndsAt({ subscriptionTrialEndsAt: subscription?.trial_end, customer })
 
             const data = {
               hasAppAccess: subscription 

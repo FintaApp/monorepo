@@ -2,11 +2,13 @@ import { z } from "zod";
 import { hash } from 'bcryptjs';
 import Stripe from "stripe";
 
-import { router, publicProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { auth as nhostAuth } from "~/utils/backend/nhost";
 import { createCustomer, getCustomerByEmail } from "~/lib/stripe";
 import { logUserSignedUp } from "~/lib/logsnag";
 import { backendIdentify, trackUserSignedUp } from "~/lib/analytics";
+import { graphql } from "~/graphql/backend";
+import { parseAuthError } from "~/lib/parseAuthError";
 
 export const userRouter = router({
   onSignUp: publicProcedure
@@ -20,7 +22,7 @@ export const userRouter = router({
     .mutation(async ({ ctx: { logger, db }, input: { email, password, name }}) => {
       const { error, session } = await nhostAuth.signUp({ email, password, options: { displayName: name }});
       logger.info("Attempted to sign user up in nhost", { error, session: !!session })
-      if ( error ) { return { error, session: null }};
+      if ( error ) { return { error: parseAuthError(error), session: null }};
       const userId = session?.user.id!;
 
       const passwordHash = await hash(password, 6);
@@ -62,6 +64,25 @@ export const userRouter = router({
       ])
 
       return { error: null, session }
-    })
+    }),
+
+    getUser: protectedProcedure
+      .query(async ({ ctx: { session, db }}) => {
+        const userId = session.user.id;
+        return db.user.findFirstOrThrow({ 
+          where: { id: userId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            isSubscribedGeneral: true,
+            isSubscribedPeriodicUpdates: true,
+            periodicUpdatesFrequency: true,
+            stripeCustomerId: true,
+            timezone: true
+          }
+        })
+      })
 
 })

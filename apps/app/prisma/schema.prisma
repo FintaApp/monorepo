@@ -56,7 +56,7 @@ model User {
   disabledAt                  DateTime?   @map("disabled_at")  
   timezone                    String      @default("America/New_York")
   stripeCustomerId            String      @map("stripe_customer_id")
-  isSubsribedGeneral          Boolean     @default(true) @map("is_subscribed_general")
+  isSubscribedGeneral         Boolean     @default(true) @map("is_subscribed_general")
   isSubscribedPeriodicUpdates Boolean     @default(true) @map("is_subscribed_periodic_updates")
   periodicUpdatesFrequency    Frequency   @default(Weekly) @map("periodic_updates_frequency")
   periodicUpdatesJobId        String?     @map("periodic_updates_job_id")

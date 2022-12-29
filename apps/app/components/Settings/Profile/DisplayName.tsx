@@ -6,10 +6,10 @@ import {
 import { EditableInputWithButtons } from "../../Forms/EditableInputWithButtons";
 import { useToast } from "~/utils/frontend/useToast";
 import { useUpdateUserMutation } from "~/graphql/frontend";
-import { useAuth } from "~/utils/frontend/useAuth";
+import { useUser } from "~/lib/context/useUser";
 
 export const DisplayName = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const renderToast = useToast();
 
   const [ updateUserMutation, { loading } ] = useUpdateUserMutation();
@@ -17,7 +17,7 @@ export const DisplayName = () => {
   if ( !user ) { return <></> }
 
   const onSubmitChanges = ( newValue: string ) => {
-    if ( newValue != user.displayName && newValue.length > 0 ) {
+    if ( newValue != user.name && newValue.length > 0 ) {
       updateUserMutation({
         variables: {
           id: user.id,
@@ -32,7 +32,7 @@ export const DisplayName = () => {
     <FormControl>
       <FormLabel>
         <EditableInputWithButtons 
-          defaultValue = { user.displayName } 
+          defaultValue = { user.name } 
           onSubmit = { onSubmitChanges }
           isLoading = { loading }
         /> 

@@ -1,17 +1,16 @@
 import { useMemo } from "react";
-import { getNhostSession } from "@nhost/nextjs";
-import { GetServerSideProps } from "next";
 import { Fade, VStack } from "@chakra-ui/react";
 
 import { EmptyState } from "~/components/EmptyState";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { useGetPlaidItemsSubscription } from "~/graphql/frontend";
-import { useAuth } from "~/utils/frontend/useAuth";
 import { PageHeader } from "~/components/Layout/PageHeader";
 import { AddBankAccount, Institution } from "~/components/Accounts";
+import { authGate } from "~/lib/authGate";
+import { useUser } from "~/lib/context/useUser";
 
 const Accounts = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUser();
   const { data } = useGetPlaidItemsSubscription({ skip: !isAuthenticated });
   const plaidItems = useMemo(() => data?.plaidItems.filter(item => !item.disabled_at), [ data ]);
 
@@ -36,28 +35,9 @@ const Accounts = () => {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-  const nhostSession = await getNhostSession(process.env.NHOST_BACKEND_URL || "", context);
-
-  if ( !nhostSession ) {
-    return {
-      props: {
-        
-      },
-      redirect: {
-        destination: `/login?next=${context.resolvedUrl}`,
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      showNavigation: true,
-      isProtected: true
-    }
-  }
-}
+export const getServerSideProps = authGate(async context => {
+  return { props: { showNavigation: true, isProtectedRoute: true }}
+}, true)
 
 Accounts.analyticsPageName = AnalyticsPage.ACCOUNTS
 export default Accounts;
