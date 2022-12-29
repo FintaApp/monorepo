@@ -1,5 +1,5 @@
 // Logger logic: https://www.imakewebsites.ca/posts/axiom-logging-nextjs-api-routes/
-
+import superjson from 'superjson';
 import { TRPCError, initTRPC } from "@trpc/server";
 import { AxiomAPIRequest } from "next-axiom";
 import { Context } from "./context";
@@ -14,7 +14,7 @@ const removeUnsafeBody = (body: Record<string, any>): Record<string, any> => {
   }, {} as Record<string, any>)
 }
 
-const t = initTRPC.context<Context>().create()
+const t = initTRPC.context<Context>().create({ transformer: superjson })
 
 const isAuthed = t.middleware(async ({ next, ctx }) => {
   const { session } = ctx;
