@@ -51,7 +51,7 @@ export const AddBankAccount = () => {
       if ( !link_token ) { logger.error(new Error("No link token returned"), {}, true); return; }
       setLinkToken(link_token)
     })
-    .finally(() => setLoadingProduct(null))
+    .finally(() => setLoadingProduct(undefined))
   }
 
   const onConnectCallback = useCallback(async () => { setMode("loadingPlaidItem")}, [])
@@ -61,7 +61,7 @@ export const AddBankAccount = () => {
     setMode("onSuccess");
   }, []);
 
-  const onExitCallback = useCallback(() => setLinkToken(null), []);
+  const onExitCallback = useCallback(() => setLinkToken(undefined), []);
 
   return (
     <>
@@ -91,7 +91,7 @@ export const AddBankAccount = () => {
 
           <ModalBody>
             { mode === 'selectBankType' ? ( <SelectBankType onClick = { onSelectBankType } loadingProduct = { loadingProduct } /> ) : null }
-            { mode === "onSuccess" ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } /> ) : null }
+            { mode === "onSuccess" && newPlaidItem ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } /> ) : null }
             { mode === "loadingPlaidItem" ? ( <LoadingPlaidItem /> ) : null }
           </ModalBody>
         </ModalContent>

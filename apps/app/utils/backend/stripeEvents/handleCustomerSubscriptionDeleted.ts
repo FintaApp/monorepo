@@ -21,7 +21,7 @@ export const handleCustomerSubscriptionDeleted = async ({ data, customer, user, 
     timestamp
   })
 
-  const plan = subscription.items.data[0].plan.interval;
+  const plan = subscription.items.data[0]!.plan.interval;
   analytics.trackSubscriptionEnded({ userId: user.id, plan, timestamp })
   // await logger.logSubscriptionEnded({ userId: user.id, plan })
 }

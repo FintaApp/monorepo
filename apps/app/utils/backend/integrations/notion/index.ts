@@ -10,7 +10,7 @@ import * as formatter from "./formatter";
 import { parsePageProperties } from "./formatter/helper";
 
 export class Notion extends IntegrationBase {
-  client: Client;
+  client?: Client;
   constructor({ authentication, logger, userId }: IntegrationBaseProps) { 
     super({ authentication, userId, logger }); 
     this.integration = Integrations_Enum.Notion 
@@ -20,10 +20,10 @@ export class Notion extends IntegrationBase {
     this.client = new Client({ auth: (this.authentication as NotionAuthentication).access_token })
   }
 
-  formatter = formatter;
+  formatter = formatter as any;
 
   async validateAuthentication(): Promise<ValidateDestinationCredentialsResponse> {
-    return this.client.users.me({})
+    return this.client!.users.me({})
       .then(response => {
         this.logger.info("Get 'me' response", { response });
         return { isValid: true }
@@ -47,7 +47,7 @@ export class Notion extends IntegrationBase {
     let startCursor = null as string | null;
 
     while ( hasMore ) {
-      const { results, next_cursor, has_more } = await this.client.search({
+      const { results, next_cursor, has_more } = await this.client!.search({
         filter: { property: 'object', value: 'database' },
         start_cursor: startCursor || undefined
       });
@@ -62,7 +62,7 @@ export class Notion extends IntegrationBase {
         const { id, title, properties } = database;
         return {
           tableId: id,
-          name: title[0].plain_text,
+          name: title[0]!.plain_text,
           fields: Object.entries(properties).map(([ name, data ]) => ({ fieldId: data.id, name, type: data.type }))
         }
       })
@@ -75,7 +75,7 @@ export class Notion extends IntegrationBase {
     let pages = [] as PageObjectResponse[];
 
     while ( hasMore ) {
-      const response = await retryWrapper(() => this.client.databases.query({ database_id: tableId, start_cursor: nextCursor }));
+      const response = await retryWrapper(() => this.client!.databases.query({ database_id: tableId, start_cursor: nextCursor }));
       hasMore = response.has_more;
       nextCursor = response.next_cursor || undefined;
       pages = pages.concat(response.results as PageObjectResponse[])
@@ -90,7 +90,7 @@ export class Notion extends IntegrationBase {
 
   async createRecords({ tableId, data, tableConfigFields }: { tableId: string; data: Record<string, any>[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> {
     return Promise.all(
-      data.map(async properties => retryWrapper(() => this.client.pages.create({
+      data.map(async properties => retryWrapper(() => this.client!.pages.create({
         parent: { type: 'database_id', database_id: tableId },
         properties
       })).then(response => ({ 
@@ -103,14 +103,14 @@ export class Notion extends IntegrationBase {
 
   async updateRecords({ tableId, data, tableConfigFields }: { tableId: string, data: { fields: Record<string, any>, record: IntegrationRecord }[]; tableConfigFields: TableConfig['fields']}): Promise<IntegrationRecord[]> {
     return Promise.all(data.map(async ({ record, fields }) => {
-      return retryWrapper(() => this.client.pages.update({ page_id: record.id as string, properties: fields }))
+      return retryWrapper(() => this.client!.pages.update({ page_id: record.id as string, properties: fields }))
         .then(response => ({ id: response.id, object: response as PageObjectResponse, properties: parsePageProperties({ page: response as PageObjectResponse, tableConfigFields })  }))
     }))
   }
 
   async deleteRecords({ tableId, records }: { tableId: string; records: IntegrationRecord[]}): Promise<void> {
     await Promise.all(records.map(async record => {
-      return retryWrapper(() => this.client.pages.update({ page_id: record.id as string, archived: true }))
+      return retryWrapper(() => this.client!.pages.update({ page_id: record.id as string, archived: true }))
     }))
   }
 }

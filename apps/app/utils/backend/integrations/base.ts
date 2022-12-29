@@ -71,7 +71,7 @@ export class IntegrationBase {
   logger: Logger;
   integration: Integrations_Enum;
   isLegacy: boolean;
-  config: IntegrationConfig
+  config?: IntegrationConfig
   isGoogle: boolean;
 
   constructor({ authentication, userId, logger }: IntegrationBaseProps) {
@@ -80,6 +80,7 @@ export class IntegrationBase {
     this.logger = logger;
     this.isLegacy = false;
     this.isGoogle = false;
+    this.integration = Integrations_Enum.Airtable;
   }
 
   async validateTableConfigs({ tableTypes, tableConfigs }: ValidateFuncProps): Promise<ValidateDestinationTableConfigsResponse> {
@@ -90,7 +91,7 @@ export class IntegrationBase {
       const { table_id: tableId, fields, is_enabled } = tableConfig;
       if ( !is_enabled ) { return { isValid: true }};
       if ( this.isLegacy ) {
-        return this._validateTableConfig({ tableId, tableType, fields })
+        return this._validateTableConfig({ tableId: tableId!, tableType, fields })
       }
       
       const table = tables.find(t => t.tableId === tableId);
@@ -124,7 +125,8 @@ export class IntegrationBase {
       if ( [ Integrations_Enum.Airtable, Integrations_Enum.Notion ].includes(this.integration) ) {
         const fieldWithIncorrectType = fields.find(field => {
           const tableField = table.fields.find(f => f.fieldId === field.field_id)!;
-          return !fieldToTypeMapping[tableType][field.field][this.integration].includes(tableField.type)
+          const x = fieldToTypeMapping[tableType][field.field]
+          return !x[this.integration as keyof typeof x].includes(tableField.type as any)
         });
 
         if ( fieldWithIncorrectType ) {
@@ -156,7 +158,7 @@ export class IntegrationBase {
     if ( !authCheck.isValid ) { return { isValid: false, error: { errorCode: authCheck.errorCode! }}}
 
     const tableCheck = await this.validateTableConfigs({ tableTypes, tableConfigs });
-    if ( !tableCheck.isValid ) { return { isValid: false, error: tableCheck.errors[0] }};
+    if ( !tableCheck.isValid ) { return { isValid: false, error: (tableCheck.errors || [])[0] }};
 
     return { isValid: true, error: null }
   }
@@ -202,7 +204,7 @@ export class IntegrationBase {
 
     // Upsert Transactions, Holdings, and Investment Transactions
     const [ transactionResults, holdingsResults, investmentTransactionResults ] = await Promise.all([
-      this.upsertTransaction({ transactions, removedTransactions, accountRecords, categoryRecords, shouldOverrideTransactionName })
+      this.upsertTransaction({ transactions, removedTransactions, accountRecords, categoryRecords, shouldOverrideTransactionName: !!shouldOverrideTransactionName })
         .then(response => {
           this.logger.info("Transaction records upserted", { results: response });
           return response;
@@ -221,12 +223,12 @@ export class IntegrationBase {
 
     // Update Last Update timestamp for Institution
     await this.updateRecords({ 
-      tableId: this.config.institutions.tableId,
+      tableId: this.config!.institutions.tableId,
       data: [{ 
         record: institutionRecord, 
-        fields: this.formatter.institution.updated({ item, tableConfigFields: this.config.institutions.fields, timezone})
+        fields: this.formatter.institution.updated({ item, tableConfigFields: this.config!.institutions.fields, timezone})
       }],
-      tableConfigFields: this.config.institutions.fields
+      tableConfigFields: this.config!.institutions.fields
     })
 
     this.logger.info("Institution record updated");
@@ -240,17 +242,17 @@ export class IntegrationBase {
   }
 
   async upsertItem({ item }: { item: PlaidItemModel }): Promise<IntegrationRecord> {
-    const { tableId, fields, records } = this.config.institutions;
+    const { tableId, fields, records } = this.config!.institutions;
     const record = records.find(record => record.properties[InstitutionsTableFields.ID] === item.id);
     if ( record ) { return record };
 
     const formattedItem = this.formatter.institution.new({ item, tableConfigFields: fields });
-    return this.createRecords({ tableId, data: [ formattedItem ], tableConfigFields: fields }).then(response => response[0])
+    return this.createRecords({ tableId, data: [ formattedItem ], tableConfigFields: fields }).then(response => response[0]!)
   }
 
   async upsertAccounts({ accounts, institutionRecord }: { accounts?: AccountBase[]; institutionRecord: IntegrationRecord }): Promise<{ records: IntegrationRecord[], results: { added: string[]; updated: string[] }}> {
     if ( !accounts ) { return { records: [], results: { added: [], updated: [] }} };
-    const { tableId, fields, isEnabled, records } = this.config.accounts;
+    const { tableId, fields, isEnabled, records } = this.config!.accounts;
     if ( !tableId || !isEnabled ) { return { records: [], results: { added: [], updated: [] }} }
 
     const recordAccountIds = records.map(record => record.properties[AccountsTableFields.ID]);
@@ -292,7 +294,7 @@ export class IntegrationBase {
 
   async upsertCategories({ categories }: { categories?: Category[]} ) {
     if ( !categories ) { return [] };
-    const { tableId, fields, records, isEnabled } = (this.config.categories || { tableId: undefined, fields: [], records: [], isEnabled: false })
+    const { tableId, fields, records, isEnabled } = (this.config!.categories || { tableId: undefined, fields: [], records: [], isEnabled: false })
     if ( !tableId || !isEnabled ) { return [] }
 
     const recordCategoryIds = records.map(record => record.properties[CategoryTableFields.ID]);
@@ -308,7 +310,7 @@ export class IntegrationBase {
 
   async upsertSecurities({ securities }: { securities?: Security[]}) {
     if ( !securities ) { return [] };
-    const { tableId, fields, records, isEnabled } = (this.config.securities || { tableId: undefined, fields: [], records: [], isEnabled: false })
+    const { tableId, fields, records, isEnabled } = (this.config!.securities || { tableId: undefined, fields: [], records: [], isEnabled: false })
     if ( !tableId || !isEnabled ) { return [] }
 
     const recordSecurityIds = records.map(record => record.properties[SecurityTableFields.ID]);
@@ -330,27 +332,27 @@ export class IntegrationBase {
     .then(([ newRecords, updatedRecords ]) => newRecords.concat(records))
   }
 
-  async upsertTransaction({ transactions, removedTransactions = [], accountRecords, categoryRecords, shouldOverrideTransactionName }: { transactions?: Transaction[]; removedTransactions: string[]; accountRecords: IntegrationRecord[]; categoryRecords: IntegrationRecord[]; shouldOverrideTransactionName: boolean }) {
+  async upsertTransaction({ transactions, removedTransactions = [], accountRecords, categoryRecords, shouldOverrideTransactionName }: { transactions?: Transaction[]; removedTransactions?: string[]; accountRecords: IntegrationRecord[]; categoryRecords: IntegrationRecord[]; shouldOverrideTransactionName: boolean }) {
     if ( !transactions ) { return { added: 0, updated: 0, removed: 0 }};
-    const { tableId, fields, records, isEnabled } = this.config.transactions;
+    const { tableId, fields, records, isEnabled } = this.config!.transactions;
     if ( !tableId || !isEnabled ) { return { added: 0, updated: 0, removed: 0 }};
 
     const recordTransactionIds = records.map(record => record.properties[TransactionsTableFields.ID] as string);
     const pendingTransactionIds = transactions.filter(transaction => !!transaction.pending_transaction_id).map(transaction => transaction.pending_transaction_id)
     const nonPendingRemovedTransactions = _.difference((removedTransactions || []), pendingTransactionIds);
 
-    const transactionsToCreate = transactions.filter(transaction => !recordTransactionIds.includes(transaction.transaction_id) && !recordTransactionIds.includes(transaction.pending_transaction_id))
+    const transactionsToCreate = transactions.filter(transaction => !recordTransactionIds.includes(transaction.transaction_id) && !recordTransactionIds.includes(transaction.pending_transaction_id || ""))
       .map(transaction => {
         const accountRecord = accountRecords.find(record => record.properties[AccountsTableFields.ID] === transaction.account_id);
         const categoryRecord = categoryRecords.find(record => record.properties[CategoryTableFields.ID] === transaction.category_id);
         return this.formatter.transaction.new({ 
           transaction, 
-          accountRecordId: this.isGoogle ? transaction.account_id : accountRecord.id as string,
-          categoryRecordId: this.isGoogle ? transaction.category_id : categoryRecord?.id as string,
+          accountRecordId: this.isGoogle ? transaction.account_id : accountRecord?.id as string,
+          categoryRecordId: this.isGoogle ? transaction.category_id || undefined : categoryRecord?.id as string,
           tableConfigFields: fields
         })
       })
-    const transactionsToUpdate = transactions.filter(transaction => recordTransactionIds.includes(transaction.pending_transaction_id))
+    const transactionsToUpdate = transactions.filter(transaction => recordTransactionIds.includes(transaction.pending_transaction_id || ""))
       .map(transaction => {
         const record = records.find(rec => rec.properties[TransactionsTableFields.ID] === transaction.pending_transaction_id)!;
         return { 
@@ -377,9 +379,9 @@ export class IntegrationBase {
     }))
   }
 
-  async upsertHoldings({ holdings, securityRecords, accountRecords }: { holdings: Holding[]; securityRecords: IntegrationRecord[]; accountRecords: IntegrationRecord[] }) {
+  async upsertHoldings({ holdings, securityRecords, accountRecords }: { holdings?: Holding[]; securityRecords: IntegrationRecord[]; accountRecords: IntegrationRecord[] }) {
     if ( !holdings ) { return { added: 0, updated: 0 }};
-    const { tableId, fields, records, isEnabled } = this.config.holdings;
+    const { tableId, fields, records, isEnabled } = this.config!.holdings;
     if ( !tableId || !isEnabled ) { return { added: 0, updated: 0 }};
 
     const mappedHoldings = holdings.map(holding => {
@@ -400,7 +402,7 @@ export class IntegrationBase {
         symbol: securityRecord ? securityRecord.properties[SecurityTableFields.SYMBOL] : ""
       }))
     const holdingsToUpdate = mappedHoldings.filter(({ shouldUpdate }) => !!shouldUpdate)
-      .map(({ holding, record }) => ({ record, fields: this.formatter.holding.updated({ holding, tableConfigFields: fields })}))
+      .map(({ holding, record }) => ({ record: record!, fields: this.formatter.holding.updated({ holding, tableConfigFields: fields })}))
     
     return Promise.all([
       this.createRecords({ tableId, data: holdingsToCreate, tableConfigFields: fields }),
@@ -412,9 +414,9 @@ export class IntegrationBase {
     }))
   }
 
-  async upsertInvestmentTransactions({ investmentTransactions, securityRecords, accountRecords }: { investmentTransactions: InvestmentTransaction[]; securityRecords: IntegrationRecord[]; accountRecords: IntegrationRecord[] }) {
+  async upsertInvestmentTransactions({ investmentTransactions, securityRecords, accountRecords }: { investmentTransactions?: InvestmentTransaction[]; securityRecords: IntegrationRecord[]; accountRecords: IntegrationRecord[] }) {
     if ( !investmentTransactions ) { return { added: 0 }};
-    const { tableId, fields, records, isEnabled } = this.config.investment_transactions;
+    const { tableId, fields, records, isEnabled } = this.config!.investment_transactions;
     if ( !tableId || !isEnabled ) { return { added: 0 }};
 
     const recordTransactionIds = records.map(record => record.properties[InvestmentTransactionsTableFields.ID]);
@@ -425,7 +427,7 @@ export class IntegrationBase {
         return this.formatter.investmentTransaction.new({ 
           investmentTransaction: transaction, 
           accountRecordId: this.isGoogle ? transaction.account_id : accountRecord?.id as string,
-          securityRecordId: this.isGoogle ? transaction.security_id : securityRecord?.id as string, 
+          securityRecordId: this.isGoogle ? transaction.security_id || undefined : securityRecord?.id as string, 
           tableConfigFields: fields
         })
       })

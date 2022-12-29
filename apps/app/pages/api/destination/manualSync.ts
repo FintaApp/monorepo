@@ -55,13 +55,13 @@ export default wrapper('client', async function handler({ req, user, logger }) {
     Promise.all([
       logger.logDestinationErrorTriggered({
         destinationId: destination.id,
-        error: destinationCheck.error,
+        error: destinationCheck.error!,
         userId: destination.user.id,
         syncLogId: syncLog.id
       }),
       segment.trackDestinationErrorTriggered({
         userId: destination.user.id,
-        error: destinationCheck.error,
+        error: destinationCheck.error!,
         integration: destination.integration.id,
         destinationName: destination.name,
         destinationId: destination.id,
@@ -106,7 +106,7 @@ export default wrapper('client', async function handler({ req, user, logger }) {
         investmentTransactions,
         securities,
         categories,
-        timezone: destination.user.profile.timezone,
+        timezone: destination.user.profile.timezone!,
         shouldOverrideTransactionName: destination.should_override_transaction_name
       });
       logger.info("Sync results", { results, plaidItemId: item.id })
@@ -185,7 +185,7 @@ const getPlaidData = async ({ item, accountIds, tableTypes, startDate, endDate }
   const categories = (tableTypes.includes(DestinationTableTypes.CATEGORIES) && products.includes('transactions' as Products)) 
     ? _.uniqBy(transactions?.filter(transaction => !!transaction.category_id && !!transaction.category)
       .filter(transaction => !!transaction.category_id && !!transaction.category)
-      .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length - 1], category_group: transaction.category![0] })) || [], 'id')
+      .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length - 1]!, category_group: transaction.category![0] || "" })) || [], 'id')
     : undefined;
   
   const removedTransactions = (tableTypes.includes(DestinationTableTypes.TRANSACTIONS) && products.includes('transactions' as Products))

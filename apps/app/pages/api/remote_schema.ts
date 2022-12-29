@@ -218,7 +218,7 @@ export default createServer<{ req: Request; res: Response }>({
                 endedAt: subscription.ended_at ? moment.unix(subscription.ended_at).toDate() : undefined,
                 currentPeriodStart: moment.unix(subscription.current_period_start).toDate(),
                 currentPeriodEnd: moment.unix(subscription.current_period_end).toDate(),
-                interval: subscription.items.data[0].plan.interval,
+                interval: subscription.items.data[0]?.plan.interval,
                 canceledAt: subscription.canceled_at ? moment.unix(subscription.canceled_at).toDate() : undefined
               }))[0] 
             });

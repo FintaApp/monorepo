@@ -5,5 +5,5 @@ import { useAuth } from "~/utils/frontend/useAuth"
 
 export const JoinedOn = () => {
   const { user } = useAuth();
-  return <Text variant = "helper">Joined on { moment(user.createdAt).format("LL") }</Text>
+  return <Text variant = "helper">Joined on { moment(user?.createdAt).format("LL") }</Text>
 }

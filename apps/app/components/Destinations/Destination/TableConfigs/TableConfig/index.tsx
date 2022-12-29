@@ -27,7 +27,7 @@ interface TableConfigProps {
 export const TableConfig = ({ tableType, tableConfig, errors, integrationId, onChange, isLegacyAirtable, destinationTables, isLoadingTables, refreshTables }: TableConfigProps) => {
   const tableOptions = destinationTables.map(table => ({ label: table.name, value: table.tableId }));
   const tableFieldOptions = ALL_DESTINATION_TABLES
-    .find(table => table.tableType === tableType).allFields
+    .find(table => table.tableType === tableType)!.allFields
     .filter(tableField => !(tableField.hideFor || []).includes(integrationId))
     .map(tableField => ({ value: tableField.field, label: tableField.label, isRequired: tableField.is_required }))
   const destinationFieldOptions = destinationTables
@@ -36,10 +36,10 @@ export const TableConfig = ({ tableType, tableConfig, errors, integrationId, onC
 
   const onChangeIsEnabled = (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...tableConfig, is_enabled: e.target.checked });
   const onChangeTableId = (newTableId: string) => onChange({ ...tableConfig, table_id: newTableId });
-  const onChangeField = (action: 'insert' | 'update' | 'remove', field: { field: TableConfigType['fields'][0]['field'], field_id: string }, index?: number) => {
+  const onChangeField = (action: 'insert' | 'update' | 'remove', field: { field: TableConfigType['fields'][0]['field'] | "", field_id: string }, index?: number) => {
     let newFields = tableConfig.fields;
-    if ( action === 'insert' ) { newFields = newFields.concat(field) };
-    if ( action === 'update' ) { newFields = newFields.map((f, idx) => idx === index ? field : f )}
+    if ( action === 'insert' ) { newFields = newFields.concat(field as any) };
+    if ( action === 'update' ) { newFields = newFields.map((f, idx) => idx === index ? field as any : f )}
     if ( action === 'remove' ) { newFields = newFields.filter(f => f.field !== field.field) }
 
     const newConfig = { ...tableConfig, fields: newFields };

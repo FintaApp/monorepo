@@ -114,16 +114,16 @@ export default wrapper('public', async function handler({ req, logger }) {
           let investmentTransactions = 0;
 
           try {
-            if ( ['destination', 'refresh', 'historical_sync'].includes(sl.trigger) ) {
-              accounts = sl.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.accounts?.added?.length), 0)
-              transactions = sl.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.transactions?.added), 0)
-              holdings = sl.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.holdings?.added), 0)
-              investmentTransactions = sl.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.investment_transactions?.added), 0)
+            if ( ['destination', 'refresh', 'historical_sync'].includes(sl?.trigger || "") ) {
+              accounts = sl!.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.accounts?.added?.length), 0)
+              transactions = sl!.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.transactions?.added), 0)
+              holdings = sl!.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.holdings?.added), 0)
+              investmentTransactions = sl!.plaid_item_sync_logs.reduce((t, pisl) => t + parseNumber(pisl.investment_transactions?.added), 0)
             } else {
-              accounts = parseNumber(sl.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.accounts?.added?.length)
-              transactions = parseNumber(sl.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.transactions?.added)
-              holdings = parseNumber(sl.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.accounts?.holdings) 
-              investmentTransactions = parseNumber(sl.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.investment_transactions?.added)
+              accounts = parseNumber(sl!.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.accounts?.added?.length)
+              transactions = parseNumber(sl!.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.transactions?.added)
+              holdings = parseNumber(sl!.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.accounts?.holdings) 
+              investmentTransactions = parseNumber(sl!.destination_sync_logs.find(dsl => dsl.destination_id === destination.id)?.investment_transactions?.added)
             }
           } catch (error) { console.log(error)}
 

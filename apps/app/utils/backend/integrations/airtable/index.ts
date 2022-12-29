@@ -16,9 +16,9 @@ import * as formatter from "./formatter";
 import { parseRecordProperties } from "./formatter/helper";
 
 export class Airtable extends IntegrationBase {
-  baseId: string;
-  base: AirtableBase;
-  client: AxiosInstance;
+  baseId?: string;
+  base?: AirtableBase;
+  client?: AxiosInstance;
   isLegacy: boolean;
 
   constructor({ authentication, logger, userId }: IntegrationBaseProps) { 
@@ -27,7 +27,7 @@ export class Airtable extends IntegrationBase {
     this.isLegacy = !!(authentication as AirtableAuthentication).api_key;
   }  
 
-  formatter = formatter
+  formatter = formatter as any
 
   async init(): Promise<void> {
     const { api_key: apiKey, base_id: baseId } = this.authentication as AirtableAuthentication;
@@ -90,7 +90,7 @@ export class Airtable extends IntegrationBase {
   }
 
   async validateAuthentication(): Promise<ValidateDestinationCredentialsResponse> {
-    return this.client.get('/meta/whoami')
+    return this.client!.get('/meta/whoami')
     .then(response => {
       this.logger.info("Meta whoami response", { data: response.data });
       return { isValid: true }
@@ -105,7 +105,7 @@ export class Airtable extends IntegrationBase {
 
   async getTables(): Promise<GetDestinationTablesResponse> {
     if ( this.isLegacy ) { return { tables: []} };
-    return this.client.get(`/meta/bases/${this.baseId}/tables`)
+    return this.client!.get(`/meta/bases/${this.baseId}/tables`)
       .then(response => {
         this.logger.info("Get tables response", { response: response.data });
         const { tables } = response.data as GetBaseTablesResponse;
@@ -124,7 +124,7 @@ export class Airtable extends IntegrationBase {
   }
 
     async getBases(): Promise<GetAirtableBasesResponse> {
-    return this.client.get('/meta/bases')
+    return this.client!.get('/meta/bases')
       .then(response => {
         const bases = (response.data as GetBasesResponse).bases
           .filter(base => [ 'edit', 'create' ].includes(base.permissionLevel))
@@ -134,7 +134,7 @@ export class Airtable extends IntegrationBase {
   }
 
   async _validateTableConfig({ tableId, tableType, fields }: ValidateTableConfigProps): Promise<ValidateTableConfigResponse> {
-    return this.base(tableId).select({ fields: fields.map(field => field.field_id), maxRecords: 1}).all()
+    return this.base!(tableId).select({ fields: fields.map(field => field.field_id), maxRecords: 1}).all()
       .then(() => ({ isValid: true }))
       .catch(async (err: AirtableError) => {
         const error = await parseAirtableError(err, tableId, tableType);
@@ -146,7 +146,7 @@ export class Airtable extends IntegrationBase {
     const returnFieldsByFieldId = tableConfigFields.filter(field => !field.field_id.startsWith('fld')).length === 0;
     const params = returnFieldsByFieldId ? { returnFieldsByFieldId } : {}
     this.logger.info("Querying table", { returnFieldsByFieldId })
-    const records = await this.base(tableId).select(params).all()
+    const records = await this.base!(tableId).select(params).all()
     return records.map(record => ({ 
       id: record.id, 
       object: record, 
@@ -176,7 +176,7 @@ export class Airtable extends IntegrationBase {
       _.chunk(data, 10)
       .map(async dataChunk => {
         const formattedRecords = dataChunk.map(dc => ({ id: dc.record.id as string, fields: dc.fields }))
-        return this.base(tableId).update(formattedRecords)
+        return this.base!(tableId).update(formattedRecords)
           .then(records => records.map(record => ({ id: record.id, object: record, properties: {} as Record<TableConfigFields, any>}))) // Waiting for Airtable to allow returnFieldsByFieldId
       })
     )
@@ -188,7 +188,7 @@ export class Airtable extends IntegrationBase {
     await Promise.all(
       _.chunk(records, 10)
       .map(async recordChunk => {
-        return this.base(tableId).destroy(recordChunk.map(record => record.id as string))
+        return this.base!(tableId).destroy(recordChunk.map(record => record.id as string))
       })
     )
   }

@@ -41,7 +41,7 @@ export const DestinationSyncLog = ({ syncLog }: { syncLog: SyncLogModel }) => {
 
   const syncType = ['destination', 'refresh', 'historical_sync'].includes(syncLog.trigger) ? 'destination' : 'plaidItem';
   const syncLogError = syncLog.error;
-  const destinationLogError = syncType === 'destination' ? destinationSyncLogs[0].error : undefined;
+  const destinationLogError = syncType === 'destination' ? destinationSyncLogs[0]?.error : undefined;
 
   return (
     <Card width = "full" p = "4">

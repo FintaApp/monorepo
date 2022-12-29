@@ -17,6 +17,7 @@ import { Layout } from '~/components/Layout';
 
 import "./index.css";
 import "./DatePicker.css";
+import { trpc } from '~/lib/trpc';
 
 type NextPageWithPageName<P = {}, IP = P> = NextPage<P, IP> & {
   analyticsPageName?: AnalyticsPage
@@ -28,7 +29,7 @@ type AppPropsWithPageName = AppProps & {
 
 const queryClient = new QueryClient()
 
-export default function App({ Component, pageProps }: AppPropsWithPageName) {
+const App = ({ Component, pageProps }: AppPropsWithPageName) => {
   const analyticsPageName = Component.analyticsPageName;
 
   useEffect(() => {
@@ -61,3 +62,5 @@ export default function App({ Component, pageProps }: AppPropsWithPageName) {
     </NhostNextProvider>
   )
 }
+
+export default trpc.withTRPC(App);

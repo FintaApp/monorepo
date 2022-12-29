@@ -11,12 +11,12 @@ import { LiabilitiesGetRequestOptions, AccountBase, CreditCardLiability, Mortgag
 export default wrapper('oauth', async function handler({ req, destination, plaidEnv, logger }) {
   const trigger = 'destination';
   const syncLog = await graphql.InsertSyncLog({ sync_log: { trigger,
-    destination_sync_logs: { data: [{ destination_id: destination.id }]},
+    destination_sync_logs: { data: [{ destination_id: destination!.id }]},
     metadata: { 'target_table': 'accounts' }
   }}).then(response => response.sync_log!);
   logger.addContext({ syncLogId: syncLog.id });
 
-  const { plaid_items, error_count } = await getOauthPlaidItems(destination.id, syncLog.id);
+  const { plaid_items, error_count } = await getOauthPlaidItems(destination!.id, syncLog.id);
   if ( error_count > 0 ) {
     return { status: 428, message: "Has Error Item" }
   }
@@ -90,13 +90,13 @@ export default wrapper('oauth', async function handler({ req, destination, plaid
         }))
       }),
       logger.logSyncCompleted({
-        userId: destination.user.id,
+        userId: destination!.user.id,
         trigger,
         isSuccess: true,
-        integration: destination.integration.id,
+        integration: destination!.integration.id,
         institutionsSynced: plaid_items.length,
         syncLogId: syncLog.id,
-        destinationId: destination.id,
+        destinationId: destination!.id,
         targetTable: "accounts"
       })
     ])

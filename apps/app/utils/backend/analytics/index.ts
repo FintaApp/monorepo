@@ -222,7 +222,7 @@ export const formatSubscriptionForIdentify = ({ subscriptionFromSchema, subscrip
 
   if ( subscriptionFromStripe ) {
     return {
-      billing_interval: subscriptionFromStripe.items.data[0].plan.interval,
+      billing_interval: subscriptionFromStripe.items.data[0]?.plan.interval,
       subscription_status: subscriptionFromStripe.status,
       canceled_at: subscriptionFromStripe.canceled_at ? moment.unix(subscriptionFromStripe.canceled_at).toDate() : undefined,
       current_period_ends_at: moment.unix(subscriptionFromStripe.current_period_end).toDate(),
@@ -241,7 +241,7 @@ const track = ({ userId, event, properties = {}, timestamp }: SegmentTrackProps)
       event,
       properties,
       timestamp
-    }, (err) => {
+    }, (err: any) => {
       if ( err ) {
         reject(err)
       } else {
@@ -260,7 +260,7 @@ export const identify = ({ userId, traits = {}, timestamp }: {
       userId,
       traits,
       timestamp
-    }, ( err ) => {
+    }, ( err: any ) => {
       if ( err ) {
         reject(err)
       } else {

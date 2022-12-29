@@ -21,7 +21,7 @@ export const onInsertPlaidInstitution = async ({ body, logger }: { body: DBEvent
 
     const { error, fileMetadata } = await storage.upload({ formData, bucketId: 'institution-logos' });
     if ( error ) { 
-      logger.error(error, { data: (error as AxiosError).response.data });
+      logger.error(error, { data: (error as AxiosError).response?.data });
       return;
     }
 

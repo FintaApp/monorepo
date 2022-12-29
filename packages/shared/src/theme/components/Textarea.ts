@@ -1,16 +1,14 @@
-import { SystemStyleInterpolation } from "@chakra-ui/react";
+import { defineStyleConfig } from '@chakra-ui/react';
 
-const variants: Record<string, SystemStyleInterpolation> = {
-  styled: {
-    border: "none",
-    resize: "none",
-    fontSize: "sm"
-  }
-}
-
-export const Textarea = {
+export const Textarea: any = defineStyleConfig({
   defaultProps: {
     variant: "styled"
   },
-  variants
-}
+  variants: {
+    styled: {
+      border: 'none',
+      resize: 'none',
+      fontSize: 'sm'
+    }
+  }
+})

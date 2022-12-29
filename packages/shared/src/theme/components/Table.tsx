@@ -1,11 +1,11 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { tableAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Table = {
-  defaultProps: {
-    variant: 'unstyled'
-  },
-  baseStyle: (props: StyleFunctionProps) => ({
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(tableAnatomy.keys)
+
+export const Table: any = defineMultiStyleConfig({
+  baseStyle: (props) => ({
     table: {
 
     },
@@ -38,7 +38,7 @@ export const Table = {
     }
   },
   variants: {
-    bordered: (props: StyleFunctionProps) => ({
+    bordered: (props) => ({
       td: {
         borderBottom: '1px',
         borderColor: mode('gray.light.6', 'gray.dark.6')(props),
@@ -54,4 +54,4 @@ export const Table = {
       }
     })
   }
-};
+});

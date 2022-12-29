@@ -15,12 +15,11 @@ const getValueFromProperty = (property: PageObjectResponse['properties'][0]) => 
 
 export const parsePageProperties = ({ page, tableConfigFields }: { page: PageObjectResponse, tableConfigFields: { field: TableConfigFields, field_id: string }[] }) => {
   const properties = Object.fromEntries(Object.values(page.properties)
+    .filter(property => !!tableConfigFields.find(f => f.field_id === property.id))
     .map(property => {
-      const field = tableConfigFields.find(f => f.field_id === property.id);
-      if ( !field ) { return; }
+      const field = tableConfigFields.find(f => f.field_id === property.id)!;
       return [ field.field, getValueFromProperty(property) ]
     })
-    .filter(x => !!x)
   ) as Record<TableConfigFields, any>;
 
   if ( Object.keys(properties).length === 0 ) {

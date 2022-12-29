@@ -26,6 +26,7 @@ interface PlaidLinkProps {
 export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback, linkToken, receivedRedirectUri }: PlaidLinkProps) => {
   const logger = useLogger();
   const { user } = useAuth();
+  if ( !user ) { return <></> }
   const userId = user.id;
 
   const [ upsertPlaidItemMutation ] = useUpsertPlaidItemMutation();
@@ -85,7 +86,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
     }).then(response => { logger.info("Plaid Item upserted"); return response });
 
     Promise.all([ deleteNonSharedAccountsPromise, upsertPlaidItemPromise ])
-    .then(([ _, upsertPlaidItemResponse ]) => onSuccessCallback(upsertPlaidItemResponse.data?.plaidItem))
+    .then(([ _, upsertPlaidItemResponse ]) => onSuccessCallback(upsertPlaidItemResponse.data?.plaidItem!))
   }, [ onSuccessCallback, deletePlaidAccountsMutation, upsertPlaidItemMutation ])
 
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {

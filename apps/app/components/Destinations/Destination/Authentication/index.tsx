@@ -30,4 +30,6 @@ export const DestinationAuthentication = ({ destinationId, authentication, integ
   if ( integrationId === Integrations_Enum.Coda ) {
     return <Coda />
   }
+
+  return <></>
 }

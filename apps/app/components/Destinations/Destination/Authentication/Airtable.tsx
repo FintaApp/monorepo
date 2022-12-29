@@ -86,7 +86,7 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
           <Select 
             value = { value } 
             options = { options } 
-            onChange = { onChange } 
+            onChange = { (item: any) => onChange(item) } 
             isLoading = { isLoadingBases }
             noOptionsMessage = { () => hasLoadedBases ? "No bases have been shared with Finta" : "Hit the refresh button to fetch your Airtable Bases"}
             placeholder = { hasLoadedBases ? "Select Base" : "Hit the refresh button to fetch your Airtable Bases" }

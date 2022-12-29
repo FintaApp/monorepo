@@ -16,7 +16,7 @@ export const security = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedSecurity[field.field];
+      const value = formattedSecurity[field.field as keyof typeof formattedSecurity];
       return [ field.field_id, value ]
     }))
   },
@@ -30,7 +30,7 @@ export const security = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedSecurity[field.field];
+      const value = formattedSecurity[field.field as keyof typeof formattedSecurity];
       return [ field.field_id, value ]
     }))
   }

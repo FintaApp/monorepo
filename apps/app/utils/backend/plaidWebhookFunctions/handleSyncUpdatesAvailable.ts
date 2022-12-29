@@ -61,7 +61,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
   const transactions = added.concat(modified);
   const categories = _.uniqBy(transactions
     .filter(transaction => !!transaction.category_id && !!transaction.category)
-    .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length -1], category_group: transaction.category![0] }))
+    .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length -1]!, category_group: transaction.category![0]! }))
   , 'id')
   const accounts = await getAccounts({ accessToken }).then(response => response.data.accounts);
   
@@ -83,7 +83,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
         transactions: transactions.filter(transaction => destinationAccounts.includes(transaction.account_id) && transaction.date >= destination.sync_start_date),
         removedTransactions: removed as string[],
         categories,
-        timezone: destination.user.profile.timezone,
+        timezone: destination.user.profile.timezone!,
         shouldOverrideTransactionName: destination.should_override_transaction_name
       });
 
@@ -103,7 +103,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
       return Promise.all([
         segment.trackDestinationErrorTriggered({
           userId: item.user.id,
-          error: destinationCheck.error,
+          error: destinationCheck.error!,
           integration: destination.integration.id,
           destinationName: destination.name,
           destinationId: destination.id,
@@ -113,7 +113,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
           userId: item.user.id,
           syncLogId: syncLog.id,
           destinationId: destination.id,
-          error: destinationCheck.error
+          error: destinationCheck.error!
         }),
         graphql.InsertDestinationSyncLog({
         destination_sync_log: {

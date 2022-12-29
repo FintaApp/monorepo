@@ -29,7 +29,7 @@ export const onUpdateUser = async ({ body, logger }: { body: DBEventPayload<'UPD
     await Promise.all([
       trackUserDeleted({ userId: newUser.id })
         .then(() => logger.info("User deleted event tracked")),
-      identify({ userId: newUser.id, traits: { email: null, name: null, deleted_at: new Date() }}),
+      identify({ userId: newUser.id, traits: { email: undefined, name: undefined, deleted_at: new Date() }}),
       logger.logUserDeleted({ userId: newUser.id })
     ])
 

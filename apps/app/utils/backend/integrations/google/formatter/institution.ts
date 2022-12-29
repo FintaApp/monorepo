@@ -16,7 +16,7 @@ export const institution = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedItem[field.field];
+      const value = formattedItem[field.field as keyof typeof formattedItem];
       return [ field.field_id, value ]
     }))
 
@@ -35,7 +35,7 @@ export const institution = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedItem[field.field];
+      const value = formattedItem[field.field as keyof typeof formattedItem];
       return [ field.field_id, value ]
     }))
 

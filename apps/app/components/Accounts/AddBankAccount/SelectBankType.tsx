@@ -8,7 +8,7 @@ import { LargeIconButton } from "~/components/LargeIconButton";
 
 interface SelectBankTypeProps {
   onClick: (product: Products ) => void;
-  loadingProduct: Products | null
+  loadingProduct?: Products
 }
 
 export const SelectBankType = ({ onClick, loadingProduct }: SelectBankTypeProps) => (

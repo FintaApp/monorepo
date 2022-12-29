@@ -10,7 +10,7 @@ export const category = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedCategory[field.field];
+      const value = formattedCategory[field.field as keyof typeof formattedCategory];
       return [ field.field_id, value ]
     }))
   }

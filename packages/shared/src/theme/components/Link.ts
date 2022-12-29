@@ -1,8 +1,8 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { defineStyleConfig } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Link = {
-  baseStyle: (props: StyleFunctionProps) => ({
+export const Link: any = defineStyleConfig({
+  baseStyle: (props) => ({
       _focus: {
         boxShadow: "none"
       },
@@ -12,4 +12,4 @@ export const Link = {
         textDecoration: 'none'
       }
     })
-  }
+  })

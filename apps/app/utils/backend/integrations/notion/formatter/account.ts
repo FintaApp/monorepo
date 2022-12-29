@@ -21,7 +21,7 @@ export const account = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedAccount[field.field];
+      const value = formattedAccount[field.field as keyof typeof formattedAccount];
       return [ field.field_id, value ]
     }))
   },
@@ -36,7 +36,7 @@ export const account = {
     }
   
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedAccount[field.field];
+      const value = formattedAccount[field.field as keyof typeof formattedAccount];
       return [ field.field_id, value ]
     }))
   }

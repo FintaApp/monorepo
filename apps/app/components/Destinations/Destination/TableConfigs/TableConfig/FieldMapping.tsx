@@ -41,7 +41,7 @@ export const FieldMapping = ({ isLegacyAirtable, integrationId, tableType, onCha
           noOptionsMessage = { () => "There are no remaining fields" }
           placeholder = "Finta Field"
           isDisabled = { isDisabled }
-          onChange = { (item: typeof fintaFieldOptions[0]) => onChangeField('update', { field: item?.value || "", field_id: field?.field_id || "" }, index ) }
+          onChange = { (item: any) => onChangeField('update', { field: item?.value || "", field_id: field?.field_id || "" }, index ) }
         />
 
         <Icon as = { icon } />
@@ -59,7 +59,7 @@ export const FieldMapping = ({ isLegacyAirtable, integrationId, tableType, onCha
                 placeholder = "Destination Field"
                 options = { getAllowedFieldOptions(integrationId, tableType, field.field, destinationFieldOptions )}
                 value = { destinationFieldOptions.find(option => option.value === field.field_id )}
-                onChange = { (item: typeof destinationFieldOptions[0]) => onChangeField('update', { field: field.field, field_id: item.value }, index)}
+                onChange = { (item: any ) => onChangeField('update', { field: field.field, field_id: item.value }, index)}
               />
           }
           <FormErrorMessage mt = "0">{ errorMessage }</FormErrorMessage>

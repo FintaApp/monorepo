@@ -77,7 +77,7 @@ export const AddDestination = ({ oauthClient, state }: AddDestinationProps) => {
             <IntegrationHeader integration = { oauthClient.integration as IntegrationModel } />
             <DestinationName value = { destinationName } onChange = { setDestinationName } />
             <SyncStartDate value = { syncStartDate } onChange = { setSyncStartDate } />
-            <DestinationAccounts selectedAccountIds = { connectedAccounts } onChange = { setConnectedAccounts } />
+            <DestinationAccounts selectedAccountIds = { connectedAccounts || [] } onChange = { setConnectedAccounts } />
 
             <DividerWithText text = "Table Configurations" />
             <TableConfigs 

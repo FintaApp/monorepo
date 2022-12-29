@@ -24,7 +24,7 @@ export const handleCustomerSubscriptionCreated = async ({ data, customer, user, 
 
   if ( !['active', 'trialing'].includes(subscription.status) ) { return; };
 
-  const plan = subscription.items.data[0].plan.interval;
+  const plan = subscription.items.data[0]!.plan.interval;
   const remainingTrialDays = subscription.trial_end ? moment.unix(subscription.trial_end).diff(moment(), 'days') : undefined;
 
   analytics.trackSubscriptionStarted({ userId: user.id, plan, remainingTrialDays, timestamp })

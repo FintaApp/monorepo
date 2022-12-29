@@ -1,10 +1,10 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { defineStyleConfig } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const FormError = {
-  baseStyle: (props: StyleFunctionProps) => ({
+export const FormError: any = defineStyleConfig({
+  baseStyle: (props) => ({
     text: {
       color: mode("tomato.light.11", "tomato.dark.11")(props)
     }
   })
-}
+})

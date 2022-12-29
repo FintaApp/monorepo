@@ -1,7 +1,8 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
+import { defineStyleConfig } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const FormLabel = {
-  baseStyle: (props: StyleFunctionProps) => ({
+export const FormLabel: any = defineStyleConfig({
+  baseStyle: (props) => ({
     fontSize: "sm"
   })
-}
+})

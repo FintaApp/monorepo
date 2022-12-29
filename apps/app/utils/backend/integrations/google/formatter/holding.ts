@@ -15,7 +15,7 @@ export const holding = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedHolding[field.field];
+      const value = formattedHolding[field.field as keyof typeof formattedHolding];
       return [ field.field_id, value ]
     }))
   },
@@ -30,7 +30,7 @@ export const holding = {
     };
 
     return Object.fromEntries(tableConfigFields.map(field => {
-      const value = formattedHolding[field.field];
+      const value = formattedHolding[field.field as keyof typeof formattedHolding];
       return [ field.field_id, value ]
     }))
   }

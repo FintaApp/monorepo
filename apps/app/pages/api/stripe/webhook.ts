@@ -37,7 +37,7 @@ export default async function handler(req: Request, res: Response) {
     return res.status(200).send("OK")
   }
 
-  const func = stripeEventFunctions[eventFunctionMapping[eventType]];
+  const func = stripeEventFunctions[eventFunctionMapping[eventType as keyof typeof eventFunctionMapping]!];
   if ( !func ) {
     // await logger.error(new Error("Stripe webhook event not handled"), { eventType });
     return res.status(500).send("Internal Error")
@@ -56,7 +56,7 @@ export default async function handler(req: Request, res: Response) {
   const user = await graphql.GetUserByCustomerId({ customerId })
   .then(async response => {
     // logger.info("Fetched user by customerId", { response });
-    if ( response.userProfiles[0].user ) { return response.userProfiles[0].user };
+    if ( response.userProfiles[0]?.user ) { return response.userProfiles[0]?.user };
 
     // If not found, search stripe
     if ( customer.metadata.user_id ) {

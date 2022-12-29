@@ -52,7 +52,7 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
         accounts: accounts.filter(account => destinationAccounts.includes(account.account_id)),
         investmentTransactions: investmentTransactions.filter(transaction => destinationAccounts.includes(transaction.account_id) && transaction.date >= destination.sync_start_date),
         securities,
-        timezone: destination.user.profile.timezone
+        timezone: destination.user.profile.timezone!
       })
 
       return graphql.InsertDestinationSyncLog({
@@ -70,7 +70,7 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
       return Promise.all([
         segment.trackDestinationErrorTriggered({
           userId: item.user.id,
-          error: destinationCheck.error,
+          error: destinationCheck.error!,
           integration: destination.integration.id,
           destinationName: destination.name,
           destinationId: destination.id,
@@ -80,7 +80,7 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
           userId: item.user.id,
           syncLogId: syncLog.id,
           destinationId: destination.id,
-          error: destinationCheck.error
+          error: destinationCheck.error!
         }),
         graphql.InsertDestinationSyncLog({
         destination_sync_log: {

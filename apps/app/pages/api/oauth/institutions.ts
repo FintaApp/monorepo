@@ -9,12 +9,12 @@ export default wrapper('oauth', async ({ req, destination, plaidEnv, logger }) =
   const trigger = 'destination'
   const syncLog = await graphql.InsertSyncLog({ sync_log: { 
     trigger,
-    destination_sync_logs: { data: [{ destination_id: destination.id }]},
+    destination_sync_logs: { data: [{ destination_id: destination!.id }]},
     metadata: { 'target_table': 'institutions' }
   }}).then(response => response.sync_log!);
   logger.addContext({ syncLogId: syncLog.id });
 
-  return getOauthPlaidItems(destination.id, undefined, true)
+  return getOauthPlaidItems(destination!.id, undefined, true)
   .then(async data => {
     const items = data.plaid_items.map(item => formatter.coda.institution({ item }));
     await Promise.all([
@@ -25,13 +25,13 @@ export default wrapper('oauth', async ({ req, destination, plaidEnv, logger }) =
       }))
     }),
     logger.logSyncCompleted({
-      userId: destination.user.id,
+      userId: destination!.user.id,
       trigger,
       isSuccess: true,
-      integration: destination.integration.id,
+      integration: destination!.integration.id,
       institutionsSynced: items.length,
       syncLogId: syncLog.id,
-      destinationId: destination.id,
+      destinationId: destination!.id,
       targetTable: "institutions"
     }),
     graphql.UpdateSyncLog({

@@ -16,7 +16,7 @@ export const parseAirtableError = async (err: AirtableError, table: string, tabl
       tableType
     }
   } else if ( err.error === "UNKNOWN_FIELD_NAME" ) {
-    const field = err.message.split(": ")[1].replace(/"/g, '')
+    const field = err.message.split(": ")[1]!.replace(/"/g, '')
     return {
       errorCode: DestinationErrorCode.MISSING_FIELD,
       table,

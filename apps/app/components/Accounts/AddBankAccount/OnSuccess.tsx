@@ -50,7 +50,7 @@ export const OnSuccess = ({ plaidItem, onFinish }: OnSuccessProps) => {
   } else if ( destinations.length === 1 ) {
     return (
       <Box>
-        <Text textAlign = "center">Would you like to connect your { institution.name } account{accounts.length > 1 ? "s" : ""} to your {destinations[0].name} Destination?</Text>
+        <Text textAlign = "center">Would you like to connect your { institution.name } account{accounts.length > 1 ? "s" : ""} to your {destinations[0]?.name} Destination?</Text>
           <HStack mt = "4" justifyContent = "space-between">
             <Button onClick = { onFinish }>No</Button>
             <Button variant = "primary" onClick = { onSubmit } isLoading = { isCreatingDestinationAccounts }>Yes</Button>

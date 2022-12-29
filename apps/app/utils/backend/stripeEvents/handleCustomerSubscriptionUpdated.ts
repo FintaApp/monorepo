@@ -23,7 +23,7 @@ export const handleCustomerSubscriptionUpdated = async ({ data, customer, user, 
     timestamp
   })
 
-  const plan = subscription.items.data[0].plan.interval;
+  const plan = subscription.items.data[0]!.plan.interval;
   if ( !!previousCancelAtPeriodEnd && !subscription.cancel_at_period_end ) {
     analytics.trackSubscriptionResumed({ userId: user.id, plan, timestamp })
     // await logger.logSubscriptionResumed({ userId: user.id, plan })

@@ -12,13 +12,13 @@ export default wrapper('oauth', async function handler({ req, logger, destinatio
   const trigger = 'destination';
   const syncLog = req.body.data?.syncLogId ? { id: req.body.data.syncLogId } : (await graphql.InsertSyncLog({ sync_log: { 
     trigger,
-    destination_sync_logs: { data: [{ destination_id: destination.id }]},
+    destination_sync_logs: { data: [{ destination_id: destination!.id }]},
     metadata: { 'target_table': 'transactions' }
   }}).then(response => response.sync_log!));
   logger.addContext({ syncLogId: syncLog.id });
 
-  const transactionsTableConfig = destination.table_configs.transactions;
-  const shouldSyncTransactions = (transactionsTableConfig && transactionsTableConfig.is_enabled) || (!transactionsTableConfig && destination.should_sync_transactions)
+  const transactionsTableConfig = destination!.table_configs.transactions;
+  const shouldSyncTransactions = (transactionsTableConfig && transactionsTableConfig.is_enabled) || (!transactionsTableConfig && destination!.should_sync_transactions)
   if ( !shouldSyncTransactions ) {
     await graphql.UpdateSyncLog({
       sync_log_id: syncLog.id,
@@ -31,13 +31,13 @@ export default wrapper('oauth', async function handler({ req, logger, destinatio
     return { status: 200, message: { transactions: [] }}
   }
 
-  const { plaid_items, error_count } = await getOauthPlaidItems(destination.id, syncLog.id);
+  const { plaid_items, error_count } = await getOauthPlaidItems(destination!.id, syncLog.id);
   if ( error_count > 0 ) {
     return { status: 428, message: "Has Error Item" }
   };
 
   const endDate = moment().format("YYYY-MM-DD");
-  const startDate = destination.sync_start_date;
+  const startDate = destination!.sync_start_date;
   const paginationByItem = req.body.data?.paginationByItem || [];
 
   return Promise.all(plaid_items.map(async item => {
@@ -105,13 +105,13 @@ export default wrapper('oauth', async function handler({ req, logger, destinatio
           }
         }),
         logger.logSyncCompleted({
-          userId: destination.user.id,
+          userId: destination!.user.id,
           trigger,
           isSuccess: true,
-          integration: destination.integration.id,
+          integration: destination!.integration.id,
           institutionsSynced: plaid_items.length,
           syncLogId: syncLog.id,
-          destinationId: destination.id,
+          destinationId: destination!.id,
           targetTable: "transactions"
         }),
         graphql.InsertPlaidItemSyncLogs({
