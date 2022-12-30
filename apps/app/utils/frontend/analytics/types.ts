@@ -1,7 +1,6 @@
 export enum AnalyticsEvent {
   PLAID_PORTAL_OPENED = "Plaid Portal Opened",
-  PLAID_PORTAL_CLOSED = "Plaid Portal Closed",
-  PASSWORD_CHANGED = "Password Changed"
+  PLAID_PORTAL_CLOSED = "Plaid Portal Closed"
 };
 
 export enum AnalyticsPage {

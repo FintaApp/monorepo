@@ -5,7 +5,7 @@ import { Frequency } from "@prisma/client";
 
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { auth as nhostAuth } from "~/utils/backend/nhost";
-import { backendIdentify as identify, formatUserForIdentify, trackUserDeleted, trackUserUpdated } from "~/lib/analytics";
+import { backendIdentify as identify, formatUserForIdentify, trackPasswordChanged, trackUserDeleted, trackUserUpdated } from "~/lib/analytics";
 import { createCustomer, getCustomerByEmail, getCustomerSubscription, updateCustomer, cancelSubscription } from "~/lib/stripe";
 import { logUserSignedUp } from "~/lib/logsnag";
 import { backendIdentify, trackUserSignedIn, trackUserSignedUp } from "~/lib/analytics";
@@ -274,5 +274,22 @@ export const userRouter = router({
           trackEventPromise,
           updateUserPromise
         ])
+      }),
+
+    changePassword: publicProcedure
+    .input(
+      z.object({
+        password: z.string()
       })
+    )
+    .mutation(async ({ ctx: { session, db, logger }, input: { password }}) => {
+      const userId = session!.user.id;
+      const passwordHash = await hash(password, 6);
+      
+      return Promise.all([
+        db.user.update({ where: { id: userId }, data: { passwordHash }}).then(() => logger.info("Updated password hash")),
+
+        trackPasswordChanged({ userId }).then(() => logger.info("Tracked password changed event"))
+      ])
+    })
 })

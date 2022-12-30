@@ -28,6 +28,3 @@ export const reset = () =>{
   if ( typeof global === 'undefined' ) { return;}
   analytics.reset();
 }
-
-export const trackPasswordChanged = () =>
-  track({ event: AnalyticsEvent.PASSWORD_CHANGED })

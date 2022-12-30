@@ -19,6 +19,7 @@ const Settings = () => {
         <SettingsSection title = "Profile" description = "Update your profile and login details">
           <Profile.DisplayName />
           <Profile.Email />
+          <Profile.ChangePassword />
           <Profile.JoinedOn />
         </SettingsSection>
 
