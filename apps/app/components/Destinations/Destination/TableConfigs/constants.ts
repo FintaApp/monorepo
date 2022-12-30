@@ -1,6 +1,6 @@
 import { Integrations_Enum } from "~/graphql/frontend";
 import { InstitutionsTableFields, AccountsTableFields, CategoryTableFields, TransactionsTableFields, HoldingsTableFields, InvestmentTransactionsTableFields, SecurityTableFields, DestinationTableTypes, TableConfigFields, AirtableFieldType, NotionPropertyType, INSTITUTION_TABLE_FIELDS, ACCOUNTS_TABLE_FIELDS, TRANSACTIONS_TABLE_FIELDS, HOLDINGS_TABLE_FIELDS, CATEGORIES_TABLE_FIELDS, INVESTMENT_TRANSACTIONS_TABLE_FIELDS, SECURITIES_TABLE_FIELDS } from "~/types/shared/models"
-import { ToastStatusType } from "~/components/Toast";
+import { ToastStatusType } from "~/components/Common/Toast";
 
 export const ALWAYS_ENABLED_DATA_TYPES = [DestinationTableTypes.INSTITUTIONS, DestinationTableTypes.ACCOUNTS, DestinationTableTypes.SECURITIES, DestinationTableTypes.CATEGORIES];
 export const SUCCESS_TOAST_CONFIG = { status: 'success' as ToastStatusType, title: 'Table Configuraton Saved' };

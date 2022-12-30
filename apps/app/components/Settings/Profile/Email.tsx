@@ -14,7 +14,7 @@ export const Email = () => {
     <HStack justifyContent = "space-between">
       <Box>
         <FormLabel>Email</FormLabel>
-        <Text>{ user!.email }</Text>
+        <Text>{ user?.email }</Text>
       </Box>
       {/* <Badge variant = { user!.email_verified ? "success" : "error"  }>{ user!.email_verified ? "Verified" : "Not Verified" }</Badge> */}
     </HStack>

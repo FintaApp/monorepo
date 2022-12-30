@@ -1,19 +1,20 @@
 import moment, { Moment } from "moment-timezone";
 import * as _ from "lodash";
+import { Frequency } from "@prisma/client";
 
 import { wrapper } from "~/utils/backend/apiWrapper";
 import * as cio from "~/utils/backend/cio";
-import { Frequencies_Enum } from "~/graphql/backend/sdk";
 import { graphql } from "~/graphql/backend";
-import * as easyCron from "~/utils/backend/easyCron";
+import { db } from "~/lib/db";
+import * as easyCron from "~/lib/easyCron";
 import { storage } from "~/utils/backend/nhost";
 
 const frequencyToMomentUnit = {
-  [Frequencies_Enum.Daily]: 'day' as moment.unitOfTime.DurationConstructor,
-  [Frequencies_Enum.Weekly]: 'isoWeek' as moment.unitOfTime.DurationConstructor,
-  [Frequencies_Enum.Monthly]: 'month' as moment.unitOfTime.DurationConstructor,
-  [Frequencies_Enum.Quarterly]: 'quarter' as moment.unitOfTime.DurationConstructor,
-  [Frequencies_Enum.Yearly]: 'year' as moment.unitOfTime.DurationConstructor
+  [Frequency.Daily]: 'day' as moment.unitOfTime.DurationConstructor,
+  [Frequency.Weekly]: 'isoWeek' as moment.unitOfTime.DurationConstructor,
+  [Frequency.Monthly]: 'month' as moment.unitOfTime.DurationConstructor,
+  [Frequency.Quarterly]: 'quarter' as moment.unitOfTime.DurationConstructor,
+  [Frequency.Yearly]: 'year' as moment.unitOfTime.DurationConstructor
 }
 
 const integrationLogos = {
@@ -32,19 +33,20 @@ export default wrapper('public', async function handler({ req, logger }) {
   const userId = req.body.userId;
   if ( !userId ) { return { status: 400, message: "Missing user ID" }}
 
-  // Fetch user profile
-  const userProfile = await graphql.GetUserProfile({ userId })
-    .then(async response => {
-      await logger.info("User profile fetched", { response });
-      return response.userProfile
+  // Fetch user;
+  const user = await db.user.findFirstOrThrow({ where: { id: userId }})
+    .then(response => {
+      logger.info("Fetched user", { response });
+      return response;
     })
-  if ( !userProfile ) { return { status: 400, message: "Missing user profile" }};
-  const { timezone, syncUpdatesFrequency: frequency, isSubscribedSyncUpdates, syncUpdatesJobId } = userProfile;
-  if ( !isSubscribedSyncUpdates ) {
-    syncUpdatesJobId && await easyCron.disableJob({ jobId: syncUpdatesJobId });
+
+  const { timezone, periodicUpdatesFrequency: frequency, isSubscribedPeriodicUpdates, periodicUpdatesJobId } = user;
+  if ( !isSubscribedPeriodicUpdates ) {
+    periodicUpdatesJobId && await easyCron.disableJob({ jobId: periodicUpdatesJobId });
     return { status: 200, message: "OK" }
   }
-  const { start, end } = getTimePeriod(timezone || 'America/New_York', frequency || Frequencies_Enum.Weekly);
+
+  const { start, end } = getTimePeriod(timezone || 'America/New_York', frequency || Frequency.Weekly);
 
   // Fetch Other Data
   const [
@@ -153,17 +155,17 @@ export default wrapper('public', async function handler({ req, logger }) {
   }
 });
 
-const getTimePeriod = ( timezone: string, frequency: Frequencies_Enum ) => {
+const getTimePeriod = ( timezone: string, frequency: Frequency ) => {
   const unit = frequencyToMomentUnit[frequency];
   const start = moment.tz(timezone).subtract(1, unit).startOf(unit);
   const end = moment.tz(timezone).subtract(1, unit).endOf(unit);
   return { start, end }
 }
 
-const getTimePeriodString = (dateMoment: Moment, frequency: Frequencies_Enum ) => {
-  if ( frequency === Frequencies_Enum.Daily ) { return dateMoment.format("LL") }
-  if ( frequency === Frequencies_Enum.Weekly ) { return dateMoment.format("[Week] W, YYYY") }
-  if ( frequency === Frequencies_Enum.Monthly ) { return dateMoment.format("MMMM YYYY")}
-  if ( frequency === Frequencies_Enum.Quarterly ) { return dateMoment.format("[Q]Q YYYY") }
-  if ( frequency === Frequencies_Enum.Yearly ) { return dateMoment.format("[Year] YYYY")}
+const getTimePeriodString = (dateMoment: Moment, frequency: Frequency ) => {
+  if ( frequency === Frequency.Daily ) { return dateMoment.format("LL") }
+  if ( frequency === Frequency.Weekly ) { return dateMoment.format("[Week] W, YYYY") }
+  if ( frequency === Frequency.Monthly ) { return dateMoment.format("MMMM YYYY")}
+  if ( frequency === Frequency.Quarterly ) { return dateMoment.format("[Q]Q YYYY") }
+  if ( frequency === Frequency.Yearly ) { return dateMoment.format("[Year] YYYY")}
 }

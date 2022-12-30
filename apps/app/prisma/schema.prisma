@@ -77,11 +77,11 @@ model VerificationToken {
 }
 
 enum Frequency {
-  Daily
-  Weekly
-  Monthly
-  Quarterly
-  Yearly
+  Daily      @map("daily")
+  Weekly     @map("weekly")
+  Monthly    @map("monthly")
+  Quarterly  @map("quarterly")
+  Yearly     @map("yearly")
 
   @@map("frequencies_enum")
 }

@@ -19,8 +19,6 @@ client.interceptors.request.use(config => {
   return config;
 });
 
-export const disableUser = async () => client.post('/user/disable', {});
-
 export const createBillingPortalSession = (props: functionTypes.CreateBillingPortalSessionPayload) =>
   client.post('/stripe/createBillingPortalSession', props)
   .then(response => response.data as functionTypes.CreateBillingPortalSessionResponse)

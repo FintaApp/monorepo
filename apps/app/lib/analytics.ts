@@ -23,11 +23,23 @@ export const trackUserSignedUp = ({ userId, provider }: { userId: string; provid
     properties: { provider }
   })
 
-export const trackUserUpdated = ({ userId, field }: { userId: string; field: string; }) =>
+export const trackUserUpdated = ({ userId, field, oldValue, newValue }: { userId: string; field: string; oldValue: any; newValue: any }) =>
   track({
     userId,
     event: Event.USER_UPDATED,
-    properties: { field }
+    properties: { field, oldValue, newValue }
+  })
+
+export const trackUserDeleted = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: Event.USER_DELETED
+  })
+
+export const trackPasswordChanged = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: Event.PASSWORD_CHANGED
   })
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
@@ -57,10 +69,12 @@ enum Event {
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   INSTITUTION_ACCOUNTS_UPDATED = "Institution Accounts Updated",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
+  PASSWORD_CHANGED = "Password Changed",
   PLAID_LINK_INITIATED = "Plaid Link Initiated",
   USER_SIGNED_IN = "User Signed In",
   USER_SIGNED_UP = "User Signed Up",
   USER_UPDATED = "User Updated",
+  USER_DELETED = "User Deleted",
 }
 
 export enum AnalyticsPage {

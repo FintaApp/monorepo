@@ -17,14 +17,14 @@ import { PasswordField } from "~/components/Forms/PasswordField";
 import { useToast } from "~/utils/frontend/useToast";
 import { password as isPasswordValid } from "~/utils/frontend/validate";
 import { nhost } from "~/utils/nhost";
-import { trackPasswordChanged} from "~/utils/frontend/analytics";
 import { parseAuthError } from "~/lib/parseAuthError";
+import { trpc } from "~/lib/trpc";
 
 
 export const ChangePassword = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const renderToast = useToast();
-
+  const { mutateAsync } = trpc.users.changePassword.useMutation();
   return (
     <>
       <Button 
@@ -44,16 +44,18 @@ export const ChangePassword = () => {
             onSubmit = {({ password }, { setSubmitting, setFieldError }) => {
               nhost.auth.changePassword({ newPassword: password })
               .then(async ({ error }) => {
-                setSubmitting(false);
                 if ( error ) {
+                  setSubmitting(false);
                   const parsedError = await parseAuthError(error);
                   setFieldError(parsedError.field, parsedError.message);
                   return;
                 }
 
-                trackPasswordChanged()
-                renderToast({ status: 'success', title: "Password Updated" });
-                onClose();
+                mutateAsync({ password }).then(() => {
+                  setSubmitting(false);
+                  renderToast({ status: 'success', title: "Password Updated" });
+                  onClose();
+                })
               })
             }}
             validate = {({ password }) => {

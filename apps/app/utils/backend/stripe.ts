@@ -3,8 +3,6 @@ import Stripe from "stripe";
 
 const client = new Stripe(process.env.STRIPE_KEY!, { apiVersion: '2022-11-15'});
 
-export const cancelSubscription = ({ subscriptionId }: { subscriptionId: string }) => client.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
-
 export const createBillingPortalSession = ({ customerId, returnUrl }: { customerId: string, returnUrl: string }) =>
   client.billingPortal.sessions.create({
     customer: customerId,

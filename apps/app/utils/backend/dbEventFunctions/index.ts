@@ -6,6 +6,4 @@ export { onInsertPlaidItem } from "./onInsertPlaidItem";
 export { onUpdateDestination } from "./onUpdateDestination";
 export { onUpdatePlaidAccount } from "./onUpdatePlaidAccount";
 export { onUpdatePlaidItem } from "./onUpdatePlaidItem";
-export { onUpdateUser } from "./onUpdateUser";
 export { onUpsertSyncLog } from "./onUpsertSyncLog";
-export { onUpsertUserProfile } from "./onUpsertUserProfile";
