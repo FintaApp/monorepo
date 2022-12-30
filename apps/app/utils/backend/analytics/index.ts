@@ -85,26 +85,6 @@ export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
     event: SegmentEvent.SUPPORT_TICKET_CREATED
   })
 
-export const trackUserUpdated = ({ userId, field }: { userId: string; field: 'display_name'}) =>
-  track({
-    userId,
-    event: SegmentEvent.USER_UPDATED,
-    properties: { field }
-  })
-
-export const trackUserProfileUpdated = ({ userId, field, oldValue, newValue }: { 
-  userId: string, field: 'timezone' | 'is_subscribed_general' | 'is_subscribed_sync_updates' | 'sync_updates_frequency', oldValue: any; newValue: any 
-}) =>
-  track({
-    userId,
-    event: SegmentEvent.USER_PROFILE_UPDATED,
-    properties: {
-      field,
-      old_value: oldValue,
-      new_value: newValue
-    }
-  })
-
 export const trackUserDeleted = ({ userId }: { userId: string }) =>
   track({
     userId,
@@ -168,8 +148,6 @@ export enum SegmentEvent {
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
   SYNC_COMPLETED = "Sync Completed",
-  USER_UPDATED = "User Updated",
-  USER_PROFILE_UPDATED = "User Profile Updated",
   SUBSCRIPTION_STARTED = "Subscription Started",
   SUBSCRIPTION_ENDED = "Subscription Ended",
   SUBSCRIPTION_RESUMED = "Subscription Resumed",

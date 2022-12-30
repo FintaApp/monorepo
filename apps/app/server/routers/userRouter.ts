@@ -1,13 +1,17 @@
 import { z } from "zod";
 import { hash, compare } from 'bcryptjs';
 import Stripe from "stripe";
+import { Frequency } from "@prisma/client";
 
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { auth as nhostAuth } from "~/utils/backend/nhost";
-import { createCustomer, getCustomerByEmail } from "~/lib/stripe";
+import { backendIdentify as identify, formatUserForIdentify, trackUserUpdated } from "~/lib/analytics";
+import { createCustomer, getCustomerByEmail, updateCustomer } from "~/lib/stripe";
 import { logUserSignedUp } from "~/lib/logsnag";
 import { backendIdentify, trackUserSignedIn, trackUserSignedUp } from "~/lib/analytics";
 import { parseAuthError } from "~/lib/parseAuthError";
+import { TRPCError } from "@trpc/server";
+import { upsertJob } from "~/lib/easyCron";
 
 export const userRouter = router({
   onLogIn: publicProcedure
@@ -145,6 +149,72 @@ export const userRouter = router({
             timezone: true
           }
         })
+      }),
+
+    updateUser: protectedProcedure
+    .input(
+      z.object({
+        name: z.optional(z.string()),
+        isSubscribedPeriodicUpdates: z.optional(z.boolean()),
+        isSubsribedGeneral: z.optional(z.boolean()),
+        periodicUpdatesFrequency: z.optional(z.nativeEnum(Frequency)),
+        timezone: z.optional(z.string())
       })
+    )
+    .mutation(async ({ ctx: { session, logger, db }, input }) => {
+      const userId = session!.user.id;
+      const user = await db.user.update({ where: { id: userId }, data: input })
+      logger.info("Updated user", { user })
+      if ( !user ) { throw new TRPCError({ code: 'NOT_FOUND' })};
+
+      const field = Object.keys(input)[0];
+
+      const updateStripeNamePromise = field === 'name'
+        ? updateCustomer({ customerId: user.stripeCustomerId, properties: { name: input.name }})
+          .then(({ lastResponse, ...customer }) => logger.info("Updated Stripe customer with new name", { customer }))
+        : Promise.resolve();
+
+      const trackUserUpdatedPromise = trackUserUpdated({ 
+        userId, 
+        field // Should only be able to change one field at a time
+      })
+      logger.info("Tracked user updated event", { field });
+
+      const upsertJobPromise = ['isSubscribedPeriodicUpdates', 'periodicUpdatesFrequency', 'timezone'].includes(field)
+        ? upsertJob({ 
+            jobId: user.periodicUpdatesJobId || undefined, 
+            job: {
+              userId,
+              frequency: user.periodicUpdatesFrequency,
+              timezone: user.timezone,
+              isEnabled: user.isSubscribedPeriodicUpdates
+            } 
+          })
+          .then(async response => {
+            logger.info("Upserted job", { response })
+            if ( !user.periodicUpdatesJobId ) {
+              return db.user.update({ where: { id: userId }, data: { periodicUpdatesJobId: response.cron_job_id }})
+              .then(response => logger.info("Updated user with jobId", { response }))
+            }
+          })
+        : Promise.resolve()
+
+      // Identify user with new attributes
+      const traits = formatUserForIdentify({ user });
+
+      const identifyPromise = identify({
+        userId,
+        traits
+      })
+      logger.info("Identified user with new traits", { traits })
+
+      await Promise.all([
+        updateStripeNamePromise,
+        trackUserUpdatedPromise,
+        upsertJobPromise,
+        identifyPromise
+      ])
+      return user
+    }),
 
 })

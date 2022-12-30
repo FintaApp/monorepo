@@ -1,7 +1,7 @@
 import axios from "axios";
 import { CronBuilder } from 'cron-builder-ts';
 
-import { Frequencies_Enum } from "~/graphql/backend/sdk";
+import { Frequency } from "@prisma/client";
 
 const syncUpdatesEmailUrl = {
   'development': 'https://finta.ngrok.io/api/sendSyncUpdateEmail',
@@ -10,19 +10,19 @@ const syncUpdatesEmailUrl = {
 }
 
 type Job = {
-  frequency: Frequencies_Enum,
+  frequency: Frequency,
   timezone?: string;
   userId: string;
   isEnabled: boolean;
 }
 
-const getCronExpression = (frequency: Frequencies_Enum) => {
+const getCronExpression = (frequency: Frequency) => {
   const cronExp = new CronBuilder('0 9 * * *');
 
-  if ( frequency === Frequencies_Enum.Weekly ) { cronExp.addValue('dayOfTheWeek', '1')}
-  if ( [Frequencies_Enum.Monthly, Frequencies_Enum.Quarterly, Frequencies_Enum.Yearly].includes(frequency) ) { cronExp.addValue('dayOfTheMonth', '1')}
-  if ( frequency === Frequencies_Enum.Quarterly ) { cronExp.addValue('month', '1,4,7,10') }
-  if ( frequency === Frequencies_Enum.Yearly ) { cronExp.addValue('month', '1')}
+  if ( frequency === Frequency.Weekly ) { cronExp.addValue('dayOfTheWeek', '1')}
+  if ( ([Frequency.Monthly, Frequency.Quarterly, Frequency.Yearly] as Frequency[]).includes(frequency) ) { cronExp.addValue('dayOfTheMonth', '1')}
+  if ( frequency === Frequency.Quarterly ) { cronExp.addValue('month', '1,4,7,10') }
+  if ( frequency === Frequency.Yearly ) { cronExp.addValue('month', '1')}
   return cronExp.build();
 }
 
