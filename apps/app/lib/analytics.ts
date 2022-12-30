@@ -45,11 +45,18 @@ export const trackPasswordChanged = ({ userId }: { userId: string }) =>
     event: Event.PASSWORD_CHANGED
   })
 
-export const trackStripePortalViewed = ({ userId, portalType }: { userId: string; portalType: 'checkout' | 'billing'}) =>
+export const trackStripePortalViewed = ({ userId, mode }: { userId: string; mode: 'checkout' | 'billing'}) =>
   track({
     userId,
     event: Event.STRIPE_PORTAL_VIEWED,
-    properties: { portal_type: portalType }
+    properties: { mode }
+  })
+
+export const trackPlaidLinkInitiated = ({ userId, mode }: { userId: string; mode: 'create' | 'reconnect' | 'addAccounts' }) =>
+  track({
+    userId,
+    event: Event.PLAID_LINK_INITIATED,
+    properties: { mode }
   })
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>

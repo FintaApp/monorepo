@@ -10,26 +10,26 @@ import {
   ModalOverlay,
   useDisclosure
 } from "@chakra-ui/react";
-import { Products } from "plaid";
 
 import { PlaidLink } from "../PlaidLink";
 import { useLogger } from "~/utils/frontend/useLogger";
 import { PlaidItemModel } from "~/types/frontend/models";
-import { createPlaidLinkToken } from "~/utils/frontend/functions";
 
 import { OnSuccess } from "./OnSuccess";
 import { SelectBankType } from "./SelectBankType";
 import { LoadingPlaidItem } from "./LoadingPlaidItem";
 import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
+import { PlaidProduct } from "~/types";
 
 export const AddBankAccount = () => {
   const { hasAppAccess } = useUser();
   
   const logger = useLogger();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  const { mutateAsync } = trpc.plaid.createLinkToken.useMutation();
   const [ newPlaidItem, setNewPlaidItem ] = useState(undefined as PlaidItemModel | undefined )
-  const [ loadingProduct, setLoadingProduct ] = useState(undefined as Products | undefined);
+  const [ loadingProduct, setLoadingProduct ] = useState(undefined as PlaidProduct | undefined);
   const [ mode, setMode ] = useState<"selectBankType" | "loadingPlaidItem" | "onSuccess">("selectBankType" );
   const [ linkToken, setLinkToken ] = useState(undefined as string | undefined);
 
@@ -42,16 +42,11 @@ export const AddBankAccount = () => {
 
   const canAddAccount = !!hasAppAccess;
 
-  const onSelectBankType = async (product: Products) => {
+  const onSelectBankType = async (product: PlaidProduct) => {
     setLoadingProduct(product);
-    createPlaidLinkToken({ products: [ product ]})
-    .then(response => {
-      logger.info("Link token created", { response });
-      const { link_token } = response;
-      if ( !link_token ) { logger.error(new Error("No link token returned"), {}, true); return; }
-      setLinkToken(link_token)
-    })
-    .finally(() => setLoadingProduct(undefined))
+    mutateAsync({ product })
+      .then(({ token }) => { setLinkToken(token)})
+      .finally(() => setLoadingProduct(undefined))
   }
 
   const onConnectCallback = useCallback(async () => { setMode("loadingPlaidItem")}, [])

@@ -69,7 +69,7 @@ export const stripeRouter = router({
 
       return stripe.createBillingPortalSession({ customerId, returnUrl })
         .then(async response => {
-          await trackStripePortalViewed({ userId: user.id, portalType: 'billing' })
+          await trackStripePortalViewed({ userId: user.id, mode: 'billing' })
           logger.info("Created billing portal", { response });
           return { url: response.url }
         })
@@ -117,7 +117,7 @@ export const stripeRouter = router({
           trialPeriodDays
         })
         .then(async response => {
-          await trackStripePortalViewed({ userId: user.id, portalType: 'checkout' })
+          await trackStripePortalViewed({ userId: user.id, mode: 'checkout' })
           logger.info("Created checkout portal", { response });
           return { url: response.url }
         })

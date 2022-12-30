@@ -5,27 +5,21 @@ import {
 import { UpdateIcon } from "@radix-ui/react-icons";
 
 import { PlaidLink } from "../PlaidLink";
-import { createPlaidLinkToken } from "~/utils/frontend/functions";
 import { useToast } from "~/utils/frontend/useToast";
 import { PlaidItemModel } from "~/types/frontend/models";
 import { useLogger } from "~/utils/frontend/useLogger";
+import { trpc } from "~/lib/trpc";
 
 export const FixConnection = ({ plaidItem }: { plaidItem: PlaidItemModel }) => {
   const renderToast = useToast();
   const logger = useLogger();
+  const { mutateAsync: createPlaidLinkToken, isLoading } = trpc.plaid.createLinkToken.useMutation();
   
-  const [ isLoading, setIsLoading ] = useState(false);
   const [ linkToken, setLinkToken ] = useState(null as string | null);
 
   const onClick = () => {
-    setIsLoading(true);
-    createPlaidLinkToken({ products: [], accessToken: plaidItem.accessToken })
-    .then(response => {
-      logger.info("Plaid link token response", { response });
-      setLinkToken(response.link_token)
-    })
-    .catch(error => logger.error(error, { plaidItemId: plaidItem.id }, true))
-    .finally(() => setIsLoading(false))
+    createPlaidLinkToken({ plaidItemId: plaidItem.id })
+    .then(response => setLinkToken(response.token))
   }
 
   const onExitCallback = useCallback(() => { setLinkToken(null)}, []);

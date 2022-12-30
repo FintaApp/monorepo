@@ -5,9 +5,10 @@ import { AxiomAPIRequest } from "next-axiom";
 import { Context } from "./context";
 
 const removeUnsafeBody = (body: Record<string, any>): Record<string, any> => {
+  console.log(body)
   const unsafeProperties = ['password'];
   return Object.entries(body).reduce((prevValue, [key, value]) => {
-    if ( typeof value === 'object' ) {
+    if ( !!value && typeof value === 'object' && !Array.isArray(value) ) {
       return { ...prevValue, ...removeUnsafeBody(value) }
     }
     return { ...prevValue, [key]: unsafeProperties.includes(key) ? '**hidden**' : value }

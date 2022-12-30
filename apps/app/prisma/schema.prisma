@@ -63,6 +63,7 @@ model User {
 
   accounts          Account[]
   sessions          Session[]
+  linkToken         LinkToken?
 
   @@map("users")
 }
@@ -74,6 +75,15 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model LinkToken {
+  id                          String      @id @default(uuid())
+  token                       String      @unique
+  userId                      String      @map("user_id") @unique
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  @@map("link_tokens")
+  @@index([userId])
 }
 
 enum Frequency {
