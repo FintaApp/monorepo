@@ -3,7 +3,7 @@ import moment from "moment-timezone";
 
 import { AllBackendUserFieldsFragment } from "~/graphql/backend/sdk"
 import * as analytics from "../analytics";
-import { getTrialEndsAt } from "../stripe";
+import { calculateTrialEndsAt } from "~/lib/stripe";
 
 export const handleCustomerSubscriptionUpdated = async ({ data, customer, user, timestamp }: { data: Stripe.Event.Data; customer: Stripe.Customer; timestamp: Date, user: AllBackendUserFieldsFragment }) => {
   const subscription = data.object as Stripe.Subscription;
@@ -12,7 +12,7 @@ export const handleCustomerSubscriptionUpdated = async ({ data, customer, user, 
   // Identify user with new subscription
   const traits = {
     ...analytics.formatSubscriptionForIdentify({ subscriptionFromStripe: subscription }),
-    trial_ends_at: getTrialEndsAt({ 
+    trial_ends_at: calculateTrialEndsAt({ 
       subscriptionTrialEndsAt: subscription.trial_end || undefined, 
       customer 
     })

@@ -12038,11 +12038,6 @@ export type UpsertPlaidItemMutationVariables = Exact<{
 
 export type UpsertPlaidItemMutation = { __typename?: 'mutation_root', plaidItem?: { __typename: 'plaid_items', id: string, created_at: any, synced_at?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, accessToken: string, consentExpiresAt?: any | null, disabled_at?: any | null, institution: { __typename?: 'plaid_institutions', id: string, name: string, logo_file?: { __typename?: 'files', id: any } | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, plaid_item_id: string, created_at: any, mask?: string | null, name: string, destination_connections: Array<{ __typename?: 'destination_accounts', destination: { __typename?: 'destinations', id: any, integration: { __typename?: 'integrations', id: string, name: string } } }> }> } | null };
 
-export type GetStripePricesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetStripePricesQuery = { __typename?: 'query_root', stripePrices: Array<{ __typename?: 'StripePrice', id: string, interval: PriceInterval, unitAmount: number, productId: string }> };
-
 export type AllFrontendSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, destination: { __typename?: 'destinations', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } } }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, plaid_item: { __typename: 'plaid_items', id: string, institution: { __typename?: 'plaid_institutions', name: string, logo_file?: { __typename?: 'files', id: any } | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string }> } }> };
 
 export type GetSyncLogsQueryVariables = Exact<{
@@ -12794,43 +12789,6 @@ export function useUpsertPlaidItemMutation(baseOptions?: Apollo.MutationHookOpti
 export type UpsertPlaidItemMutationHookResult = ReturnType<typeof useUpsertPlaidItemMutation>;
 export type UpsertPlaidItemMutationResult = Apollo.MutationResult<UpsertPlaidItemMutation>;
 export type UpsertPlaidItemMutationOptions = Apollo.BaseMutationOptions<UpsertPlaidItemMutation, UpsertPlaidItemMutationVariables>;
-export const GetStripePricesDocument = gql`
-    query GetStripePrices {
-  stripePrices {
-    id
-    interval
-    unitAmount
-    productId
-  }
-}
-    `;
-
-/**
- * __useGetStripePricesQuery__
- *
- * To run a query within a React component, call `useGetStripePricesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetStripePricesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetStripePricesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetStripePricesQuery(baseOptions?: Apollo.QueryHookOptions<GetStripePricesQuery, GetStripePricesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetStripePricesQuery, GetStripePricesQueryVariables>(GetStripePricesDocument, options);
-      }
-export function useGetStripePricesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStripePricesQuery, GetStripePricesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetStripePricesQuery, GetStripePricesQueryVariables>(GetStripePricesDocument, options);
-        }
-export type GetStripePricesQueryHookResult = ReturnType<typeof useGetStripePricesQuery>;
-export type GetStripePricesLazyQueryHookResult = ReturnType<typeof useGetStripePricesLazyQuery>;
-export type GetStripePricesQueryResult = Apollo.QueryResult<GetStripePricesQuery, GetStripePricesQueryVariables>;
 export const GetSyncLogsDocument = gql`
     query GetSyncLogs($offset: Int!) {
   sync_logs(limit: 10, offset: $offset, order_by: {created_at: desc_nulls_last}) {

@@ -52,3 +52,28 @@ export const upsertCustomer = async ({ userId, email, name }: { userId: string; 
 }
 
 export const cancelSubscription = ({ subscriptionId }: { subscriptionId: string }) => client.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
+
+export const createBillingPortalSession = ({ customerId, returnUrl }: { customerId: string, returnUrl: string }) =>
+  client.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl
+  }).then(response => ({ id: response.id, url: response.url }));
+
+export const createCheckoutPortalSession = ({ customerId, priceId, successUrl, cancelUrl, trialEnd, trialPeriodDays }: { 
+    customerId: string, priceId: string, successUrl: string, cancelUrl: string, trialEnd?: number, trialPeriodDays?: number
+  }) =>
+    client.checkout.sessions.create({
+      customer: customerId,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      mode: 'subscription',
+      allow_promotion_codes: true,
+      line_items: [{
+        price: priceId,
+        quantity: 1,
+      }],
+      subscription_data: trialEnd || trialPeriodDays ? {
+        trial_end: trialEnd,
+        trial_period_days: trialPeriodDays
+      } : undefined
+    }).then(response => ({ id: response.id, url: response.url }))
