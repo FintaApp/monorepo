@@ -7,12 +7,13 @@ import {
   usePlaidLink
 } from "react-plaid-link";
 
-import { useUpsertPlaidItemMutation, useDeletePlaidAccountsMutation, useUpdateUserMutation, Plaid_Institutions_Constraint, Plaid_Institutions_Update_Column, PlaidAccounts_Constraint } from "~/graphql/frontend";
+import { useUpsertPlaidItemMutation, useDeletePlaidAccountsMutation, Plaid_Institutions_Constraint, Plaid_Institutions_Update_Column, PlaidAccounts_Constraint } from "~/graphql/frontend";
 import { PlaidItemModel } from "~/types/frontend/models";
 import { useLogger } from "~/utils/frontend/useLogger";
 import * as analytics from "~/utils/frontend/analytics";
 import { exchangePlaidPublicToken } from "~/utils/frontend/functions";
 import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
 
 
 interface PlaidLinkProps {
@@ -29,9 +30,10 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   if ( !user ) { return <></> }
   const userId = user.id;
 
+  const { mutateAsync: removeLinkToken } = trpc.plaid.removeLinkToken.useMutation();
+
   const [ upsertPlaidItemMutation ] = useUpsertPlaidItemMutation();
   const [ deletePlaidAccountsMutation ] = useDeletePlaidAccountsMutation();
-  const [ updateUserMutation ] = useUpdateUserMutation();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(async (publicToken, metadata) => {
     const { institution, accounts } = metadata;
@@ -47,7 +49,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
       return { access_token: null, item_id: null}
     })
 
-    updateUserMutation({ variables: { id: userId, _delete_key: { metadata: "activeLinkToken" }}})
+    removeLinkToken()
 
     if ( !accessToken || !itemId ) { return; };
 
@@ -91,7 +93,10 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
 
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {
     logger.info("Plaid Link event", { eventName, metadata });
-    if (["HANDOFF", "EXIT"].includes(eventName)) { onExitCallback() }
+    if (["HANDOFF", "EXIT"].includes(eventName)) { 
+      analytics.track({ event: analytics.EventNames.PLAID_PORTAL_CLOSED, properties: { has_error: false }});
+      onExitCallback();
+    }
     if ( eventName === "OPEN" ) { analytics.track({ event: analytics.EventNames.PLAID_PORTAL_OPENED }); }
     if ( eventName === "TRANSITION_VIEW" && metadata.view_name === 'CONNECTED' ) { onConnectCallback && onConnectCallback() }
   }, [ onExitCallback, onConnectCallback ]);
@@ -99,7 +104,7 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const onExit = useCallback<PlaidLinkOnExit>(async (error, metadata) => {
     if ( error ) { logger.error(new Error("Plaid Link error"), { error, metadata })};
     await Promise.all([
-      updateUserMutation({ variables: { id: userId, _delete_key: { metadata: "activeLinkToken" }}}),
+      removeLinkToken(),
       analytics.track({ event: analytics.EventNames.PLAID_PORTAL_CLOSED, properties: { has_error: !!error }})
     ])
     onExitCallback();

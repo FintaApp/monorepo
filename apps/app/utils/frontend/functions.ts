@@ -25,17 +25,6 @@ export const exchangePlaidPublicToken = async ({ publicToken }: { publicToken: s
   return client.post('/plaid/exchangePublicToken', { publicToken, plaidEnv } as functionTypes.ExchangePlaidPublicTokenPayload)
   .then(response => response.data as functionTypes.ExchangePlaidPublicTokenResponse)
 }
-
-export const createPlaidLinkToken = async ({ products, accessToken, isAccountSelectionEnabled = false }: {
-  products: Products[];
-  accessToken?: string;
-  isAccountSelectionEnabled?: boolean;
-}): Promise<functionTypes.CreatePlaidLinkTokenResponse> => {
-  const plaidEnv = isDemoUser() ? "sandbox" : undefined;
-  return client.post('/plaid/createLinkToken', { products, originUrl: window.location.origin, plaidEnv, accessToken, isAccountSelectionEnabled } as functionTypes.CreatePlaidLinkTokenPayload)
-  .then(response => response.data)
-}
-
 export const disablePlaidItem = async ({ plaidItemId }: { plaidItemId: string }) =>
   client.post('/plaid/disableItem', { plaidItemId } as functionTypes.DisablePlaidItemPayload)
   .then(response => response.data as functionTypes.DisablePlaidItemResponse)

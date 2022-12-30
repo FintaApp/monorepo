@@ -59,15 +59,6 @@ export type GetDestinationTableDefaultConfigResponse = {
   tableConfigs: TableConfigs
 }
 
-export type CreatePlaidLinkTokenPayload = {
-  accessToken?: string;
-  products: Products[];
-  originUrl: string;
-  isAccountSelectionEnabled?: boolean
-}
-
-export type CreatePlaidLinkTokenResponse = LinkTokenCreateResponse;
-
 export type DisablePlaidItemPayload = {
   plaidItemId: string;
 }

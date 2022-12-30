@@ -4,27 +4,19 @@ import { CardStackPlusIcon } from "@radix-ui/react-icons";
 
 import { PlaidItemModel } from "~/types/frontend/models";
 import { useToast } from "~/utils/frontend/useToast";
-import { createPlaidLinkToken } from "~/utils/frontend/functions";
-import { useLogger } from "~/utils/frontend/useLogger";
 import { PlaidLink } from "../PlaidLink";
+import { trpc } from "~/lib/trpc";
 
 export const AddNewAccounts = ({ plaidItem }: { plaidItem: PlaidItemModel }) => {
   const renderToast = useToast();
-  const logger = useLogger();
-
+  const { mutateAsync: createPlaidLinkToken } = trpc.plaid.createLinkToken.useMutation();
   const [ linkToken, setLinkToken ] = useState(null as string | null);
 
   const loadLinkToken = () => {
     renderToast({ status: 'info', title: 'Loading' });
 
-    createPlaidLinkToken({ accessToken: plaidItem.accessToken, isAccountSelectionEnabled: true, products: [] })
-    .then(response => {
-      logger.info("Link token created", { response });
-      const { link_token } = response;
-      if ( !link_token ) { logger.error(new Error("No link token returned"), {}, true); return; }
-      setLinkToken(link_token)
-    })
-    .catch(error => logger.error(error))
+    createPlaidLinkToken({ plaidItemId: plaidItem.id, isAccountSelectionEnabled: true  })
+    .then(response => setLinkToken(response.token))
   }
 
   const onExitCallback = useCallback(() => { setLinkToken(null);}, []);
