@@ -7,6 +7,9 @@ import moment from "moment-timezone";
 const analytics = new Analytics({ writeKey: process.env.SEGMENT_KEY || "writeKey", maxEventsInBatch: 1 });
 const browserAnalytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY || "writeKey" });
 
+// Proper Case for event names
+// snake_case for properties
+
 export const flush = analytics.closeAndFlush
 
 export const trackUserSignedIn = ({ userId, provider }: { userId: string; provider?: string }) => 
@@ -27,7 +30,7 @@ export const trackUserUpdated = ({ userId, field, oldValue, newValue }: { userId
   track({
     userId,
     event: Event.USER_UPDATED,
-    properties: { field, oldValue, newValue }
+    properties: { field, old_value: oldValue, new_value: newValue }
   })
 
 export const trackUserDeleted = ({ userId }: { userId: string }) =>
@@ -40,6 +43,13 @@ export const trackPasswordChanged = ({ userId }: { userId: string }) =>
   track({
     userId,
     event: Event.PASSWORD_CHANGED
+  })
+
+export const trackStripePortalViewed = ({ userId, portalType }: { userId: string; portalType: 'checkout' | 'billing'}) =>
+  track({
+    userId,
+    event: Event.STRIPE_PORTAL_VIEWED,
+    properties: { portal_type: portalType }
   })
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
@@ -75,6 +85,7 @@ enum Event {
   USER_SIGNED_UP = "User Signed Up",
   USER_UPDATED = "User Updated",
   USER_DELETED = "User Deleted",
+  STRIPE_PORTAL_VIEWED = "Stripe Portal Viewed"
 }
 
 export enum AnalyticsPage {

@@ -18,14 +18,6 @@ client.interceptors.request.use(config => {
   if ( accessToken ) { config.headers = { ...(config.headers || {}), Authorization: `Bearer ${accessToken}`}}
   return config;
 });
-
-export const createBillingPortalSession = (props: functionTypes.CreateBillingPortalSessionPayload) =>
-  client.post('/stripe/createBillingPortalSession', props)
-  .then(response => response.data as functionTypes.CreateBillingPortalSessionResponse)
-
-export const createCheckoutPortalSession = (props: functionTypes.CreateCheckoutPortalSessionPayload) =>
-  client.post('/stripe/createCheckoutPortalSession', props)
-  .then(response => response.data as functionTypes.CreateCheckoutPortalSessionResponse)
   
 export const exchangePlaidPublicToken = async ({ publicToken }: { publicToken: string }) => {
   const plaidEnv = isDemoUser() ? "sandbox" : undefined;
