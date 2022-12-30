@@ -7,4 +7,3 @@ export { onUpdateDestination } from "./onUpdateDestination";
 export { onUpdatePlaidAccount } from "./onUpdatePlaidAccount";
 export { onUpdatePlaidItem } from "./onUpdatePlaidItem";
 export { onUpsertSyncLog } from "./onUpsertSyncLog";
-export { onUpsertUserProfile } from "./onUpsertUserProfile";

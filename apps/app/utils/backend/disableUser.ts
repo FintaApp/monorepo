@@ -1,4 +1,4 @@
-import { cancelSubscription } from "./stripe";
+import { cancelSubscription } from "~/lib/stripe";
 import { graphql } from "~/graphql/backend";
 import { disablePlaidItem } from "./disablePlaidItem";
 import { SubscriptionStatus } from "~/graphql/backend/sdk";
