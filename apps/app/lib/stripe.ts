@@ -50,3 +50,5 @@ export const upsertCustomer = async ({ userId, email, name }: { userId: string; 
 
   return customer; 
 }
+
+export const cancelSubscription = ({ subscriptionId }: { subscriptionId: string }) => client.subscriptions.update(subscriptionId, { cancel_at_period_end: true });

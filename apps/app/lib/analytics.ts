@@ -23,11 +23,17 @@ export const trackUserSignedUp = ({ userId, provider }: { userId: string; provid
     properties: { provider }
   })
 
-export const trackUserUpdated = ({ userId, field }: { userId: string; field: string; }) =>
+export const trackUserUpdated = ({ userId, field, oldValue, newValue }: { userId: string; field: string; oldValue: any; newValue: any }) =>
   track({
     userId,
     event: Event.USER_UPDATED,
-    properties: { field }
+    properties: { field, oldValue, newValue }
+  })
+
+export const trackUserDeleted = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: Event.USER_DELETED
   })
 
 export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
@@ -61,6 +67,7 @@ enum Event {
   USER_SIGNED_IN = "User Signed In",
   USER_SIGNED_UP = "User Signed Up",
   USER_UPDATED = "User Updated",
+  USER_DELETED = "User Deleted",
 }
 
 export enum AnalyticsPage {

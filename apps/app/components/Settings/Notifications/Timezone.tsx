@@ -4,32 +4,31 @@ import {
   FormLabel
 } from "@chakra-ui/react";
 import moment from "moment-timezone";
+import { useEffect, useState } from "react";
 
 import { Select } from "~/components/Forms/Select";
-import { useToast } from "~/utils/frontend/useToast";
-import { useUpdateUserProfileMutation } from "~/graphql/frontend";
 
-export const Timezone = ({ userId, timezone }: { userId: string; timezone?: string | null }) => {
-  const [ updateUserProfile ] = useUpdateUserProfileMutation({ refetchQueries: ['GetUserProfile']});
+import { useToast } from "~/lib/context/useToast";
+import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
+
+export const Timezone = () => {
+  const { user, refetchUser } = useUser();
   const renderToast = useToast();
+  const { mutateAsync } = trpc.users.updateUser.useMutation({ onSuccess: refetchUser });
+
+  const [ timezone, setTimezone ] = useState(user?.timezone)
+
+  useEffect(() => { setTimezone(user?.timezone)}, [ user ]);
 
   const options = moment.tz.names().map(tz => ({ label: tz, value: tz }));
   const value = timezone ? { label: timezone, value: timezone } : null;
 
   const onChange = (newTimezone: string) => {
     if ( newTimezone !== timezone ) {
-      updateUserProfile({
-        variables: {
-          userId,
-          _set: { timezone: newTimezone }
-        }
-      })
-      .then(() => {
-        renderToast({
-          status: "success",
-          title: "Timezone Updated"
-        });
-      })
+      setTimezone(newTimezone)
+      mutateAsync({ timezone: newTimezone })
+      .then(() => renderToast({ status: "success", title: "Timezone Updated"}))
     }
   }
 

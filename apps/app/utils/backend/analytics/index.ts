@@ -85,12 +85,6 @@ export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
     event: SegmentEvent.SUPPORT_TICKET_CREATED
   })
 
-export const trackUserDeleted = ({ userId }: { userId: string }) =>
-  track({
-    userId,
-    event: SegmentEvent.USER_DELETED
-  })
-
 export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
   track({ userId, event: SegmentEvent.NOTION_CONNECTION_ADDED })
 
@@ -133,8 +127,6 @@ export const trackSyncCompleted = ({ userId, trigger, isSuccess, integration, in
 // Types
 export enum SegmentEvent {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
-  USER_SIGNED_UP = "User Signed Up",
-  USER_DELETED = "User Deleted",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
   PLAID_ACCOUNT_UPDATED = "Plaid Account Updated",
   INSTITUTION_CREATED = "Institution Created",

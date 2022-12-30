@@ -5,13 +5,13 @@ import { Frequency } from "@prisma/client";
 
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { auth as nhostAuth } from "~/utils/backend/nhost";
-import { backendIdentify as identify, formatUserForIdentify, trackUserUpdated } from "~/lib/analytics";
-import { createCustomer, getCustomerByEmail, updateCustomer } from "~/lib/stripe";
+import { backendIdentify as identify, formatUserForIdentify, trackUserDeleted, trackUserUpdated } from "~/lib/analytics";
+import { createCustomer, getCustomerByEmail, getCustomerSubscription, updateCustomer, cancelSubscription } from "~/lib/stripe";
 import { logUserSignedUp } from "~/lib/logsnag";
 import { backendIdentify, trackUserSignedIn, trackUserSignedUp } from "~/lib/analytics";
 import { parseAuthError } from "~/lib/parseAuthError";
 import { TRPCError } from "@trpc/server";
-import { upsertJob } from "~/lib/easyCron";
+import { upsertJob, deleteJob } from "~/lib/easyCron";
 
 export const userRouter = router({
   onLogIn: publicProcedure
@@ -156,13 +156,14 @@ export const userRouter = router({
       z.object({
         name: z.optional(z.string()),
         isSubscribedPeriodicUpdates: z.optional(z.boolean()),
-        isSubsribedGeneral: z.optional(z.boolean()),
+        isSubscribedGeneral: z.optional(z.boolean()),
         periodicUpdatesFrequency: z.optional(z.nativeEnum(Frequency)),
         timezone: z.optional(z.string())
       })
     )
     .mutation(async ({ ctx: { session, logger, db }, input }) => {
       const userId = session!.user.id;
+      const originalUser = await db.user.findFirstOrThrow({ where: { id: userId }});
       const user = await db.user.update({ where: { id: userId }, data: input })
       logger.info("Updated user", { user })
       if ( !user ) { throw new TRPCError({ code: 'NOT_FOUND' })};
@@ -176,7 +177,9 @@ export const userRouter = router({
 
       const trackUserUpdatedPromise = trackUserUpdated({ 
         userId, 
-        field // Should only be able to change one field at a time
+        field, // Should only be able to change one field at a time
+        oldValue: originalUser[field],
+        newValue: input[field]
       })
       logger.info("Tracked user updated event", { field });
 
@@ -217,4 +220,59 @@ export const userRouter = router({
       return user
     }),
 
+    disableUser: publicProcedure
+      .input(
+        z.object({
+          userId: z.string()
+        })
+      )
+      .mutation(async ({ ctx: { db, logger }, input: { userId }}) => {
+        const user = await db.user.findFirstOrThrow({ where: { id: userId }});
+        logger.info("Fetched user", { user });
+
+        const subscription = await getCustomerSubscription({ customerId: user.stripeCustomerId });
+        logger.info("Get subscription", { subscription })
+
+        // Cancel subscription
+        if ( subscription && !['canceled', 'incomplete_expired'].includes(subscription.status) ) {
+          await cancelSubscription({ subscriptionId: subscription.id })
+            .then(({ lastResponse, ...response }) => logger.info("Canceled subscription", { response }))
+        }
+
+        // Delete sync job
+        if ( user.periodicUpdatesJobId ) {
+          await deleteJob({ jobId: user.periodicUpdatesJobId })
+            .then(response => logger.info("Deleted EasyCron job", { response }))
+            .catch(error => console.log(error))
+        }
+
+        const traits = {
+          unsubscribed: true,
+          email: "",
+          name: "",
+          deleted_at: new Date()
+        }
+        const identifyPromise = identify({
+          userId,
+          traits
+        }).then(() => logger.info("Identified user with new traits", { traits }))
+
+        const trackEventPromise = trackUserDeleted({ userId }).then(() => logger.info("Track user deleted event"))
+
+        // TODO: Disable Plaid Items
+
+        // TODO: Disable Destinations
+
+        const updateUserPromise = db.user.update({ where: { id: userId }, data: { disabledAt: new Date(), name: null, email: null }})
+          .then(response => {
+            logger.info("Updated user", { user: response });
+            return response
+          })
+
+        await Promise.all([
+          identifyPromise, 
+          trackEventPromise,
+          updateUserPromise
+        ])
+      })
 })
