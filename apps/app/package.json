@@ -55,6 +55,7 @@
     "graphql-tag": "^2.12.6",
     "lodash": "^4.17.21",
     "logsnag": "^0.1.6",
+    "micro": "^10.0.1",
     "moment-timezone": "^0.5.39",
     "next": "latest",
     "next-axiom": "^0.16.0",
