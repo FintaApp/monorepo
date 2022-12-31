@@ -64,6 +64,8 @@ model User {
   accounts          Account[]
   sessions          Session[]
   linkToken         LinkToken?
+  airtableToken     AirtableToken?
+  airtableAuthorizationCache AirtableAuthorizationCache?
 
   @@map("users")
 }
@@ -110,4 +112,32 @@ enum StripeWebhookEventState {
   Failed      @map("failed")
 
   @@map("stripe_webhook_event_states_enum")
+}
+
+model AirtableToken {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id") @unique
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken                 String      @map("access_token")
+  refreshToken                String      @map("refresh_token")
+  tokenType                   String      @map("token_type")
+  scope                       String      @map("scope")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  refreshedAt                 DateTime    @default(now()) @map("refreshed_at")
+  accessTokenExpiresAt        DateTime    @map("access_token_expires_at")
+  refreshTokenExpiresAt       DateTime    @map("refresh_token_expires_at")
+  
+  @@map("airtable_tokens")
+  @@index([userId])
+}
+
+model AirtableAuthorizationCache {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id") @unique
+  state                       String
+  codeVerifier                String
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  @@index([userId])
+  @@map("airtable_authorization_cache")
 }

@@ -119,13 +119,3 @@ export type GetAirtableBasesResponse = {
     name: string;
   }[]
 }
-
-export type GetAirtableAuthorizationUrlPayload = {}
-export type GetAirtableAuthorizationUrlResponse = { url: string; }
-
-export type ExchangeAirtableTokenPayload = {
-  state: string;
-  code: string;
-  redirectUri: string;
-}
-export type ExchangeAirtableTokenResponse = "OK"

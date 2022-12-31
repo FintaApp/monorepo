@@ -1,6 +1,3 @@
-import {
-  useQuery,
-} from 'react-query'
 import { 
   Card,
   CardBody,
@@ -9,12 +6,12 @@ import {
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { exchangeAirtableToken } from "~/utils/frontend/functions";
 import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from '~/lib/authGate';
 import { useUser } from '~/lib/context/useUser';
+import { trpc } from '~/lib/trpc';
 
 const AirtableAuthorize = () => {
   const router = useRouter();
@@ -22,11 +19,10 @@ const AirtableAuthorize = () => {
   const [ screen, setScreen ] = useState('');
   const { code, error, state } = router.query;
 
-  const { isLoading } = useQuery('exchangeAirtableToken', () => exchangeAirtableToken({
-    code: code as string,
-    redirectUri: `${window.location.origin}/auth/airtable`,
-    state: state as string
-  }).then(() => setScreen('success')), { enabled: !error && typeof window !== 'undefined' && !!user})
+  const { isLoading } = trpc.airtable.exchangeToken.useQuery(
+    { code: code as string, state: state as string, originUrl: (typeof window !== 'undefined' && window.location.origin ) || ""}, 
+    { onSuccess: () => setScreen('success'), enabled: !error && typeof window !== 'undefined' && !!user }
+  );
 
   return (
     <Center w = "full" maxW = "xl" mx = "auto" flexDir = "column" mt = {{ base: 10, sm: 20, md: 32 }} px = {{ base: 8, md: 'unset' }}>

@@ -99,7 +99,10 @@ export const trackSubscriptionRenewed = ({ userId, plan, timestamp }: { userId: 
     event: Event.SUBSCRIPTION_RENEWED,
     properties: { plan },
     timestamp
-  })
+  });
+
+export const trackAirtableTokenAdded = ({ userId }: { userId: string }) =>
+  track({ userId, event: Event.AIRTABLE_TOKEN_ADDED })
 
 export const backendIdentify = ({ userId, traits, timestamp }: { userId: string; traits: UserTraits; timestamp?: Date }) =>
   new Promise((resolve, reject) => {

@@ -7,14 +7,15 @@ import {
   Text,
   VStack
 } from "@chakra-ui/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { SymbolIcon } from "@radix-ui/react-icons";
 
 import { Select } from '~/components/Forms';
-import { useGetAirtableTokensSubscription, useUpdateDestinationMutation } from "~/graphql/frontend";
+import { useUpdateDestinationMutation } from "~/graphql/frontend";
 import { AirtableAuthentication } from "~/types/shared/models";
-import { getAirtableAuthorizationUrl, getAirtableBases } from "~/utils/frontend/functions";
+import { getAirtableBases } from "~/utils/frontend/functions";
 import { useToast } from '~/utils/frontend/useToast';
+import { trpc } from "~/lib/trpc";
 
 interface AirtableProps {
   destinationId?: string;
@@ -27,11 +28,13 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
   const renderToast = useToast()
   const [ bases, setBases ] = useState(null as { id: string; name: string }[] | null);
   const [ updateDestinationMutation ] = useUpdateDestinationMutation();
-  const { data: airtableTokenData } = useGetAirtableTokensSubscription();
-  const [ isLoading, setIsLoading ] = useState(false);
-  const hasToken = airtableTokenData?.airtableTokens.length === 1;
+
   const [ isLoadingBases, setIsLoadingBases ] = useState(false);
   const [ hasLoadedBases, setHasLoadedBases ] = useState(false);
+  
+  const [ shouldPoll, setShouldPoll ] = useState(false);
+  const { data: hasToken } = trpc.airtable.doesUserHaveToken.useQuery(undefined, { refetchInterval: shouldPoll ? 2000 : false })
+  const { mutateAsync: getAuthorizationUrlMutation, isLoading: isGettingAuthUrl } = trpc.airtable.getAuthorizationUrl.useMutation();
 
   const fetchBases = useCallback(() => {
     if ( !isLoadingBases && hasToken ) {
@@ -42,14 +45,10 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
     }
   }, [ isLoadingBases, hasToken ])
 
-  const getAuthorizationUrl = () => {
-    setIsLoading(true);
-    getAirtableAuthorizationUrl({})
-    .then(({ url }) => {
-      window.open(url, '_blank')
-    })
-    .finally(() => setIsLoading(false) )
-  }
+  const getAuthorizationUrl = () => { 
+    setShouldPoll(true);
+    getAuthorizationUrlMutation().then(({ url }) => window.open(url, '_blank'));
+  } ;
 
   const options = bases?.map(base => ({ label: base.name, value: base.id })) || [];
   const value = options.find(option => option.value === authentication.base_id);
@@ -72,7 +71,7 @@ export const Airtable = ({ destinationId, onChange: onChangeProp, errorMessage, 
   if ( !hasToken ) {
     return (
       <VStack>
-        <Button isLoading = { isLoading } onClick = { getAuthorizationUrl } variant = "primaryOutline" size = "md" width = "full">Connect to Airtable</Button>
+        <Button isLoading = { isGettingAuthUrl } onClick = { getAuthorizationUrl } variant = "primaryOutline" size = "md" width = "full">Connect to Airtable</Button>
         <Text>Log in with Airtable so that Finta can sync data to your base. You can </Text>
       </VStack>
     )

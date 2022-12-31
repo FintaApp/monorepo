@@ -61,14 +61,6 @@ export const createOauthCode = (props: functionTypes.CreateCodePayload) =>
   client.post('/oauth/createCode', props)
   .then(response => response.data as functionTypes.CreateCodeResponse)
 
-export const getAirtableAuthorizationUrl = (props: functionTypes.GetAirtableAuthorizationUrlPayload) =>
-  client.post('/airtable/getAuthorizationUrl', props)
-  .then(response => response.data as functionTypes.GetAirtableAuthorizationUrlResponse)
-
-export const exchangeAirtableToken = (props: functionTypes.ExchangeAirtableTokenPayload) =>
-  client.post('/airtable/exchangeToken', props)
-  .then(response => response.data as functionTypes.ExchangeAirtableTokenResponse)
-
 export const getAirtableBases = (props: functionTypes.GetAirtableBasesPayload) =>
   client.post('/airtable/getBases', props)
   .then(response => response.data as functionTypes.GetAirtableBasesResponse)

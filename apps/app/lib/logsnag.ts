@@ -14,7 +14,15 @@ const logsnagPublish = (options: PublishOptions) => {
   }
   
   return logsnag.publish(options).then(() => log.info("Published to Logsnag", { options }))
-}
+};
+
+export const logUnhandledEvent = (description: string) => logsnagPublish({
+  channel: Channel.ERRORS,
+  event: Event.UNHANDLED,
+  icon: '😶',
+  notify: true,
+  description
+});
 
 export const logUserSignedUp = ({ name, email, userId }: { name?: string; email: string; userId: string; }) =>
   logsnagPublish({
@@ -74,6 +82,13 @@ export const logSubscriptionRenewed = ({ userId, plan }: { userId: string; plan:
     tags: { [Tag.USER_ID]: userId}
   });
 
+export const logAirtableTokenAdded = ({ userId }: { userId: string }) =>
+  logsnagPublish({
+      channel: Channel.ACTIVITY,
+      event: Event.AIRTABLE_TOKEN_ADDED,
+      icon: '🗺',
+      tags: { [Tag.USER_ID]: userId }
+  })
 
 // Types
 enum Channel {
