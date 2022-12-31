@@ -29,10 +29,6 @@ export const disablePlaidItem = async ({ plaidItemId }: { plaidItemId: string })
   client.post('/plaid/disableItem', { plaidItemId } as functionTypes.DisablePlaidItemPayload)
   .then(response => response.data as functionTypes.DisablePlaidItemResponse)
 
-export const createSupportTicket = (props: functionTypes.CreateSupportTicketPayload) => 
-  client.post('/user/createSupportTicket', props)
-  .then(response => response.data as functionTypes.CreateSupportTicketResponse)
-
 export const triggerManualDestinationSync = (props: functionTypes.ManualDestinationSyncPayload) => 
   client.post('/destination/manualSync', props)
   .then(response => response.data as functionTypes.ManualDestinationSyncResponse)

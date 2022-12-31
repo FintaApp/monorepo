@@ -102,7 +102,13 @@ export const trackSubscriptionRenewed = ({ userId, plan, timestamp }: { userId: 
   });
 
 export const trackAirtableTokenAdded = ({ userId }: { userId: string }) =>
-  track({ userId, event: Event.AIRTABLE_TOKEN_ADDED })
+  track({ userId, event: Event.AIRTABLE_TOKEN_ADDED });
+
+export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
+  track({
+    userId,
+    event: Event.SUPPORT_TICKET_CREATED
+  })
 
 export const backendIdentify = ({ userId, traits, timestamp }: { userId: string; traits: UserTraits; timestamp?: Date }) =>
   new Promise((resolve, reject) => {
@@ -143,7 +149,8 @@ enum Event {
   SUBSCRIPTION_ENDED = "Subscription Ended",
   SUBSCRIPTION_RENEWED = "Subscription Renewed",
   SUBSCRIPTION_CANCELED = "Subscription Canceled",
-  SUBSCRIPTION_INVOICE_PAID = "Subscription Invoice Paid"
+  SUBSCRIPTION_INVOICE_PAID = "Subscription Invoice Paid",
+  SUPPORT_TICKET_CREATED = "Support Ticket Created",
 }
 
 export enum AnalyticsPage {

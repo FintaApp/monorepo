@@ -1,9 +1,8 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useEffect } from "react";
 import { 
   Button,
   Box,
   Icon,
-  Input,
   MenuItem, 
   Modal,
   ModalOverlay,
@@ -17,27 +16,28 @@ import {
   Textarea
 } from '@chakra-ui/react';
 import { PaperPlaneIcon } from '@radix-ui/react-icons';
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { createSupportTicket } from "~/utils/frontend/functions"
+import { Input } from "./Forms";
 import { useToast } from "~/utils/frontend/useToast";
+import { trpc } from "~/lib/trpc";
+import { ISupportTicketSchema, supportTicketSchema } from "~/lib/validation/forms";
+
+type FormData = z.infer<typeof supportTicketSchema>
 
 export const ShareFeedback = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [ subject, setSubject ] = useState("");
-  const [ body, setBody ] = useState("");
-  const [ isSending, setIsSending ] = useState(false);
+  const { register, handleSubmit, formState, setError, reset } = useForm<ISupportTicketSchema>({ resolver: zodResolver(supportTicketSchema) });
+  const { mutateAsync, isLoading } = trpc.zendesk.createSupportTicket.useMutation();
   const renderToast = useToast();
 
-  useEffect(() => {
-    setSubject("");
-    setBody("");
-    setIsSending(false);
-  }, [ isOpen ]);
+  useEffect(reset, [ isOpen ]);
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setIsSending(true);
-    createSupportTicket({ subject, body })
+  const onSubmit = (data: FormData) => {
+    const { body, subject } = data;
+    mutateAsync({ subject, body })
     .then(() => {
       renderToast({
         status: 'success',
@@ -62,7 +62,7 @@ export const ShareFeedback = () => {
         onClick = { onOpen }
       >Share feedback</MenuItem>
 
-      <Modal isOpen = { isOpen } onClose={onClose} size = "xl" returnFocusOnClose = { false }>
+      <Modal isOpen = { isOpen } onClose={onClose} size = "xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -70,12 +70,10 @@ export const ShareFeedback = () => {
               <Text fontSize = "sm">Submit any questions, ideas, or bugs and someone will get back to you as soon as possible.</Text>
             </ModalHeader>
           <ModalCloseButton />
-          <form onSubmit = { onSubmit }>
+          <form style = {{ width: '100%' }} onSubmit = { handleSubmit(onSubmit) }>
             <ModalBody>
               <Box>
                 <Input 
-                  value = { subject }
-                  onChange = { e => setSubject(e.target.value) }
                   fontWeight = "medium"
                   border = "none"
                   _focus = {{ border: "none" }}
@@ -83,13 +81,13 @@ export const ShareFeedback = () => {
                   autoFocus = { true }
                   px = "0"
                   focusBorderColor = "none"
+                  { ...register('subject')}
                 />
                 <Textarea 
                   px = "0"
                   placeholder = "Enter feedback here"
-                  value = { body }
-                  onChange = { e => setBody(e.target.value )}
                   bg = "none"
+                  { ...register('body')}
                 />
               </Box>
             </ModalBody>
@@ -97,9 +95,9 @@ export const ShareFeedback = () => {
             <ModalFooter display = "flex" justifyItems = "flex-end">
               <Button 
                 rightIcon = { <PaperPlaneIcon /> }
-                isDisabled = { subject === "" || body === "" }
+                isDisabled = { !formState.isValid }
                 type = "submit"
-                isLoading = { isSending }
+                isLoading = { isLoading }
                 variant = "primary"
               >Send</Button>
             </ModalFooter>

@@ -91,13 +91,6 @@ export type ManualDestinationSyncResponse = {
   has_error?: boolean;
 }
 
-export type CreateSupportTicketPayload = {
-  subject: string;
-  body: string;
-}
-
-export type CreateSupportTicketResponse = string;
-
 
 export type ExchangeNotionTokenPayload = {
   code: string;

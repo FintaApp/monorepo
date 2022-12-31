@@ -79,12 +79,6 @@ export const trackInstitutionConsentRevoked = ({ userId, institution }: { userId
     properties: { institution }
   })
 
-export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
-  track({
-    userId,
-    event: SegmentEvent.SUPPORT_TICKET_CREATED
-  })
-
 export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
   track({ userId, event: SegmentEvent.NOTION_CONNECTION_ADDED })
 
@@ -138,7 +132,6 @@ export enum SegmentEvent {
   DESTINATION_UPDATED = "Destination Updated",
   DESTINATION_DELETED = "Destination Deleted",
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
-  SUPPORT_TICKET_CREATED = "Support Ticket Created",
   SYNC_COMPLETED = "Sync Completed",
   SUBSCRIPTION_STARTED = "Subscription Started",
   SUBSCRIPTION_ENDED = "Subscription Ended",

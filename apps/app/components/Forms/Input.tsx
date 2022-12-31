@@ -6,7 +6,8 @@ interface InputProps extends Omit<ChakraInputProps, 'variant'> {
 }
 
 export const Input: ComponentWithAs<As<any>, InputProps> = forwardRef(({ mode = 'edit', onFocus, onBlur, ...inputProps }: InputProps, ref) => {
-  const [ isFocused, setIsFocused ] = useState(false)
+  const [ isFocused, setIsFocused ] = useState(false);
+  console.log(isFocused)
   return (
     <ChakraInput 
       ref = { ref }

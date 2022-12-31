@@ -46,6 +46,10 @@ export const Input: any = defineMultiStyleConfig({
               boxShadow: "var(--chakra-shadows-light-sm)",
             }
           },
+          _focusVisible: {
+            border: 'none',
+            boxShadow: 'none'
+          },
           _invalid: {
             boxShadow: "var(--chakra-shadows-light-sm)",
             borderColor: errorColor
