@@ -1,5 +1,4 @@
-export type { 
-  AllFrontendUserFieldsFragment as FrontendUserModel,
+export type {
   AllFrontendPlaidItemFieldsFragment as PlaidItemModel,
   AllFrontendSyncLogFieldsFragment as SyncLogModel,
   AllOauthClientFieldsFragment as OauthClientModel

@@ -1,13 +1,10 @@
 export type {
-  DbAirtableTokenFieldsFragment as DBAirtableToken,
   DbDestinationFieldsFragment as DBDestination,
   DbNotionConnectionFieldsFragment as DBNotionConnection,
   DbPlaidAccountFieldsFragment as DBPlaidAccount,
   DbPlaidInstitutionFieldsFragment as DBPlaidInstitution,
   DbPlaidItemFieldsFragment as DBPlaidItem,
   DbSyncLogFieldsFragment as DBSyncLog,
-  DbUserFieldsFragment as DBUser,
-  DbUserProfileFieldsFragment as DBUserProfile
 } from "~/graphql/backend/sdk";
 
 type AdminSessionVariables = {

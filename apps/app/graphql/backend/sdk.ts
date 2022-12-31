@@ -12094,30 +12094,6 @@ export type UpdatePlaidItemMutationVariables = Exact<{
 
 export type UpdatePlaidItemMutation = { __typename?: 'mutation_root', plaid_item?: { __typename: 'plaid_items', id: string, accessToken: string, billed_products?: any | null, available_products?: any | null, is_initial_update_complete: boolean, is_historical_update_complete: boolean, error?: string | null, created_at: any, synced_at?: any | null, plaid_sync_cursor?: string | null, plaid_sync_cursor_added_at?: any | null, institution: { __typename?: 'plaid_institutions', name: string, logo_file_id?: any | null }, removed_transactions?: Array<{ __typename?: 'removed_plaid_transactions', transaction_id: string }>, user: { __typename?: 'users', id: any, email?: any | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string, mask?: string | null, is_closed: boolean }> } | null };
 
-export type AllWebhookEventFieldsFragment = { __typename: 'stripeWebhookEvents', id: string, event: string, state: string };
-
-export type InsertStripeWebhookEventMutationVariables = Exact<{
-  webhookEvent: StripeWebhookEvents_Insert_Input;
-}>;
-
-
-export type InsertStripeWebhookEventMutation = { __typename?: 'mutation_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
-
-export type GetStripeWebhookEventQueryVariables = Exact<{
-  webhookEventId: Scalars['String'];
-}>;
-
-
-export type GetStripeWebhookEventQuery = { __typename?: 'query_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
-
-export type UpdateStripeWebhookEventMutationVariables = Exact<{
-  webhookEventId: Scalars['String'];
-  _set: StripeWebhookEvents_Set_Input;
-}>;
-
-
-export type UpdateStripeWebhookEventMutation = { __typename?: 'mutation_root', webhookEvent?: { __typename: 'stripeWebhookEvents', id: string, event: string, state: string } | null };
-
 export type DbSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, ended_at?: any | null, error?: any | null, trigger: string, is_success: boolean };
 
 export type AllSyncLogFieldsFragment = { __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null };
@@ -12179,116 +12155,6 @@ export type GetUserSyncLogsQueryVariables = Exact<{
 
 
 export type GetUserSyncLogsQuery = { __typename?: 'query_root', sync_logs: Array<{ __typename?: 'sync_logs', id: any, is_success: boolean, error?: any | null, ended_at?: any | null, created_at: any, metadata?: any | null, trigger: string, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', accounts: any, destination_id: any, error?: any | null, holdings: any, investment_transactions: any, transactions: any }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', accounts: any, error?: any | null, holdings: any, investment_transactions: any, transactions: any }> }> };
-
-export type DbUserProfileFieldsFragment = { __typename?: 'userProfiles', timezone?: string | null, sync_updates_frequency?: Frequencies_Enum | null, is_subscribed_sync_updates: boolean, is_subscribed_general: boolean, user_id: any, sync_updates_job_id?: string | null, stripe_customer_id?: string | null };
-
-export type AllUserProfileFieldsFragment = { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null };
-
-export type UpsertUserProfileMutationVariables = Exact<{
-  userProfile: UserProfiles_Insert_Input;
-}>;
-
-
-export type UpsertUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
-
-export type GetUserProfileQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserProfileQuery = { __typename?: 'query_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
-
-export type InsertUserProfileMutationVariables = Exact<{
-  userProfile: UserProfiles_Insert_Input;
-}>;
-
-
-export type InsertUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
-
-export type UpdateUserProfileMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  _set: UserProfiles_Set_Input;
-}>;
-
-
-export type UpdateUserProfileMutation = { __typename?: 'mutation_root', userProfile?: { __typename?: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null, syncUpdatesJobId?: string | null, stripeCustomerId?: string | null } | null };
-
-export type GetUserByCustomerIdQueryVariables = Exact<{
-  customerId: Scalars['String'];
-}>;
-
-
-export type GetUserByCustomerIdQuery = { __typename?: 'query_root', userProfiles: Array<{ __typename?: 'userProfiles', user: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } }> };
-
-export type DbUserFieldsFragment = { __typename?: 'users', id: any, metadata?: any | null, disabled: boolean, email?: any | null, display_name: string, created_at: any, password_hash?: string | null };
-
-export type AllBaseUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any };
-
-export type GetBaseUserQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetBaseUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any } | null };
-
-export type AllBackendUserFieldsFragment = { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
-
-export type GetUserFromTokenQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetUserFromTokenQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, displayName: string, email?: any | null, createdAt: any }> };
-
-export type GetUserQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
-
-export type UpdateUserMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  _set?: InputMaybe<Users_Set_Input>;
-  _append?: InputMaybe<Users_Append_Input>;
-  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
-}>;
-
-
-export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename: 'users', id: any, email?: any | null, displayName: string, metadata?: any | null, disabled: boolean, createdAt: any, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', hasAppAccess: boolean, trialEndsAt: any, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
-
-export type AllFrontendUserFieldsFragment = { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } };
-
-export type UpdateUserFrontendMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  _set?: InputMaybe<Users_Set_Input>;
-  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
-}>;
-
-
-export type UpdateUserFrontendMutation = { __typename?: 'mutation_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } } | null };
-
-export type AllFrontendUserProfileFieldsFragment = { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null };
-
-export type GetUserProfileFrontendQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserProfileFrontendQuery = { __typename?: 'query_root', userProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
-
-export type GetUserFrontendQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserFrontendQuery = { __typename?: 'query_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeCustomerId: string, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency: SyncUpdatesFrequency } } | null };
-
-export type UpdateUserProfileFrontendMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  _set: UserProfiles_Set_Input;
-}>;
-
-
-export type UpdateUserProfileFrontendMutation = { __typename?: 'mutation_root', updateUserProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
 
 export const AllBackendAirtableTokenFields = gql`
     fragment AllBackendAirtableTokenFields on airtableTokens {
@@ -12463,14 +12329,6 @@ export const AllBackendPlaidItemFields = gql`
   plaid_sync_cursor_added_at
 }
     ${AllBackendAccountFields}`;
-export const AllWebhookEventFields = gql`
-    fragment AllWebhookEventFields on stripeWebhookEvents {
-  __typename
-  id
-  event
-  state
-}
-    `;
 export const DbSyncLogFields = gql`
     fragment DBSyncLogFields on sync_logs {
   id
@@ -12511,111 +12369,6 @@ export const AllDestinationSyncLogFields = gql`
   holdings
   transactions
   investment_transactions
-}
-    `;
-export const DbUserProfileFields = gql`
-    fragment DBUserProfileFields on userProfiles {
-  sync_updates_frequency: syncUpdatesFrequency
-  is_subscribed_sync_updates: isSubscribedSyncUpdates
-  is_subscribed_general: isSubscribedGeneral
-  timezone
-  user_id: userId
-  sync_updates_job_id: syncUpdatesJobId
-  stripe_customer_id: stripeCustomerId
-}
-    `;
-export const AllUserProfileFields = gql`
-    fragment AllUserProfileFields on userProfiles {
-  userId
-  timezone
-  isSubscribedGeneral
-  isSubscribedSyncUpdates
-  syncUpdatesFrequency
-  syncUpdatesJobId
-  stripeCustomerId
-}
-    `;
-export const DbUserFields = gql`
-    fragment DBUserFields on users {
-  id
-  display_name: displayName
-  metadata
-  disabled
-  created_at: createdAt
-  password_hash: passwordHash
-  email
-}
-    `;
-export const AllBaseUserFields = gql`
-    fragment AllBaseUserFields on users {
-  __typename
-  id
-  email
-  displayName
-  metadata
-  disabled
-  createdAt
-}
-    `;
-export const AllBackendUserFields = gql`
-    fragment AllBackendUserFields on users {
-  __typename
-  id
-  email
-  displayName
-  metadata
-  disabled
-  createdAt
-  profile {
-    stripeData {
-      hasAppAccess
-      trialEndsAt
-      customer {
-        id
-        createdAt
-      }
-      subscription {
-        id
-        status
-        cancelAtPeriodEnd
-        trialStartedAt
-        trialEndedAt
-        startedAt
-        endedAt
-        currentPeriodStart
-        currentPeriodEnd
-        interval
-        canceledAt
-      }
-    }
-  }
-}
-    `;
-export const AllFrontendUserFields = gql`
-    fragment AllFrontendUserFields on users {
-  __typename
-  id
-  displayName
-  email
-  createdAt
-  profile {
-    stripeCustomerId
-    timezone
-    isSubscribedGeneral
-    isSubscribedSyncUpdates
-    syncUpdatesFrequency
-  }
-  metadata
-}
-    `;
-export const AllFrontendUserProfileFields = gql`
-    fragment AllFrontendUserProfileFields on userProfiles {
-  __typename
-  userId
-  timezone
-  isSubscribedGeneral
-  isSubscribedSyncUpdates
-  syncUpdatesFrequency
 }
     `;
 export const GetAirtableToken = gql`
@@ -12756,33 +12509,6 @@ export const UpdatePlaidItem = gql`
   }
 }
     ${AllBackendPlaidItemFields}`;
-export const InsertStripeWebhookEvent = gql`
-    mutation InsertStripeWebhookEvent($webhookEvent: stripeWebhookEvents_insert_input!) {
-  webhookEvent: insertStripeWebhookEvent(
-    object: $webhookEvent
-    on_conflict: {constraint: stripe_webhook_events_pkey, update_columns: [state, createdAt]}
-  ) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFields}`;
-export const GetStripeWebhookEvent = gql`
-    query GetStripeWebhookEvent($webhookEventId: String!) {
-  webhookEvent: stripeWebhookEvent(id: $webhookEventId) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFields}`;
-export const UpdateStripeWebhookEvent = gql`
-    mutation UpdateStripeWebhookEvent($webhookEventId: String!, $_set: stripeWebhookEvents_set_input!) {
-  webhookEvent: updateStripeWebhookEvent(
-    pk_columns: {id: $webhookEventId}
-    _set: $_set
-  ) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFields}`;
 export const InsertSyncLog = gql`
     mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
   sync_log: insert_sync_logs_one(object: $sync_log) {
@@ -12880,117 +12606,6 @@ export const GetUserSyncLogs = gql`
   }
 }
     `;
-export const UpsertUserProfile = gql`
-    mutation UpsertUserProfile($userProfile: userProfiles_insert_input!) {
-  userProfile: insertUserProfile(
-    object: $userProfile
-    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [stripeCustomerId]}
-  ) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFields}`;
-export const GetUserProfile = gql`
-    query GetUserProfile($userId: uuid!) {
-  userProfile(userId: $userId) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFields}`;
-export const InsertUserProfile = gql`
-    mutation InsertUserProfile($userProfile: userProfiles_insert_input!) {
-  userProfile: insertUserProfile(
-    object: $userProfile
-    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [userId]}
-  ) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFields}`;
-export const UpdateUserProfile = gql`
-    mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
-  userProfile: updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFields}`;
-export const GetUserByCustomerId = gql`
-    query GetUserByCustomerId($customerId: String!) {
-  userProfiles(
-    where: {stripeCustomerId: {_eq: $customerId}}
-    limit: 1
-    order_by: {user: {createdAt: desc}}
-  ) {
-    user {
-      ...AllBackendUserFields
-    }
-  }
-}
-    ${AllBackendUserFields}`;
-export const GetBaseUser = gql`
-    query GetBaseUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllBaseUserFields
-  }
-}
-    ${AllBaseUserFields}`;
-export const GetUserFromToken = gql`
-    query GetUserFromToken {
-  users {
-    id
-    displayName
-    email
-    createdAt
-  }
-}
-    `;
-export const GetUser = gql`
-    query GetUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllBackendUserFields
-  }
-}
-    ${AllBackendUserFields}`;
-export const UpdateUser = gql`
-    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}, $_delete_key: users_delete_key_input = {}) {
-  updateUser(
-    pk_columns: {id: $userId}
-    _set: $_set
-    _append: $_append
-    _delete_key: $_delete_key
-  ) {
-    ...AllBackendUserFields
-  }
-}
-    ${AllBackendUserFields}`;
-export const UpdateUserFrontend = gql`
-    mutation UpdateUserFrontend($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
-  user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFields}`;
-export const GetUserProfileFrontend = gql`
-    query GetUserProfileFrontend($userId: uuid!) {
-  userProfile(userId: $userId) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFields}`;
-export const GetUserFrontend = gql`
-    query GetUserFrontend($userId: uuid!) {
-  user(id: $userId) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFields}`;
-export const UpdateUserProfileFrontend = gql`
-    mutation UpdateUserProfileFrontend($userId: uuid!, $_set: userProfiles_set_input!) {
-  updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFields}`;
 export const AllBackendAirtableTokenFieldsFragmentDoc = gql`
     fragment AllBackendAirtableTokenFields on airtableTokens {
   id
@@ -13164,14 +12779,6 @@ export const AllBackendPlaidItemFieldsFragmentDoc = gql`
   plaid_sync_cursor_added_at
 }
     ${AllBackendAccountFieldsFragmentDoc}`;
-export const AllWebhookEventFieldsFragmentDoc = gql`
-    fragment AllWebhookEventFields on stripeWebhookEvents {
-  __typename
-  id
-  event
-  state
-}
-    `;
 export const DbSyncLogFieldsFragmentDoc = gql`
     fragment DBSyncLogFields on sync_logs {
   id
@@ -13212,111 +12819,6 @@ export const AllDestinationSyncLogFieldsFragmentDoc = gql`
   holdings
   transactions
   investment_transactions
-}
-    `;
-export const DbUserProfileFieldsFragmentDoc = gql`
-    fragment DBUserProfileFields on userProfiles {
-  sync_updates_frequency: syncUpdatesFrequency
-  is_subscribed_sync_updates: isSubscribedSyncUpdates
-  is_subscribed_general: isSubscribedGeneral
-  timezone
-  user_id: userId
-  sync_updates_job_id: syncUpdatesJobId
-  stripe_customer_id: stripeCustomerId
-}
-    `;
-export const AllUserProfileFieldsFragmentDoc = gql`
-    fragment AllUserProfileFields on userProfiles {
-  userId
-  timezone
-  isSubscribedGeneral
-  isSubscribedSyncUpdates
-  syncUpdatesFrequency
-  syncUpdatesJobId
-  stripeCustomerId
-}
-    `;
-export const DbUserFieldsFragmentDoc = gql`
-    fragment DBUserFields on users {
-  id
-  display_name: displayName
-  metadata
-  disabled
-  created_at: createdAt
-  password_hash: passwordHash
-  email
-}
-    `;
-export const AllBaseUserFieldsFragmentDoc = gql`
-    fragment AllBaseUserFields on users {
-  __typename
-  id
-  email
-  displayName
-  metadata
-  disabled
-  createdAt
-}
-    `;
-export const AllBackendUserFieldsFragmentDoc = gql`
-    fragment AllBackendUserFields on users {
-  __typename
-  id
-  email
-  displayName
-  metadata
-  disabled
-  createdAt
-  profile {
-    stripeData {
-      hasAppAccess
-      trialEndsAt
-      customer {
-        id
-        createdAt
-      }
-      subscription {
-        id
-        status
-        cancelAtPeriodEnd
-        trialStartedAt
-        trialEndedAt
-        startedAt
-        endedAt
-        currentPeriodStart
-        currentPeriodEnd
-        interval
-        canceledAt
-      }
-    }
-  }
-}
-    `;
-export const AllFrontendUserFieldsFragmentDoc = gql`
-    fragment AllFrontendUserFields on users {
-  __typename
-  id
-  displayName
-  email
-  createdAt
-  profile {
-    stripeCustomerId
-    timezone
-    isSubscribedGeneral
-    isSubscribedSyncUpdates
-    syncUpdatesFrequency
-  }
-  metadata
-}
-    `;
-export const AllFrontendUserProfileFieldsFragmentDoc = gql`
-    fragment AllFrontendUserProfileFields on userProfiles {
-  __typename
-  userId
-  timezone
-  isSubscribedGeneral
-  isSubscribedSyncUpdates
-  syncUpdatesFrequency
 }
     `;
 export const GetAirtableTokenDocument = gql`
@@ -13457,33 +12959,6 @@ export const UpdatePlaidItemDocument = gql`
   }
 }
     ${AllBackendPlaidItemFieldsFragmentDoc}`;
-export const InsertStripeWebhookEventDocument = gql`
-    mutation InsertStripeWebhookEvent($webhookEvent: stripeWebhookEvents_insert_input!) {
-  webhookEvent: insertStripeWebhookEvent(
-    object: $webhookEvent
-    on_conflict: {constraint: stripe_webhook_events_pkey, update_columns: [state, createdAt]}
-  ) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFieldsFragmentDoc}`;
-export const GetStripeWebhookEventDocument = gql`
-    query GetStripeWebhookEvent($webhookEventId: String!) {
-  webhookEvent: stripeWebhookEvent(id: $webhookEventId) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFieldsFragmentDoc}`;
-export const UpdateStripeWebhookEventDocument = gql`
-    mutation UpdateStripeWebhookEvent($webhookEventId: String!, $_set: stripeWebhookEvents_set_input!) {
-  webhookEvent: updateStripeWebhookEvent(
-    pk_columns: {id: $webhookEventId}
-    _set: $_set
-  ) {
-    ...AllWebhookEventFields
-  }
-}
-    ${AllWebhookEventFieldsFragmentDoc}`;
 export const InsertSyncLogDocument = gql`
     mutation InsertSyncLog($sync_log: sync_logs_insert_input!) {
   sync_log: insert_sync_logs_one(object: $sync_log) {
@@ -13581,117 +13056,6 @@ export const GetUserSyncLogsDocument = gql`
   }
 }
     `;
-export const UpsertUserProfileDocument = gql`
-    mutation UpsertUserProfile($userProfile: userProfiles_insert_input!) {
-  userProfile: insertUserProfile(
-    object: $userProfile
-    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [stripeCustomerId]}
-  ) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFieldsFragmentDoc}`;
-export const GetUserProfileDocument = gql`
-    query GetUserProfile($userId: uuid!) {
-  userProfile(userId: $userId) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFieldsFragmentDoc}`;
-export const InsertUserProfileDocument = gql`
-    mutation InsertUserProfile($userProfile: userProfiles_insert_input!) {
-  userProfile: insertUserProfile(
-    object: $userProfile
-    on_conflict: {constraint: user_profiles_user_id_key, update_columns: [userId]}
-  ) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFieldsFragmentDoc}`;
-export const UpdateUserProfileDocument = gql`
-    mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
-  userProfile: updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
-    ...AllUserProfileFields
-  }
-}
-    ${AllUserProfileFieldsFragmentDoc}`;
-export const GetUserByCustomerIdDocument = gql`
-    query GetUserByCustomerId($customerId: String!) {
-  userProfiles(
-    where: {stripeCustomerId: {_eq: $customerId}}
-    limit: 1
-    order_by: {user: {createdAt: desc}}
-  ) {
-    user {
-      ...AllBackendUserFields
-    }
-  }
-}
-    ${AllBackendUserFieldsFragmentDoc}`;
-export const GetBaseUserDocument = gql`
-    query GetBaseUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllBaseUserFields
-  }
-}
-    ${AllBaseUserFieldsFragmentDoc}`;
-export const GetUserFromTokenDocument = gql`
-    query GetUserFromToken {
-  users {
-    id
-    displayName
-    email
-    createdAt
-  }
-}
-    `;
-export const GetUserDocument = gql`
-    query GetUser($userId: uuid!) {
-  user(id: $userId) {
-    ...AllBackendUserFields
-  }
-}
-    ${AllBackendUserFieldsFragmentDoc}`;
-export const UpdateUserDocument = gql`
-    mutation UpdateUser($userId: uuid!, $_set: users_set_input = {}, $_append: users_append_input = {}, $_delete_key: users_delete_key_input = {}) {
-  updateUser(
-    pk_columns: {id: $userId}
-    _set: $_set
-    _append: $_append
-    _delete_key: $_delete_key
-  ) {
-    ...AllBackendUserFields
-  }
-}
-    ${AllBackendUserFieldsFragmentDoc}`;
-export const UpdateUserFrontendDocument = gql`
-    mutation UpdateUserFrontend($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
-  user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFieldsFragmentDoc}`;
-export const GetUserProfileFrontendDocument = gql`
-    query GetUserProfileFrontend($userId: uuid!) {
-  userProfile(userId: $userId) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFieldsFragmentDoc}`;
-export const GetUserFrontendDocument = gql`
-    query GetUserFrontend($userId: uuid!) {
-  user(id: $userId) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFieldsFragmentDoc}`;
-export const UpdateUserProfileFrontendDocument = gql`
-    mutation UpdateUserProfileFrontend($userId: uuid!, $_set: userProfiles_set_input!) {
-  updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFieldsFragmentDoc}`;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
@@ -13751,15 +13115,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     UpdatePlaidItem(variables: UpdatePlaidItemMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdatePlaidItemMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdatePlaidItemMutation>(UpdatePlaidItemDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdatePlaidItem', 'mutation');
     },
-    InsertStripeWebhookEvent(variables: InsertStripeWebhookEventMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertStripeWebhookEventMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertStripeWebhookEventMutation>(InsertStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertStripeWebhookEvent', 'mutation');
-    },
-    GetStripeWebhookEvent(variables: GetStripeWebhookEventQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetStripeWebhookEventQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetStripeWebhookEventQuery>(GetStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetStripeWebhookEvent', 'query');
-    },
-    UpdateStripeWebhookEvent(variables: UpdateStripeWebhookEventMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateStripeWebhookEventMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateStripeWebhookEventMutation>(UpdateStripeWebhookEventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateStripeWebhookEvent', 'mutation');
-    },
     InsertSyncLog(variables: InsertSyncLogMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertSyncLogMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertSyncLogMutation>(InsertSyncLogDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertSyncLog', 'mutation');
     },
@@ -13780,45 +13135,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     GetUserSyncLogs(variables: GetUserSyncLogsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserSyncLogsQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserSyncLogsQuery>(GetUserSyncLogsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserSyncLogs', 'query');
-    },
-    UpsertUserProfile(variables: UpsertUserProfileMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpsertUserProfileMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpsertUserProfileMutation>(UpsertUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpsertUserProfile', 'mutation');
-    },
-    GetUserProfile(variables: GetUserProfileQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserProfileQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserProfileQuery>(GetUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserProfile', 'query');
-    },
-    InsertUserProfile(variables: InsertUserProfileMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserProfileMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserProfileMutation>(InsertUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'InsertUserProfile', 'mutation');
-    },
-    UpdateUserProfile(variables: UpdateUserProfileMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserProfileMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserProfileMutation>(UpdateUserProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserProfile', 'mutation');
-    },
-    GetUserByCustomerId(variables: GetUserByCustomerIdQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserByCustomerIdQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserByCustomerIdQuery>(GetUserByCustomerIdDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserByCustomerId', 'query');
-    },
-    GetBaseUser(variables: GetBaseUserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetBaseUserQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetBaseUserQuery>(GetBaseUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetBaseUser', 'query');
-    },
-    GetUserFromToken(variables?: GetUserFromTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserFromTokenQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserFromTokenQuery>(GetUserFromTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserFromToken', 'query');
-    },
-    GetUser(variables: GetUserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserQuery>(GetUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUser', 'query');
-    },
-    UpdateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUser', 'mutation');
-    },
-    UpdateUserFrontend(variables: UpdateUserFrontendMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserFrontendMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserFrontendMutation>(UpdateUserFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserFrontend', 'mutation');
-    },
-    GetUserProfileFrontend(variables: GetUserProfileFrontendQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserProfileFrontendQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserProfileFrontendQuery>(GetUserProfileFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserProfileFrontend', 'query');
-    },
-    GetUserFrontend(variables: GetUserFrontendQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserFrontendQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserFrontendQuery>(GetUserFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetUserFrontend', 'query');
-    },
-    UpdateUserProfileFrontend(variables: UpdateUserProfileFrontendMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserProfileFrontendMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserProfileFrontendMutation>(UpdateUserProfileFrontendDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'UpdateUserProfileFrontend', 'mutation');
     }
   };
 }

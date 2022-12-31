@@ -1,6 +1,5 @@
 export type { 
   AllBackendPlaidItemFieldsFragment as PlaidItemModel,
-  AllBackendUserFieldsFragment as UserModel
 } from "~/graphql/backend/sdk"
 
 import { AllBackendDestinationFieldsFragment, AllBackendIntegrationFieldsFragment, Integrations_Enum } from "~/graphql/backend/sdk";

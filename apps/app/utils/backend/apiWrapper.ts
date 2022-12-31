@@ -1,10 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Logger } from './logger';
 
-import { GetUserFromToken } from '~/graphql/backend/sdk';
 import { graphql } from '~/graphql/backend';
 import { flushAnalytics } from './analytics';
-import { nhost } from '~/utils/nhost';
 import { DestinationModel } from '~/types/backend/models';
 import { hash } from '~/utils/backend/crypto';
 import { plaidEnvFromVercelEnv, PlaidEnv } from "~/utils/backend/plaid";
@@ -33,22 +31,6 @@ export const wrapper = (type: 'public' | 'client' | 'oauth', fn: WrappedFunction
   }
 
   let user = { id: "", displayName: "", email: "", createdAt: "" }
-  if ( type === 'client' ) {
-    const { data, error } = await nhost.graphql.request(GetUserFromToken, {}, { headers: { Authorization: `Bearer ${token}` }});
-    if ( error ) {
-      logger.error(new Error("Error getting user from token"), { error });
-      await logger.info(`${route} request finished`);
-      return res.status(500).send("Internal Error")
-    }
-    if ( data.users.length === 0 ) {
-      logger.info("User not found")
-      await logger.info(`${route} request finished`);
-      return res.status(400).send("Unauthorized")
-    }
-
-    user = data.users[0]
-    logger.addContext({ user })
-  }
 
   let destination = null as DestinationModel | null
   if ( type === 'oauth' ) {

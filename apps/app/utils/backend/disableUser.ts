@@ -4,7 +4,7 @@ import { disablePlaidItem } from "./disablePlaidItem";
 import { SubscriptionStatus } from "~/graphql/backend/sdk";
 
 export const disableUser = async (userId: string) => {
-  const user = await graphql.GetUser({ userId }).then(response => response.user!)
+  const user = {} as any; //await graphql.GetUser({ userId }).then(response => response.user!)
   const userSubscription = user.profile.stripeData.subscription;
   if ( userSubscription && ![SubscriptionStatus.Canceled, SubscriptionStatus.IncompleteExpired].includes(userSubscription.status) ) {
     await cancelSubscription({ subscriptionId: userSubscription.id })
@@ -24,15 +24,15 @@ export const disableUser = async (userId: string) => {
     })
   }))
 
-  await graphql.UpdateUser({
-    userId,
-    _set: {
-      email: null,
-      displayName: "",
-      disabled: true
-    },
-    _append: {
-      metadata: { 'disabled_at': new Date() }
-    }
-  })
+  // await graphql.UpdateUser({
+  //   userId,
+  //   _set: {
+  //     email: null,
+  //     displayName: "",
+  //     disabled: true
+  //   },
+  //   _append: {
+  //     metadata: { 'disabled_at': new Date() }
+  //   }
+  // })
 }

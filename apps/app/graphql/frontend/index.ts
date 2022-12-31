@@ -11930,11 +11930,6 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
-export type GetAirtableTokensSubscriptionVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetAirtableTokensSubscription = { __typename?: 'subscription_root', airtableTokens: Array<{ __typename?: 'airtableTokens', id: any }> };
-
 export type AllDestinationAccountFieldsFragment = { __typename: 'destination_accounts', account_id: string, destination_id: any };
 
 export type InsertDestinationAccountsMutationVariables = Exact<{
@@ -12046,34 +12041,6 @@ export type GetSyncLogsQueryVariables = Exact<{
 
 
 export type GetSyncLogsQuery = { __typename?: 'query_root', sync_logs: Array<{ __typename?: 'sync_logs', id: any, created_at: any, ended_at?: any | null, trigger: string, is_success: boolean, error?: any | null, metadata?: any | null, destination_sync_logs: Array<{ __typename?: 'destination_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, destination: { __typename?: 'destinations', id: any, name: string, integration: { __typename?: 'integrations', id: string, name: string } } }>, plaid_item_sync_logs: Array<{ __typename?: 'plaid_item_sync_logs', error?: any | null, accounts: any, holdings: any, transactions: any, investment_transactions: any, plaid_item: { __typename: 'plaid_items', id: string, institution: { __typename?: 'plaid_institutions', name: string, logo_file?: { __typename?: 'files', id: any } | null }, accounts: Array<{ __typename: 'plaidAccounts', id: string, name: string }> } }> }>, count: { __typename?: 'sync_logs_aggregate', aggregate?: { __typename?: 'sync_logs_aggregate_fields', count: number } | null } };
-
-export type AllFrontendUserFieldsFragment = { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, hasAppAccess: boolean, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } };
-
-export type UpdateUserMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  _set?: InputMaybe<Users_Set_Input>;
-  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
-}>;
-
-
-export type UpdateUserMutation = { __typename?: 'mutation_root', user?: { __typename: 'users', id: any, displayName: string, email?: any | null, createdAt: any, metadata?: any | null, profile: { __typename?: 'RemoteSchemaUserProfile', stripeData: { __typename?: 'StripeData', trialEndsAt: any, hasAppAccess: boolean, customer: { __typename?: 'StripeCustomer', id: string, createdAt: any }, subscription?: { __typename?: 'StripeSubscription', id: string, status: SubscriptionStatus, cancelAtPeriodEnd: boolean, trialStartedAt?: any | null, trialEndedAt?: any | null, startedAt: any, endedAt?: any | null, currentPeriodStart: any, currentPeriodEnd: any, interval: PriceInterval, canceledAt?: any | null } | null } } } | null };
-
-export type AllFrontendUserProfileFieldsFragment = { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null };
-
-export type GetUserProfileQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetUserProfileQuery = { __typename?: 'query_root', userProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
-
-export type UpdateUserProfileMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  _set: UserProfiles_Set_Input;
-}>;
-
-
-export type UpdateUserProfileMutation = { __typename?: 'mutation_root', updateUserProfile?: { __typename: 'userProfiles', userId: any, timezone?: string | null, isSubscribedGeneral: boolean, isSubscribedSyncUpdates: boolean, syncUpdatesFrequency?: Frequencies_Enum | null } | null };
 
 export const AllDestinationAccountFieldsFragmentDoc = gql`
     fragment AllDestinationAccountFields on destination_accounts {
@@ -12228,78 +12195,6 @@ export const AllFrontendSyncLogFieldsFragmentDoc = gql`
   }
 }
     `;
-export const AllFrontendUserFieldsFragmentDoc = gql`
-    fragment AllFrontendUserFields on users {
-  __typename
-  id
-  displayName
-  email
-  createdAt
-  profile {
-    stripeData {
-      customer {
-        id
-        createdAt
-      }
-      trialEndsAt
-      hasAppAccess
-      subscription {
-        id
-        status
-        cancelAtPeriodEnd
-        trialStartedAt
-        trialEndedAt
-        startedAt
-        endedAt
-        currentPeriodStart
-        currentPeriodEnd
-        interval
-        canceledAt
-      }
-    }
-  }
-  metadata
-}
-    `;
-export const AllFrontendUserProfileFieldsFragmentDoc = gql`
-    fragment AllFrontendUserProfileFields on userProfiles {
-  __typename
-  userId
-  timezone
-  isSubscribedGeneral
-  isSubscribedSyncUpdates
-  syncUpdatesFrequency
-}
-    `;
-export const GetAirtableTokensDocument = gql`
-    subscription GetAirtableTokens {
-  airtableTokens {
-    id
-  }
-}
-    `;
-
-/**
- * __useGetAirtableTokensSubscription__
- *
- * To run a query within a React component, call `useGetAirtableTokensSubscription` and pass it any options that fit your needs.
- * When your component renders, `useGetAirtableTokensSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAirtableTokensSubscription({
- *   variables: {
- *   },
- * });
- */
-export function useGetAirtableTokensSubscription(baseOptions?: Apollo.SubscriptionHookOptions<GetAirtableTokensSubscription, GetAirtableTokensSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<GetAirtableTokensSubscription, GetAirtableTokensSubscriptionVariables>(GetAirtableTokensDocument, options);
-      }
-export type GetAirtableTokensSubscriptionHookResult = ReturnType<typeof useGetAirtableTokensSubscription>;
-export type GetAirtableTokensSubscriptionResult = Apollo.SubscriptionResult<GetAirtableTokensSubscription>;
 export const InsertDestinationAccountsDocument = gql`
     mutation InsertDestinationAccounts($destination_accounts: [destination_accounts_insert_input!]!) {
   destination_accounts: insert_destination_accounts(
@@ -12829,107 +12724,3 @@ export function useGetSyncLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetSyncLogsQueryHookResult = ReturnType<typeof useGetSyncLogsQuery>;
 export type GetSyncLogsLazyQueryHookResult = ReturnType<typeof useGetSyncLogsLazyQuery>;
 export type GetSyncLogsQueryResult = Apollo.QueryResult<GetSyncLogsQuery, GetSyncLogsQueryVariables>;
-export const UpdateUserDocument = gql`
-    mutation UpdateUser($id: uuid!, $_set: users_set_input = {}, $_delete_key: users_delete_key_input = {}) {
-  user: updateUser(pk_columns: {id: $id}, _set: $_set, _delete_key: $_delete_key) {
-    ...AllFrontendUserFields
-  }
-}
-    ${AllFrontendUserFieldsFragmentDoc}`;
-export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
-
-/**
- * __useUpdateUserMutation__
- *
- * To run a mutation, you first call `useUpdateUserMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateUserMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateUserMutation, { data, loading, error }] = useUpdateUserMutation({
- *   variables: {
- *      id: // value for 'id'
- *      _set: // value for '_set'
- *      _delete_key: // value for '_delete_key'
- *   },
- * });
- */
-export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserMutation, UpdateUserMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument, options);
-      }
-export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
-export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
-export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
-export const GetUserProfileDocument = gql`
-    query GetUserProfile($userId: uuid!) {
-  userProfile(userId: $userId) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFieldsFragmentDoc}`;
-
-/**
- * __useGetUserProfileQuery__
- *
- * To run a query within a React component, call `useGetUserProfileQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserProfileQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserProfileQuery(baseOptions: Apollo.QueryHookOptions<GetUserProfileQuery, GetUserProfileQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserProfileQuery, GetUserProfileQueryVariables>(GetUserProfileDocument, options);
-      }
-export function useGetUserProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserProfileQuery, GetUserProfileQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserProfileQuery, GetUserProfileQueryVariables>(GetUserProfileDocument, options);
-        }
-export type GetUserProfileQueryHookResult = ReturnType<typeof useGetUserProfileQuery>;
-export type GetUserProfileLazyQueryHookResult = ReturnType<typeof useGetUserProfileLazyQuery>;
-export type GetUserProfileQueryResult = Apollo.QueryResult<GetUserProfileQuery, GetUserProfileQueryVariables>;
-export const UpdateUserProfileDocument = gql`
-    mutation UpdateUserProfile($userId: uuid!, $_set: userProfiles_set_input!) {
-  updateUserProfile(pk_columns: {userId: $userId}, _set: $_set) {
-    ...AllFrontendUserProfileFields
-  }
-}
-    ${AllFrontendUserProfileFieldsFragmentDoc}`;
-export type UpdateUserProfileMutationFn = Apollo.MutationFunction<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>;
-
-/**
- * __useUpdateUserProfileMutation__
- *
- * To run a mutation, you first call `useUpdateUserProfileMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateUserProfileMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateUserProfileMutation, { data, loading, error }] = useUpdateUserProfileMutation({
- *   variables: {
- *      userId: // value for 'userId'
- *      _set: // value for '_set'
- *   },
- * });
- */
-export function useUpdateUserProfileMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>(UpdateUserProfileDocument, options);
-      }
-export type UpdateUserProfileMutationHookResult = ReturnType<typeof useUpdateUserProfileMutation>;
-export type UpdateUserProfileMutationResult = Apollo.MutationResult<UpdateUserProfileMutation>;
-export type UpdateUserProfileMutationOptions = Apollo.BaseMutationOptions<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>;
