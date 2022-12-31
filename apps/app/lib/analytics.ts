@@ -1,16 +1,16 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
 import { Frequency, User } from '@prisma/client'
-import { Analytics } from "@segment/analytics-node";
+import AnalyticsNode from "analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
 
-const analytics = new Analytics({ writeKey: process.env.SEGMENT_KEY || "writeKey", maxEventsInBatch: 1 });
+const analytics = new AnalyticsNode(process.env.SEGMENT_KEY!, { flushAt: 1 });
 const browserAnalytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY || "writeKey" });
 
 // Proper Case for event names
 // snake_case for properties
 
-export const flush = analytics.closeAndFlush
+export const flush = analytics.flush;
 
 export const trackUserSignedIn = ({ userId, provider }: { userId: string; provider?: string }) => 
   track({
@@ -59,11 +59,52 @@ export const trackPlaidLinkInitiated = ({ userId, mode }: { userId: string; mode
     properties: { mode }
   })
 
-export const backendIdentify = ({ userId, traits }: { userId: string; traits: UserTraits }) =>
+export const trackSubscriptionInvoicePaid = ({ userId, revenue, plan, timestamp }: { userId: string; revenue: number; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: Event.SUBSCRIPTION_INVOICE_PAID,
+    properties: { revenue, plan },
+    timestamp
+  })
+
+export const trackSubscriptionStarted = ({ userId, plan, remainingTrialDays, timestamp }: { userId: string; plan: string; timestamp: Date; remainingTrialDays?: number }) => 
+  track({
+    userId,
+    event: Event.SUBSCRIPTION_STARTED,
+    properties: { plan, remaining_trial_days: remainingTrialDays },
+    timestamp
+  })
+
+export const trackSubscriptionEnded = ({ userId, plan, timestamp }: { userId: string; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: Event.SUBSCRIPTION_ENDED,
+    properties: { plan },
+    timestamp
+  })
+
+export const trackSubscriptionCanceled = ({ userId, plan, remainingDays, timestamp }: { userId: string; plan: string; remainingDays: number; timestamp: Date }) =>
+  track({
+    userId,
+    event: Event.SUBSCRIPTION_CANCELED,
+    properties: { plan, remaining_days: remainingDays },
+    timestamp
+  })
+
+export const trackSubscriptionRenewed = ({ userId, plan, timestamp }: { userId: string; plan: string; timestamp: Date }) =>
+  track({
+    userId,
+    event: Event.SUBSCRIPTION_RENEWED,
+    properties: { plan },
+    timestamp
+  })
+
+export const backendIdentify = ({ userId, traits, timestamp }: { userId: string; traits: UserTraits; timestamp?: Date }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
       userId,
-      traits
+      traits,
+      timestamp
     }, () => resolve(true))
   })
 
@@ -92,7 +133,12 @@ enum Event {
   USER_SIGNED_UP = "User Signed Up",
   USER_UPDATED = "User Updated",
   USER_DELETED = "User Deleted",
-  STRIPE_PORTAL_VIEWED = "Stripe Portal Viewed"
+  STRIPE_PORTAL_VIEWED = "Stripe Portal Viewed",
+  SUBSCRIPTION_STARTED = "Subscription Started",
+  SUBSCRIPTION_ENDED = "Subscription Ended",
+  SUBSCRIPTION_RENEWED = "Subscription Renewed",
+  SUBSCRIPTION_CANCELED = "Subscription Canceled",
+  SUBSCRIPTION_INVOICE_PAID = "Subscription Invoice Paid"
 }
 
 export enum AnalyticsPage {

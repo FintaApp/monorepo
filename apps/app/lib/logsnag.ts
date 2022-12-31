@@ -26,6 +26,55 @@ export const logUserSignedUp = ({ name, email, userId }: { name?: string; email:
     tags: { [Tag.USER_ID]: userId }
   })
 
+export const logRevenue = ({ userName, revenue, userId, lifetimeRevenue }: { userName: string; revenue: number; userId: string; lifetimeRevenue: number; }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.REVENUE,
+    description: `${userName} paid $${revenue}. Lifetime revenue is now $${lifetimeRevenue}`,
+    icon: "💰",
+    notify: true,
+    tags: {
+      [Tag.USER_ID]: userId
+    }
+  });
+
+export const logSubscriptionStarted = ({ plan, remainingTrialDays, userId }: { plan: string; remainingTrialDays: number; userId: string; }) =>
+ logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.SUBSCRIPTION_STARTED,
+    description: `Plan: ${plan}\nRemaining trial days: ${remainingTrialDays}`,
+    icon: "🚀",
+    tags: { [Tag.USER_ID]: userId}
+  })
+
+export const logSubscriptionEnded = ({ userId, plan }: { userId: string; plan: string; }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.SUBSCRIPTION_ENDED,
+    description: `Plan: ${plan}`,
+    icon: "😔",
+    tags: { [Tag.USER_ID]: userId}
+  })
+
+export const logSubscriptionCanceled = ({ userId, plan }: { userId: string; plan: string; }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.SUBSCRIPTION_CANCELED,
+    description: `Plan: ${plan}`,
+    icon: "😕",
+    tags: { [Tag.USER_ID]: userId}
+  })
+
+export const logSubscriptionRenewed = ({ userId, plan }: { userId: string; plan: string; }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.SUBSCRIPTION_RENEWED,
+    description: `Plan: ${plan}`,
+    icon: "😅",
+    tags: { [Tag.USER_ID]: userId}
+  });
+
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -42,6 +91,11 @@ enum Event {
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
+  REVENUE = 'Incoming Revenue!',
+  SUBSCRIPTION_STARTED = "Subscription Started",
+  SUBSCRIPTION_CANCELED = "Subscription Canceled",
+  SUBSCRIPTION_ENDED = "Subscription Ended",
+  SUBSCRIPTION_RENEWED = "Subscription Renewed",
   SYNC_COMPLETED = "Sync Completed",
   UNHANDLED = "Unhandled",
   USER_SIGNED_UP = "User Signed Up",

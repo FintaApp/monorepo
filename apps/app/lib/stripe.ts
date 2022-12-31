@@ -1,3 +1,5 @@
+import bodyParser from "body-parser"
+import { AxiomAPIRequest } from 'next-axiom';
 import Stripe from "stripe";
 import moment from "moment-timezone";
 
@@ -77,3 +79,26 @@ export const createCheckoutPortalSession = ({ customerId, priceId, successUrl, c
         trial_period_days: trialPeriodDays
       } : undefined
     }).then(response => ({ id: response.id, url: response.url }))
+
+export const validateStripeWebhook = (req: AxiomAPIRequest) => {
+  const sig = req.headers['stripe-signature'];
+  let event: Stripe.Event
+  try {
+    event = client.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    return { isValid: true, event, error: null }
+  } catch (err) {
+    console.log(err);
+    return { isValid: false, event: null, error: err.message }
+  }
+}
+
+export const getSubscription = ({ subscriptionId }: { subscriptionId: string }) => client.subscriptions.retrieve(subscriptionId);
+export const getLifetimeRevenue = ({ customerId }: { customerId: string }) =>
+  client.invoices.list({
+    customer: customerId,
+    status: 'paid'
+  })
+  .then(response => {
+    const { data } = response;
+    return data.reduce((total, invoice) => total + (invoice.amount_due / 100.0), 0)
+  })
