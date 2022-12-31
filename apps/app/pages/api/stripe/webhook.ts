@@ -13,7 +13,7 @@ export const config = {
 }
 
 export default wrapper(async function handler({ req, logger }) {
-  const { isValid, event, error } = validateStripeWebhook(req);
+  const { isValid, event, error } = await validateStripeWebhook(req);
   logger.info("Validated webhook", { isValid, error })
   if ( !isValid ) { return { status: 400, message: error }};
 
@@ -94,7 +94,9 @@ export default wrapper(async function handler({ req, logger }) {
 
       default:
         throw new Error("Unhandled Stripe webhook event")
-    }
+    };
+
+    return { status: 200, message: "OK" }
   } catch (error) {
     logger.error(error);
     await db.stripeWebhookEvent.update({ where: { id }, data: { state: StripeWebhookEventState.Failed }})

@@ -1,4 +1,4 @@
-import bodyParser from "body-parser"
+import { buffer } from "micro";
 import { AxiomAPIRequest } from 'next-axiom';
 import Stripe from "stripe";
 import moment from "moment-timezone";
@@ -80,11 +80,12 @@ export const createCheckoutPortalSession = ({ customerId, priceId, successUrl, c
       } : undefined
     }).then(response => ({ id: response.id, url: response.url }))
 
-export const validateStripeWebhook = (req: AxiomAPIRequest) => {
+export const validateStripeWebhook = async (req: AxiomAPIRequest) => {
   const sig = req.headers['stripe-signature'];
+  const reqBuffer = await buffer(req);
   let event: Stripe.Event
   try {
-    event = client.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = client.webhooks.constructEvent(reqBuffer, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET);
     return { isValid: true, event, error: null }
   } catch (err) {
     console.log(err);

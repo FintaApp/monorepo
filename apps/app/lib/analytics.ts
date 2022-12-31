@@ -4,8 +4,10 @@ import AnalyticsNode from "analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
 
-const analytics = new AnalyticsNode(process.env.SEGMENT_KEY!, { flushAt: 1 });
-const browserAnalytics = AnalyticsBrowser.load({ writeKey: process.env.NEXT_PUBLIC_SEGMENT_KEY || "writeKey" });
+const key = process.env.SEGMENT_KEY || process.env.NEXT_PUBLIC_SEGMENT_KEY || "";
+
+const analytics = new AnalyticsNode(key, { flushAt: 1 });
+const browserAnalytics = AnalyticsBrowser.load({ writeKey: key });
 
 // Proper Case for event names
 // snake_case for properties
