@@ -20,10 +20,13 @@ export async function createContext(context: trpcNext.CreateNextContextOptions) 
 
   const nhostContext = { ...context, query: context.req.query, resolvedUrl: context.req.url || "" };
   const session = await getNhostSession(process.env.NHOST_BACKEND_URL || "", nhostContext);
+  const user = session?.user
+    ? { id: session.user.id }
+    : undefined;
 
-  const logger = context.req.log.with({ userId: session && session.user.id, requestId: crypto.randomUUID() });
+  const logger = context.req.log.with({ userId: user?.id, requestId: crypto.randomUUID() });
 
-  return { ...context, session, db, logger }
+  return { ...context, user, db, logger }
 };
 
 export type Context = inferAsyncReturnType<typeof createContext>;

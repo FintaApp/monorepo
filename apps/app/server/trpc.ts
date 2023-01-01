@@ -5,7 +5,6 @@ import { AxiomAPIRequest } from "next-axiom";
 import { Context } from "./context";
 
 const removeUnsafeBody = (body: Record<string, any>): Record<string, any> => {
-  console.log(body)
   const unsafeProperties = ['password'];
   return Object.entries(body).reduce((prevValue, [key, value]) => {
     if ( !!value && typeof value === 'object' && !Array.isArray(value) ) {
@@ -18,9 +17,9 @@ const removeUnsafeBody = (body: Record<string, any>): Record<string, any> => {
 const t = initTRPC.context<Context>().create({ transformer: superjson })
 
 const isAuthed = t.middleware(async ({ next, ctx }) => {
-  const { session } = ctx;
+  const { user } = ctx;
 
-  if ( !session || !session.user ) { throw new TRPCError({ code: 'UNAUTHORIZED' })}
+  if ( !user ) { throw new TRPCError({ code: 'UNAUTHORIZED' })}
   return next({ ctx })
 })
 

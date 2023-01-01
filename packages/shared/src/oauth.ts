@@ -80,7 +80,7 @@ export type OauthTransaction = {
 
 export type GetTransactionsNextContinuation = {
   data: {
-    syncLogId: string;
+    syncId: string;
     paginationByItem: {
       itemId: string;
       hasMore: boolean;

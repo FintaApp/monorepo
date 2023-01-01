@@ -1,105 +1,157 @@
-import * as formatter from "~/utils/backend/formatter";
-import { graphql } from "~/graphql/backend";
-import { wrapper } from "~/utils/backend/apiWrapper";
-import { getItemActiveAccounts } from "~/utils/backend/getItemActiveAccounts";
-import * as plaid from "~/utils/backend/plaid"
+import moment from "moment-timezone";
+import { SyncError, SyncTrigger, Table } from "@prisma/client";
+import _ from "lodash";
 
-import { getOauthPlaidItems, handlePlaidError } from "./_helpers"
 import { OauthAccount } from "@finta/shared";
-import { LiabilitiesGetRequestOptions, AccountBase, CreditCardLiability, MortgageLiability, StudentLoan } from "plaid";
 
-export default wrapper('oauth', async function handler({ req, destination, plaidEnv, logger }) {
-  const trigger = 'destination';
-  const syncLog = await graphql.InsertSyncLog({ sync_log: { trigger,
-    destination_sync_logs: { data: [{ destination_id: destination!.id }]},
-    metadata: { 'target_table': 'accounts' }
-  }}).then(response => response.sync_log!);
-  logger.addContext({ syncLogId: syncLog.id });
+import { wrapper } from "~/lib/apiWrapper";
+import { db } from "~/lib/db";
+import { getAccounts, getLiabilities } from "~/lib/plaid";
+import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
+import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
+import { AccountBase, CreditCardLiability, LiabilitiesGetRequestOptions, LiabilitiesGetResponse, MortgageLiability, PlaidError, StudentLoan } from "plaid";
+import { handlePlaidError } from "./_helpers";
+import * as formatter from "~/lib/integrations/coda/formatter"
+import { logSyncCompleted } from "~/lib/logsnag";
+import { trackSyncCompleted } from "~/lib/analytics";
 
-  const { plaid_items, error_count } = await getOauthPlaidItems(destination!.id, syncLog.id);
-  if ( error_count > 0 ) {
-    return { status: 428, message: "Has Error Item" }
+export default wrapper(async ({ req, logger }) => {
+  const trigger = SyncTrigger.Destination;
+  const { destination, hasAppAccess } = await getDestinationFromRequest({ req, logger });
+  if ( !destination ) { return { status: 404, message: "Destination not found" }};
+
+  logger.info("Fetched destination", { destination, hasAppAccess });
+
+  if ( !hasAppAccess ) {
+    return db.sync.create({ data: {
+      trigger,
+      triggerDestinationId: destination.id,
+      error: SyncError.NoSubscription,
+      isSuccess: false,
+      endedAt: new Date()
+    }})
+    .then(sync => {
+      logger.info("Sync created", { sync });
+      return { status: 200, message: "OK"}
+    });
   }
 
-  return Promise.all(plaid_items.map(async item => {
-    const getItemActiveAccountsResponse = await getItemActiveAccounts(item, logger, plaidEnv);
-    if ( getItemActiveAccountsResponse.hasAuthError ) { return ({ accounts: [] as OauthAccount[], hasAuthError: true, itemId: item.id }) }
-    
-    const { accountIds: plaidAccountIds } = getItemActiveAccountsResponse;
-    const { accessToken, billed_products = [], available_products = [] } = item;
-    if ( plaidAccountIds.length === 0) { return ({ accounts: [] as OauthAccount[], hasAuthError: false, itemId: item.id }) }
+  const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
 
-    const products = billed_products.concat(available_products) as string[];
-    const options = { account_ids: plaidAccountIds } as LiabilitiesGetRequestOptions;
-
-    let liabilities = [] as (CreditCardLiability | MortgageLiability | StudentLoan)[];
-    const { accounts: plaidAccounts, hasAuthError } = await plaid.getAccounts({ accessToken, options })
-    .then(response => ({ accounts: response.data.accounts as AccountBase[], hasAuthError: false }))
-    .catch(async error => {
-      const errorData = error.response.data;
-      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncLogId: syncLog.id });
-      if ( !hasAuthError ) { 
-        await logger.error(error, { data: errorData })
-      };
-      return ({ accounts: [] as AccountBase[], hasAuthError });
+  const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
+  if ( errorItems.length > 0 ) {
+    return db.sync.create({ data: {
+      triggerDestinationId: destination.id,
+      trigger,
+      isSuccess: false,
+      error: SyncError.ItemError,
+      endedAt: new Date(),
+      results: { createMany: { data: errorItems.map(item => ({ plaidItemId: item.id, error: SyncError.ItemError, destinationId: destination.id }))}
+      }
+    }})
+    .then(response => {
+      logger.info("Sync created", { sync: response });
+      return { status: 428, message: "Has Error Item" }
     })
+  }
 
-    if ( !hasAuthError && plaidAccounts.length > 0 && products.includes('liabilities') ) {
-      liabilities = await plaid.getLiabilities({ accessToken, options })
-      .then(liabilitiesResponse => {
-        const { credit, mortgage, student } = liabilitiesResponse.data.liabilities;
-        return ([] as (CreditCardLiability | MortgageLiability | StudentLoan)[]).concat(credit || []).concat(mortgage || []).concat(student || [])
+  const sync = await db.sync.create({
+    data: { 
+      trigger, 
+      triggerDestinationId: destination.id,
+      results: {
+        create: plaidItems.map(item => ({
+          plaidItemid: item.id,
+          destinationId: destination.id,
+          shouldSyncAccounts: true
+        }))
+      }
+    }
+  }).then(sync => { logger.info("Created sync", { sync }); return sync });
+
+  return Promise.all(plaidItems.map(async item => {
+    const getItemActiveAccountsResponse = await getItemActiveAccounts({ item, logger });
+    if ( getItemActiveAccountsResponse.hasAuthError ) { return ({ accounts: [] as OauthAccount[], hasAuthError: true, itemId: item.id }) }
+
+    const destinationPlaidAccountIds = _.union(
+      getItemActiveAccountsResponse.accountIds,
+      destination.accounts
+        .filter(account => account.plaidItemId === item.id)
+        .map(account => account.id)
+    );
+
+    if ( destinationPlaidAccountIds.length === 0) { return ({ accounts: [] as OauthAccount[], hasAuthError: false, itemId: item.id }) };
+
+    const { accessToken, billedProducts = [], availableProducts = [] } = item;
+    const products = (billedProducts as string[]).concat(availableProducts as string[]);
+
+    const options = { account_ids: destinationPlaidAccountIds } as LiabilitiesGetRequestOptions;
+
+    let liabilities = { student: [], mortgage: [], credit: [] } as LiabilitiesGetResponse['liabilities'];
+    const { accounts: plaidAccounts, hasAuthError } = await getAccounts({ accessToken, options })
+      .then(response => ({ accounts: response.data.accounts as AccountBase[], hasAuthError: false }))
+      .catch(async error => {
+        const errorData = error.response.data;
+        const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id });
+        if ( !hasAuthError ) { logger.error(error, { data: errorData })};
+        return ({ accounts: [] as AccountBase[], hasAuthError });
       })
-      .catch(async err => {
-        const errorData = err.response?.data;
-        const errorCode = errorData?.error_code;
-        if ( !['NO_LIABILITY_ACCOUNTS'].includes(errorCode) ) {
-          await logger.error(err, { data: errorData })
-        }
-        return []
-      })
+
+    if ( !hasAuthError && plaidAccounts.length > 0 && products.includes('liabilities')) {
+      liabilities = await getLiabilities({ accessToken, options })
+        .then(response => response.data.liabilities)
+        .catch(async err => {
+          const error = err.response.error as PlaidError;
+          if ( !['NO_LIABILITY_ACCOUNTS'].includes(error.error_code) ) {
+            logger.error(err, { data: error })
+          };
+          return { student: [], mortgage: [], credit: [] } as LiabilitiesGetResponse['liabilities'];
+        })
     }
 
     const formattedAccounts = plaidAccounts.map(plaidAccount => {
-      const itemAccount = item.accounts.find(account => account.id === plaidAccount.account_id)!;
-      const liability = liabilities.find(liab => liab.account_id === plaidAccount.account_id);
-      return formatter.coda.account({ itemId: item.id, plaidAccount, itemAccount, liability })
+      const itemAccount = destination.accounts.find(account => account.id === plaidAccount.account_id)!;
+      const liability = liabilities.student.find(s => s.account_id === plaidAccount.account_id)
+        || liabilities.mortgage.find(s => s.account_id === plaidAccount.account_id)
+        || liabilities.credit.find(s => s.account_id === plaidAccount.account_id)
+      
+      return formatter.account({ itemId: item.id, plaidAccount, itemAccount, liability })
+    });
+
+    await db.syncResult.update({ 
+      where: { syncId_plaidItemId_destinationId: { syncId: sync.id, plaidItemId: item.id, destinationId: destination.id }},
+      data: { accountsAdded: { increment: formattedAccounts.length }}
     })
 
     return { hasAuthError, accounts: formattedAccounts, itemId: item.id }
   }))
   .then(async responses => {
-    if ( !!responses.find(response => response.hasAuthError) ) { return { status: 428, message: "Has Error Item" } }
+    if ( !!responses.find(response => response.hasAuthError)) { 
+      await db.sync.update({ where: { id: sync.id }, data: { isSuccess: false, error: SyncError.ItemError, endedAt: new Date() }})
+      return { status: 428, message: "Has Error Item" }
+    };
 
     await Promise.all([
-      graphql.UpdateSyncLog({
-        sync_log_id: syncLog.id,
-        _set: {
-          is_success: true,
-          ended_at: new Date()
-        }
-      }),
-      graphql.InsertPlaidItemSyncLogs({
-        plaid_item_sync_logs: responses.map(response => ({
-          plaid_item_id: response.itemId,
-          accounts: {
-            added: response.accounts.map(account => account.id),
-            updated: []
-          },
-          sync_log_id: syncLog.id
-        }))
-      }),
-      logger.logSyncCompleted({
-        userId: destination!.user.id,
+      db.sync.update({ where: { id: sync.id }, data: { isSuccess: true, endedAt: new Date() }}),
+
+      logSyncCompleted({
+        userId: destination.user.id,
         trigger,
-        isSuccess: true,
-        integration: destination!.integration.id,
-        institutionsSynced: plaid_items.length,
-        syncLogId: syncLog.id,
-        destinationId: destination!.id,
-        targetTable: "accounts"
+        integration: destination.integration,
+        institutionsSynced: plaidItems.length,
+        syncId: sync.id,
+        destinationId: destination.id,
+      }),
+
+      trackSyncCompleted({ 
+        userId: destination.user.id, 
+        trigger, 
+        integration: destination.integration, 
+        institutionsSynced: plaidItems.length, 
+        destinationId: destination.id 
       })
-    ])
+    ]);
+
     return { status: 200, message: { accounts: responses.reduce((all, response) => all.concat(response.accounts), [] as OauthAccount[] )}}
   })
-})
+});

@@ -1,4 +1,4 @@
-import { Configuration, PlaidApi, PlaidEnvironments, InvestmentHoldingsGetRequestOptions, LiabilitiesGetRequestOptions, CountryCode, InvestmentsTransactionsGetRequestOptions, AccountsGetRequestOptions, PlaidError, TransactionsGetRequestOptions, Transaction, InvestmentTransaction, Products, TransactionsSyncRequestOptions, LiabilitiesGetResponse } from "plaid";
+import { Configuration, PlaidApi, PlaidEnvironments, InvestmentHoldingsGetRequestOptions, LiabilitiesGetRequestOptions, CountryCode, InvestmentsTransactionsGetRequestOptions, AccountsGetRequestOptions, PlaidError, TransactionsGetRequestOptions, Transaction, InvestmentTransaction, Products, TransactionsSyncRequestOptions, LiabilitiesGetResponse, AccountsGetResponse } from "plaid";
 import * as _ from 'lodash';
 
 const allowedErrorCodes = ['NO_INVESTMENT_ACCOUNTS', 'NO_ACCOUNTS', "PRODUCT_NOT_READY"];
@@ -72,7 +72,7 @@ export const getAccounts = async ({ accessToken, options = {} }: {
   .catch(err => {
     const error = err.response?.data as PlaidError;
     if ( error?.error_code && allowedErrorCodes.includes(error.error_code) ) {
-      return { data: { accounts: [], item: undefined, request_id: undefined } }
+      return { data: { accounts: [], item: undefined, request_id: undefined } as AccountsGetResponse }
     }
 
     throw err;

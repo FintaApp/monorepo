@@ -19,8 +19,8 @@ export const stripeRouter = router({
         customerId: z.string() //TODO: Remove this after switching to React Auth
       })
     )
-    .query(async ({ ctx: { session, logger}, input: { customerId }}) => {
-      const userId = session.user.id;
+    .query(async ({ ctx: { user, logger}, input: { customerId }}) => {
+      const userId = user.id;
       const [ customer, subscription ] = await Promise.all([
         stripe.getCustomer({ customerId }).then(({ lastResponse, ...customer }: (Stripe.Customer & { lastResponse: any })) => {
           logger.info("Get customer", { customer });

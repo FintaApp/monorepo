@@ -62,6 +62,7 @@ model User {
   periodicUpdatesJobId        String?     @map("periodic_updates_job_id")
 
   accounts          Account[]
+  destinations      Destination[]
   sessions          Session[]
   linkToken         LinkToken?
   airtableToken     AirtableToken?
@@ -177,6 +178,7 @@ model PlaidAccount {
 model Destination {
   id                          String      @id @default(uuid())
   userId                      String      @map("user_id")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
   airtableCredentialId        String?     @map("airtable_credential_id") @unique
   airtableCredential          AirtableCredential?   @relation(fields: [airtableCredentialId], references: [id])
   codaCredentialId            String?     @map("coda_credential_id") @unique
@@ -416,6 +418,10 @@ enum SyncError {
   IncorrectFieldType @map("incorrect_field_type")
   TemplateDestination @map("template_destination")
   ItemError @map("item_error")
+  TransactionsDisabled @map("transactions_disabled")
+  HoldingsDisabled @map("holdings_disabled")
+  InvestmentTransactionsDisabled @map("investment_transactions_disabled")
+  NoSubscription @map("no_subscription")
   @@map("sync_errors")
 }
 

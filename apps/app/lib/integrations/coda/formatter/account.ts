@@ -1,9 +1,9 @@
 import { AccountBase, CreditCardLiability, StudentLoan, MortgageLiability, MortgageInterestRate, APR } from "plaid";
-import { PlaidItemModel } from "~/types/backend/models";
+import { PlaidAccount } from "@prisma/client";
 import { OauthAccount } from "@finta/shared";
 
 export const account = ({ itemId, plaidAccount, itemAccount, liability }: { 
-  itemId: string; plaidAccount: AccountBase; itemAccount: PlaidItemModel['accounts'][0]; liability?: CreditCardLiability | StudentLoan | MortgageLiability
+  itemId: string; plaidAccount: AccountBase; itemAccount: PlaidAccount; liability?: CreditCardLiability | StudentLoan | MortgageLiability
 }): OauthAccount => {
   const interestRate = liability?.interest_rate ? (liability.interest_rate as MortgageInterestRate).percentage : null;
   const purchaseApr = liability?.aprs ? (liability.aprs as APR[]).find(apr => apr.apr_type === 'purchase_apr')?.apr_percentage : null

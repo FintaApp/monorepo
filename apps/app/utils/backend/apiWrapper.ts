@@ -4,7 +4,7 @@ import { Logger } from './logger';
 import { graphql } from '~/graphql/backend';
 import { flushAnalytics } from './analytics';
 import { DestinationModel } from '~/types/backend/models';
-import { hash } from '~/utils/backend/crypto';
+import { hash } from '~/lib/crypto';
 import { plaidEnvFromVercelEnv, PlaidEnv } from "~/utils/backend/plaid";
 
 type WrappedFunctionResponse = Promise<{ status: number; message: any }>;
