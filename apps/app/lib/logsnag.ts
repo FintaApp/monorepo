@@ -1,3 +1,4 @@
+import { Field, Integration, SyncError, Table } from '@prisma/client';
 import { LogSnag, PublishOptions } from 'logsnag';
 import { log } from "next-axiom";
 
@@ -88,6 +89,47 @@ export const logAirtableTokenAdded = ({ userId }: { userId: string }) =>
       event: Event.AIRTABLE_TOKEN_ADDED,
       icon: '🗺',
       tags: { [Tag.USER_ID]: userId }
+  })
+
+export const logDestinationErrorTriggered = ({ userId, destinationId, error, syncId }: {
+  userId: string;
+  destinationId: string;
+  error: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; };
+  syncId: string
+}) => 
+  logsnagPublish({
+    channel: Channel.SYNCS,
+    event: Event.DESTINATION_ERROR_TRIGGERED,
+    description: JSON.stringify(error),
+    icon: '🗺',
+    tags: {
+      [Tag.USER_ID]: userId,
+      [Tag.DESTINATION_ID]: destinationId,
+      [Tag.SYNC_ID]: syncId
+    }
+  })
+
+export const logSyncCompleted = ({ trigger, userId, integration, destinationId, syncId, institutionsSynced, targetTable }: {
+  userId: string;
+  syncId: string;
+  institutionsSynced: number;
+  integration: Integration;
+  destinationId: string;
+  trigger: string;
+  targetTable?: string;
+}) => 
+  logsnagPublish({
+    channel: Channel.SYNCS,
+    event: Event.SYNC_COMPLETED,
+    description: `Trigger: ${trigger} \n${institutionsSynced} institution(s) synced${ targetTable ? `\nTarget Table: ${targetTable}`: ""}`,
+    icon: '☑️',
+    notify: false,
+    tags: {
+      [Tag.USER_ID]: userId,
+      [Tag.SYNC_ID]: syncId,
+      [Tag.DESTINATION_ID]: destinationId,
+      [Tag.INTEGRATION]: integration
+    }
   })
 
 // Types

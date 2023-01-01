@@ -94,30 +94,6 @@ export const trackDestinationUpdated = ({ userId, integration, destinationId, fi
 export const trackDestinationDeleted = ({ userId, integration, destinationId }: { userId: string; integration: Integrations_Enum; destinationId: string }) =>
   track({ userId, event: SegmentEvent.DESTINATION_DELETED, properties: { integration, destinationId }})
 
-export const trackSyncCompleted = ({ userId, trigger, isSuccess, integration, institutionsSynced, error, destinationId, endedAt }: {
-  userId: string;
-  trigger: string;
-  isSuccess: boolean;
-  integration: Integrations_Enum;
-  institutionsSynced: number;
-  error?: string;
-  destinationId: string;
-  endedAt: string;
-}) =>
-  track({
-    userId,
-    event: SegmentEvent.SYNC_COMPLETED,
-    properties: {
-      trigger,
-      is_success: isSuccess,
-      integration,
-      institutions_synced: institutionsSynced,
-      error,
-      destinationId
-    },
-    timestamp: new Date(endedAt)
-  })
-
 // Types
 export enum SegmentEvent {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",

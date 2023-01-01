@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from '@segment/analytics-next';
-import { Frequency, User } from '@prisma/client'
+import { Field, Frequency, Integration, SyncError, Table, User } from '@prisma/client'
 import AnalyticsNode from "analytics-node";
 import Stripe from "stripe";
 import moment from "moment-timezone";
@@ -110,6 +110,52 @@ export const trackSupportTicketCreated = ({ userId }: { userId: string }) =>
     event: Event.SUPPORT_TICKET_CREATED
   })
 
+export const trackDestinationErrorTriggered = ({ userId, integration, destinationName, destinationId, trigger, error }: {
+  userId: string;
+  integration: Integration;
+  destinationName: string;
+  destinationId: string;
+  trigger: string;
+  error: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; };
+}) =>
+  track({
+    userId,
+    event: Event.DESTINATION_ERROR_TRIGGERED,
+    properties: {
+      integration,
+      destination_name: destinationName,
+      destination_id: destinationId,
+      trigger,
+      code: error.code,
+      table: error.table,
+      table_id: error.tableId,
+      table_name: error.tableName,
+      field: error.field,
+      field_id: error.fieldId,
+      field_name: error.fieldName
+    }
+  })
+
+export const trackSyncCompleted = ({ userId, trigger, integration, institutionsSynced, error, destinationId }: {
+  userId: string;
+  trigger: string;
+  integration: Integration;
+  institutionsSynced: number;
+  error?: string;
+  destinationId: string;
+}) =>
+  track({
+    userId,
+    event: Event.SYNC_COMPLETED,
+    properties: {
+      trigger,
+      integration,
+      institutions_synced: institutionsSynced,
+      error,
+      destination_id: destinationId
+    }
+  })
+
 export const backendIdentify = ({ userId, traits, timestamp }: { userId: string; traits: UserTraits; timestamp?: Date }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
@@ -151,6 +197,7 @@ enum Event {
   SUBSCRIPTION_CANCELED = "Subscription Canceled",
   SUBSCRIPTION_INVOICE_PAID = "Subscription Invoice Paid",
   SUPPORT_TICKET_CREATED = "Support Ticket Created",
+  SYNC_COMPLETED = "Sync Completed"
 }
 
 export enum AnalyticsPage {

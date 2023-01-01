@@ -184,32 +184,6 @@ export class Logger {
     })
   };
 
-  async logSyncCompleted({ error, trigger, userId, isSuccess, integration, destinationId, syncLogId, institutionsSynced, targetTable }: {
-    userId: string;
-    isSuccess: boolean;
-    syncLogId: string;
-    institutionsSynced: number;
-    integration: Integrations_Enum;
-    destinationId: string;
-    trigger: string;
-    error?: string;
-    targetTable?: string;
-  }) {
-    return this.logsnagPublish({
-      channel: LogSnagChannel.SYNCS,
-      event: isSuccess ? LogSnagEvent.SYNC_COMPLETED : LogSnagEvent.SYNC_FAILED,
-      description: `Trigger: ${trigger} \n${ error ? `Error: ${error}` : `${institutionsSynced} institution(s) synced`}${ targetTable ? `\nTarget Table: ${targetTable}`: ""}`,
-      icon: isSuccess ? '☑️' : '⏹',
-      notify: false,
-      tags: {
-        [LogSnagTag.USER_ID]: userId,
-        [LogSnagTag.SYNC_LOG_ID]: syncLogId,
-        [LogSnagTag.DESTINATION_ID]: destinationId,
-        [LogSnagTag.INTEGRATION]: integration
-      }
-    })
-  }
-
   async logInstitutionErrorTriggered({ userId, institution, itemId, error }: {
     userId: string;
     institution: string;
