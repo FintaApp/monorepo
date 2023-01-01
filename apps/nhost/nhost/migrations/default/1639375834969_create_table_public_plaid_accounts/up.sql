@@ -1,1 +1,0 @@
-CREATE TABLE "public"."plaid_accounts" ("id" text NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(), "is_visible" boolean NOT NULL DEFAULT true, "mask" text, "name" text NOT NULL, "plaid_item_id" text NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("plaid_item_id") REFERENCES "public"."plaid_items"("id") ON UPDATE restrict ON DELETE cascade);

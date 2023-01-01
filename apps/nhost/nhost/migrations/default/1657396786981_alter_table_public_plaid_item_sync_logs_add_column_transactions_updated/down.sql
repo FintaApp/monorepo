@@ -1,4 +1,0 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."plaid_item_sync_logs" add column "transactions_updated" integer
---  not null default '0';

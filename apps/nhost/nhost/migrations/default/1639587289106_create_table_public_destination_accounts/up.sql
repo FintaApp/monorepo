@@ -1,1 +1,0 @@
-CREATE TABLE "public"."destination_accounts" ("destination_id" uuid NOT NULL, "account_id" text NOT NULL, PRIMARY KEY ("destination_id","account_id") , FOREIGN KEY ("destination_id") REFERENCES "public"."destinations"("id") ON UPDATE restrict ON DELETE cascade, FOREIGN KEY ("account_id") REFERENCES "public"."plaid_accounts"("id") ON UPDATE restrict ON DELETE cascade);

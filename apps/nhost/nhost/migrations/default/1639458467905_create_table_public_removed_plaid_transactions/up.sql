@@ -1,1 +1,0 @@
-CREATE TABLE "public"."removed_plaid_transactions" ("created_at" timestamptz NOT NULL DEFAULT now(), "plaid_item_id" text NOT NULL, "transaction_id" text NOT NULL, PRIMARY KEY ("transaction_id") , FOREIGN KEY ("plaid_item_id") REFERENCES "public"."plaid_items"("id") ON UPDATE restrict ON DELETE cascade);

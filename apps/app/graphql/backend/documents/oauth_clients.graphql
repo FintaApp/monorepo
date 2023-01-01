@@ -1,5 +1,0 @@
-query GetOauthClients($where: oauth_clients_bool_exp!) {
-  oauth_clients(where: $where) {
-    id
-  }
-}
