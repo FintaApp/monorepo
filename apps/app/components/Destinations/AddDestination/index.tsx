@@ -11,19 +11,17 @@ import {
   useDisclosure 
 } from "@chakra-ui/react";
 
-import { useLogger } from "~/utils/frontend/useLogger";
+import { Integration } from "@prisma/client"
 
 import { SelectIntegration } from "./SelectIntegration";
 import { SetupDestination } from "./SetupDestination";
-import { IntegrationModel } from "~/types/frontend/models";
 import { useUser } from "~/lib/context/useUser";
+import { DestinationProvider } from "../context";
 
 export const AddDestination = () => {
-  const { user, hasAppAccess } = useUser();
-  const logger = useLogger();
+  const { hasAppAccess } = useUser();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [ selectedIntegration, setSelectedIntegration ] = useState(null as IntegrationModel | null);
+  const [ selectedIntegration, setSelectedIntegration ] = useState(null as Integration | null);
   
   useEffect(() => { isOpen && setSelectedIntegration(null); }, [ isOpen ]);
 
@@ -53,7 +51,9 @@ export const AddDestination = () => {
 
           <ModalBody>
             { selectedIntegration 
-              ? <SetupDestination onClose = { onClose } integration = { selectedIntegration } onBack = { () => setSelectedIntegration(null) } /> 
+              ? <DestinationProvider integration = { selectedIntegration } isSetupMode = { true }>
+                  <SetupDestination onClose = { onClose } onBack = { () => setSelectedIntegration(null) } />
+                </DestinationProvider>
               : <SelectIntegration onSelectIntegration = { setSelectedIntegration } />
             }
           </ModalBody>

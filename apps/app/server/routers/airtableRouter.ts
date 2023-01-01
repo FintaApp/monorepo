@@ -6,7 +6,7 @@ import { trackAirtableTokenAdded } from "~/lib/analytics";
 import { getAuthorizationHeader } from "~/lib/integrations/airtable/helpers";
 import { logAirtableTokenAdded } from "~/lib/logsnag";
 import { protectedProcedure, router } from "../trpc";
-// import { Airtable } from "~/lib/integrations/airtable";
+import { Airtable } from "~/lib/integrations/airtable";
 
 export const airtableRouter = router({
   exchangeToken: protectedProcedure
@@ -58,12 +58,11 @@ export const airtableRouter = router({
         trackAirtableTokenAdded({ userId }),
         logAirtableTokenAdded({ userId }),
 
-        // TODO: Uncomment
         // Remove all Airtable apiKeys 
-        // db.airtableCredential.updateMany({ 
-        //   where: { destination: { userId }},
-        //   data: { apiKey: null }
-        // }).then(response => logger.info("Removed apiKey from Airtable credentials", { response }))
+        db.airtableCredential.updateMany({ 
+          where: { destination: { userId }},
+          data: { apiKey: null }
+        }).then(response => logger.info("Removed apiKey from Airtable credentials", { response }))
       ]);
 
       return "OK"
@@ -107,15 +106,15 @@ export const airtableRouter = router({
       return { url: authorizationUrl.toString() }
     }),
 
-    // getBases: protectedProcedure
-    // .query(async ({ ctx: { session, logger }}) => {
-    //   const userId = session!.user.id;
-    //   const airtable = new Airtable({ userId, credentials: { id: "", baseId: "", apiKey: null }});
-    //   await airtable.init();
-    //   logger.info("Initialized Airtable");
+    getBases: protectedProcedure
+    .query(async ({ ctx: { session, logger }}) => {
+      const userId = session!.user.id;
+      const airtable = new Airtable({ userId, credentials: { id: "", baseId: "", apiKey: null }});
+      await airtable.init();
+      logger.info("Initialized Airtable");
 
-    //   return airtable.getBases();
-    // }),
+      return airtable.getBases();
+    }),
 
   doesUserHaveToken: protectedProcedure
     .query(async ({ ctx: { session, db }}) => {

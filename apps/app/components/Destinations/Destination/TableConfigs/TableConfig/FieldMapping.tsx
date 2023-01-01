@@ -11,26 +11,31 @@ from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import { Input, Select } from "~/components/Forms";
 import { TrashIcon } from "@radix-ui/react-icons";
-import { fieldToTypeMapping, TableConfigFields, DestinationFieldType, TableConfig, DestinationTableTypes } from "~/types/shared/models"
-import { Integrations_Enum } from "~/graphql/frontend";
+import {  DestinationFieldType } from "~/types/shared/models"
+
 import { fieldHelperText } from "../constants";
+import { ConfigError, useDestination } from "~/components/Destinations/context";
+import { Field, Integration, Table } from "@prisma/client";
+import { tableConfigsMeta } from "~/lib/tableConfigsMeta";
 
 interface FieldMappingProps {
-  isLegacyAirtable: boolean;
-  fintaFieldOptions: { value: TableConfigFields; label: string; isRequired: boolean; }[]
+  fintaFieldOptions: { value: Field; label: string; isRequired: boolean; }[]
   destinationFieldOptions: { label: string; value: string, type?: DestinationFieldType }[];
-  field: { field: TableConfigFields; field_id: string };
-  isDisabled?: boolean;
-  onChangeField: (action: 'insert' | 'update' | 'remove', field: { field: TableConfig['fields'][0]['field'] | "", field_id: string }, index?: number) => void;
+  field: Field;
   index: number;
-  errorMessage?: string;
-  tableType: DestinationTableTypes;
-  integrationId: Integrations_Enum;
+  tableType: Table;
+  onChange: (action: 'insert' | 'update' | 'remove', fieldConfig: { id?: string; field: Field, fieldId: string }, index?: number) => void;
 }
 
-export const FieldMapping = ({ isLegacyAirtable, integrationId, tableType, onChangeField, fintaFieldOptions, field, isDisabled, index, errorMessage, destinationFieldOptions }: FieldMappingProps) => {
+export const FieldMapping = ({ onChange, tableType, fintaFieldOptions, field, index, destinationFieldOptions }: FieldMappingProps) => {
+  const { isLegacyAirtable, integration, tableConfigs, tableConfigsValidation, onChangeTableConfig } = useDestination();
+  const tableConfig = tableConfigs?.find(config => config.table === tableType) || { table: tableType, tableId: '', isEnabled: false, fieldConfigs: [] };
+  const fieldConfig = tableConfig.fieldConfigs.find(f => f.field === field)!;
+  
   const icon = useBreakpointValue({ base: ChevronDownIcon, sm: ChevronRightIcon });
-  const fintaFieldValue = fintaFieldOptions.find(option => option.value === field.field);
+  const fintaFieldValue = fintaFieldOptions.find(option => option.value === field);
+
+  const error = tableConfigsValidation?.errors?.find(error => error.tableId === tableConfig.tableId && (error.field === field || error.fieldId === fieldConfig?.fieldId))?.code;
 
   return (
     <HStack width = "full">
@@ -40,51 +45,59 @@ export const FieldMapping = ({ isLegacyAirtable, integrationId, tableType, onCha
           options = { fintaFieldOptions }
           noOptionsMessage = { () => "There are no remaining fields" }
           placeholder = "Finta Field"
-          isDisabled = { isDisabled }
-          onChange = { (item: any) => onChangeField('update', { field: item?.value || "", field_id: field?.field_id || "" }, index ) }
+          isDisabled = { !tableConfig.isEnabled }
+          onChange = { (item: any) => onChange('update', { field: item?.value || "", fieldId: fieldConfig?.fieldId || "" }, index ) }
         />
 
         <Icon as = { icon } />
 
-        <FormControl isInvalid = { !!errorMessage }>
+        <FormControl isInvalid = { !!error }>
           { isLegacyAirtable
             ? <Input 
-                isDisabled = { isDisabled } 
+                isDisabled = { !tableConfig.isEnabled } 
                 placeholder = "Destination Field" 
-                value = { field.field_id }
-                onChange = { e => onChangeField('update', { field: field.field, field_id: e.target.value }, index )}
+                value = { fieldConfig?.fieldId }
+                onChange = { e => onChange('update', { field, fieldId: e.target.value }, index )}
               />
             : <Select 
-                isDisabled = { isDisabled }
+                isDisabled = { !tableConfig.isEnabled }
                 placeholder = "Destination Field"
-                options = { getAllowedFieldOptions(integrationId, tableType, field.field, destinationFieldOptions )}
-                value = { destinationFieldOptions.find(option => option.value === field.field_id )}
-                onChange = { (item: any ) => onChangeField('update', { field: field.field, field_id: item.value }, index)}
+                options = { getAllowedFieldOptions(integration, tableType, field, destinationFieldOptions )}
+                value = { destinationFieldOptions.find(option => option.value === fieldConfig?.fieldId )}
+                onChange = { (item: any) => onChange('update', { field, fieldId: item.value }, index)}
               />
           }
-          <FormErrorMessage mt = "0">{ errorMessage }</FormErrorMessage>
+          <FormErrorMessage mt = "0">{ parseErrorCode(error) }</FormErrorMessage>
         </FormControl>
       </Stack>
 
       <IconButton 
         aria-label = "Remove field mapping"
         icon = { <TrashIcon /> }
-        isDisabled = { fintaFieldValue?.isRequired || isDisabled }
+        isDisabled = { fintaFieldValue?.isRequired || !tableConfig.isEnabled }
         visibility = { fintaFieldValue?.isRequired ? 'hidden' : 'visible'}
-        onClick = { () => onChangeField('remove', field) }
+        onClick = { () => onChange('remove', fieldConfig) }
       />
     </HStack>
   )
 }
 
 // Helper
-const getAllowedFieldOptions = (integrationId: Integrations_Enum, tableType: DestinationTableTypes, field: TableConfigFields, fieldOptions: { label: string; value: string, type?: DestinationFieldType }[] ) => {
-  if ( ![Integrations_Enum.Notion, Integrations_Enum.Airtable].includes(integrationId) ) { return fieldOptions }
-  const fieldToTypeMappingforFieldType = fieldToTypeMapping[tableType][field]
-  if ( integrationId === Integrations_Enum.Notion && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType.notion.map(type => ({ label: fieldHelperText.notion[type], options: fieldOptions.filter(option => type === option.type) }))
+const getAllowedFieldOptions = (integration: Integration, tableType: Table, field: Field, fieldOptions: { label: string; value: string, type?: DestinationFieldType }[] ) => {
+  if ( integration === Integration.Google || integration === Integration.Coda ) { return fieldOptions }
+  const fieldToTypeMappingforFieldType = tableConfigsMeta.find(meta => meta.table === tableType)!.fields.find(f => f.field === field)?.allowedTypes;
+  if ( integration === Integration.Notion && fieldToTypeMappingforFieldType ) {
+    return fieldToTypeMappingforFieldType?.Notion.map(type => ({ label: fieldHelperText.Notion[type], options: fieldOptions.filter(option => type === option.type) }))
   }
-  if ( integrationId === Integrations_Enum.Airtable && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType.airtable.map(type => ({ label: fieldHelperText.airtable[type], options: fieldOptions.filter(option => type === option.type) }))
+  if ( integration === Integration.Airtable && fieldToTypeMappingforFieldType ) {
+    return fieldToTypeMappingforFieldType?.Airtable.map(type => ({ label: fieldHelperText.Airtable[type], options: fieldOptions.filter(option => type === option.type) }))
   }
+}
+
+const parseErrorCode = (error?: ConfigError ) => {
+  if ( error === 'duplicate_field' ) return "This field is already in use";
+  if ( error === 'field_not_selected' ) return "Please select a field";
+  if ( error === 'MissingField' ) return "This field cannot be found in your destination"
+  if ( error === 'IncorrectFieldType' ) return "This field has the wrong type in your destination"
+  return ""
 }
