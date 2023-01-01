@@ -1,6 +1,7 @@
 import { Field, SyncError, Table } from "@prisma/client";
 import { createStepFunction } from "inngest";
 import _ from "lodash";
+import { log } from "next-axiom";
 
 import { db } from "../db";
 import * as plaid from "../plaid";
@@ -12,6 +13,7 @@ import { LiabilitiesGetResponse } from "plaid";
 
 export const syncDestination = createStepFunction("Sync Destination", "destination/sync", async ({ event, tools }) => {
   const { destinationId, startDate, syncId, itemIds, tablesToSync, trigger } = event.data;
+  const logger = log.with({ syncId, destinationId })
 
   const { destination, plaidItems, Destination, canSync, error } = await tools.run("Initialization", async () => {
     let canSync = true;
@@ -29,6 +31,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         googleSheetsCredential: true
       }
     });
+    logger.info("Fetched destination", { destination });
 
     const plaidItems = await db.plaidItem.findMany({ 
       where: { id: { in: itemIds }},
@@ -45,6 +48,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
 
     // Validate Credentials
     const validateCredentialsResponse = await Destination.validateCredentials();
+    logger.info("Validated credentials", { response: validateCredentialsResponse });
 
     if ( validateCredentialsResponse.isValid ) {
       // Validate Configuration
@@ -52,9 +56,11 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         tableTypes: tablesToSync,
         tableConfigs: destination.tableConfigs
       });
+      logger.info("Validated table configs", { response: validateTableConfigsResponse });
 
       if ( validateTableConfigsResponse.isValid ) {
-        await Destination.load({ tableTypes: tablesToSync, tableConfigs: destination.tableConfigs })
+        await Destination.load({ tableTypes: tablesToSync, tableConfigs: destination.tableConfigs });
+        logger.info("Loaded destination data");
       } else {
         canSync = false;
         error = validateTableConfigsResponse.errors[0]
@@ -132,6 +138,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
   const shouldSyncLiabilities = products.includes('liabilities');
 
     tools.run(`Syncing item - ${item.id}`, async () => {
+      const itemLogger = logger.with({ itemId: item.id });
       // Initialize results
       await db.syncResult.upsert({
         where: { syncId_plaidItemId_destinationId: whereKey },
@@ -172,21 +179,28 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
       const securities = _.uniqBy((holdingsSecurities || []).concat(investmentTransactionsSecurities || []), 'security_id')
 
       const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item });
+      itemLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
 
       const [ 
         { records: accountRecords, results: accountResults }, 
         { records: categoryRecords, results: categoryResults }, 
         { records: securityRecords, results: securityResults } 
       ] = await Promise.all([
-        Destination.upsertAccounts({ accounts, item, institutionRecord, creditLiabilities: credit, mortgageLiabilities: mortgage, studentLiabilities: student }),
-        Destination.upsertCategories({ categories }),
+        Destination.upsertAccounts({ accounts, item, institutionRecord, creditLiabilities: credit, mortgageLiabilities: mortgage, studentLiabilities: student })
+          .then(response => { itemLogger.info("Upserted accounts", { results: response.results }); return response }),
+        Destination.upsertCategories({ categories })
+          .then(response => { itemLogger.info("Upserted categories", { results: response.results }); return response }),
         Destination.upsertSecurities({ securities })
+          .then(response => { itemLogger.info("Upserted securities", { results: response.results }); return response })
       ]);
 
       const [ transactionResults, holdingsResults, investmentTransactionResults ] = await Promise.all([
-        Destination.upsertTransactions({ transactions, categoryRecords, accountRecords }),
-        Destination.upsertHoldings({ holdings, securityRecords, accountRecords }),
+        Destination.upsertTransactions({ transactions, categoryRecords, accountRecords })
+          .then(response => { itemLogger.info("Upserted transactions", { results: response }); return response }),
+        Destination.upsertHoldings({ holdings, securityRecords, accountRecords })
+          .then(response => { itemLogger.info("Upserted holdings", { results: response }); return response }),
         Destination.upsertInvestmentTransactions({ investmentTransactions, securityRecords, accountRecords })
+          .then(response => { itemLogger.info("Upserted investment transactions", { results: response }); return response }),
       ])
 
       await db.syncResult.update({
@@ -205,7 +219,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
           holdingsUpdated: holdingsResults.updated,
           investmentTransactionsAdded: investmentTransactionResults.added
         }
-      })
+      }).then(response => itemLogger.info("Updated sync results", { response }))
     })
   }
 
@@ -215,11 +229,13 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
     const endedAt = new Date();
     
     await Promise.all([
-      db.sync.update({ where: { id: syncId }, data: { isSuccess: true, endedAt }}),
+      db.sync.update({ where: { id: syncId }, data: { isSuccess: true, endedAt }})
+        .then(response => logger.info("Updated sync record", { response })),
       
       logSyncCompleted({ trigger, userId, integration, destinationId, syncId, institutionsSynced }),
 
       trackSyncCompleted({ userId, trigger, integration, destinationId, institutionsSynced })
+        .then(() => logger.info("Tracked sync completed event"))
     ])
   })
 });
