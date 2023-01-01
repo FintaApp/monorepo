@@ -12,26 +12,28 @@ import {
 } from "@chakra-ui/react";
 
 import { PlaidLink } from "../PlaidLink";
-import { useLogger } from "~/utils/frontend/useLogger";
-import { PlaidItemModel } from "~/types/frontend/models";
 
-import { OnSuccess } from "./OnSuccess";
 import { SelectBankType } from "./SelectBankType";
 import { LoadingPlaidItem } from "./LoadingPlaidItem";
+
 import { useUser } from "~/lib/context/useUser";
-import { trpc } from "~/lib/trpc";
+import { RouterOutput, trpc } from "~/lib/trpc";
 import { PlaidProduct } from "~/types";
+import { OnSuccess } from "./OnSuccess";
 
 export const AddBankAccount = () => {
+  const { plaid: { 
+    getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts},
+    getAllPlaidItems: { refetch: refetchAllPlaidItems }
+  } } = trpc.useContext()
   const { hasAppAccess } = useUser();
-  
-  const logger = useLogger();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { mutateAsync } = trpc.plaid.createLinkToken.useMutation();
-  const [ newPlaidItem, setNewPlaidItem ] = useState(undefined as PlaidItemModel | undefined )
+  const [ newPlaidItem, setNewPlaidItem ] = useState(undefined as RouterOutput['plaid']['exchangePublicToken'] | undefined )
   const [ loadingProduct, setLoadingProduct ] = useState(undefined as PlaidProduct | undefined);
   const [ mode, setMode ] = useState<"selectBankType" | "loadingPlaidItem" | "onSuccess">("selectBankType" );
   const [ linkToken, setLinkToken ] = useState(undefined as string | undefined);
+  const [ institutionName, setInstitutionName ] = useState("");
 
   useEffect(() => {
     setLoadingProduct(undefined);
@@ -51,10 +53,13 @@ export const AddBankAccount = () => {
 
   const onConnectCallback = useCallback(async () => { setMode("loadingPlaidItem")}, [])
 
-  const onSuccessCallback = useCallback(async (plaidItem: PlaidItemModel ) => {
+  const onSuccessCallback = useCallback(async ({ plaidItem, institutionName }: { plaidItem: RouterOutput['plaid']['exchangePublicToken']; institutionName: string }) => {
+    refetchAllPlaidItems();
+    refetchAllPlaidAccounts();
     setNewPlaidItem(plaidItem);
+    setInstitutionName(institutionName)
     setMode("onSuccess");
-  }, []);
+  }, [ refetchAllPlaidItems, refetchAllPlaidAccounts ]);
 
   const onExitCallback = useCallback(() => setLinkToken(undefined), []);
 
@@ -86,7 +91,7 @@ export const AddBankAccount = () => {
 
           <ModalBody>
             { mode === 'selectBankType' ? ( <SelectBankType onClick = { onSelectBankType } loadingProduct = { loadingProduct } /> ) : null }
-            { mode === "onSuccess" && newPlaidItem ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } /> ) : null }
+            { mode === "onSuccess" && newPlaidItem ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } institutionName = { institutionName } /> ) : null }
             { mode === "loadingPlaidItem" ? ( <LoadingPlaidItem /> ) : null }
           </ModalBody>
         </ModalContent>

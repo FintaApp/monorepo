@@ -1,6 +1,7 @@
 import { router } from "../trpc";
 
 import { airtableRouter } from "./airtableRouter";
+import { destinationRouter } from "./destinationRouter";
 import { plaidRouter } from "./plaidRouter";
 import { stripeRouter } from "./stripeRouter";
 import { userRouter } from './userRouter';
@@ -8,6 +9,7 @@ import { zendeskRouter } from './zendeskRouter';
 
 export const appRouter = router({
   airtable: airtableRouter,
+  destinations: destinationRouter,
   plaid: plaidRouter,
   stripe: stripeRouter,
   users: userRouter,

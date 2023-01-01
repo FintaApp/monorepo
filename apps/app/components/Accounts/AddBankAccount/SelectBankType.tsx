@@ -8,7 +8,7 @@ import { PlaidProduct } from "~/types";
 
 interface SelectBankTypeProps {
   onClick: (product: PlaidProduct ) => void;
-  loadingProduct?: PlaidProduct
+  loadingProduct: PlaidProduct | undefined
 }
 
 export const SelectBankType = ({ onClick, loadingProduct }: SelectBankTypeProps) => (
