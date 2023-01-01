@@ -3,7 +3,7 @@ import {
 } from "@chakra-ui/react";
 import { SyncLogModel } from "~/types/frontend";
 import { AiOutlineBank } from "react-icons/ai";
-import { integrationLogos } from "~/components/IntegrationLogo";
+import { integrationLogos } from "~/components/Common/IntegrationLogo";
 import { AiOutlineSync } from "react-icons/ai";
 
 import { nhost } from "~/utils/nhost";

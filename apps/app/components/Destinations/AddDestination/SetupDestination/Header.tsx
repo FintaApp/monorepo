@@ -7,7 +7,7 @@ import {
 import { TriangleUpIcon } from "@radix-ui/react-icons";
 
 import { Logo } from "~/components/Logo";
-import { IntegrationLogo } from "~/components/IntegrationLogo";
+import { IntegrationLogo } from "~/components/Common/IntegrationLogo";
 import { IntegrationModel } from "~/types/frontend/models";
 
 const imageProps = {

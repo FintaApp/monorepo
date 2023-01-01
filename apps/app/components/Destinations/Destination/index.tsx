@@ -9,7 +9,7 @@ import {
 import moment from "moment-timezone";
 
 import { AccordionItem } from "~/components/AccordionItem"
-import { IntegrationLogo } from "~/components/IntegrationLogo";
+import { IntegrationLogo } from "~/components/Common/IntegrationLogo";
 import { DividerWithText } from "~/components/DividerWithText";
 import { DestinationModel } from "~/types/frontend";
 import { Integrations_Enum } from "~/graphql/frontend";

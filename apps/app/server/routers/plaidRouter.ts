@@ -150,7 +150,15 @@ export const plaidRouter = router({
         select: {
           id: true,
           institution: true,
-          accounts: true,
+          accounts: {
+            include: {
+              destinations: {
+                select: {
+                  integration: true
+                }
+              }
+            }
+          },
           createdAt: true,
           lastSyncedAt: true,
           isHistoricalUpdateComplete: true,

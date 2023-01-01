@@ -5,15 +5,16 @@ import {
 import { UpdateIcon } from "@radix-ui/react-icons";
 
 import { PlaidLink } from "../PlaidLink";
-import { useToast } from "~/utils/frontend/useToast";
-import { PlaidItemModel } from "~/types/frontend/models";
-import { useLogger } from "~/utils/frontend/useLogger";
-import { trpc } from "~/lib/trpc";
+import { usePlaidItem } from "./context";
+import { trpc, RouterOutput } from "~/lib/trpc";
+import { useToast } from "~/lib/context/useToast";
 
-export const FixConnection = ({ plaidItem }: { plaidItem: PlaidItemModel }) => {
-  const renderToast = useToast();
-  const logger = useLogger();
+export const FixConnection = () => {
+  const { plaid: { getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts} } } = trpc.useContext()
+  const { plaidItem, refetch } = usePlaidItem();
   const { mutateAsync: createPlaidLinkToken, isLoading } = trpc.plaid.createLinkToken.useMutation();
+
+  const renderToast = useToast();
   
   const [ linkToken, setLinkToken ] = useState(null as string | null);
 
@@ -24,13 +25,19 @@ export const FixConnection = ({ plaidItem }: { plaidItem: PlaidItemModel }) => {
 
   const onExitCallback = useCallback(() => { setLinkToken(null)}, []);
 
-  const onSuccessCallback = useCallback(async (plaidItem?: PlaidItemModel | null) => {
+  const onSuccessCallback = useCallback(async ({ plaidItem, institutionName }: { plaidItem?: RouterOutput['plaid']['exchangePublicToken']; institutionName: string; }) => {
+    refetchAllPlaidAccounts();
+    refetch();
     renderToast({
       status: 'success',
       title: 'Connection fixed',
       message: 'You should see new data for this institution shortly.'
     })
-  }, [ renderToast ]);
+  }, [ renderToast, refetchAllPlaidAccounts ]);
+
+  if ( !(['ITEM_LOGIN_REQUIRED'].includes(plaidItem.error || "") || plaidItem.consentExpiresAt) ) {
+    return <></>
+  }
 
   return (
     <>

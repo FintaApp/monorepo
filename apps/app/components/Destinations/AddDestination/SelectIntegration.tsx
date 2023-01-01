@@ -7,7 +7,7 @@ import { useGetIntegrationsQuery } from "~/graphql/frontend";
 
 import { LargeIconButton } from "~/components/LargeIconButton";
 import { IntegrationModel } from "~/types/frontend/models";
-import { IntegrationLogo } from "~/components/IntegrationLogo";
+import { IntegrationLogo } from "~/components/Common/IntegrationLogo";
 
 export const SelectIntegration = ({ onSelectIntegration }: { onSelectIntegration: (integration: IntegrationModel) => void; }) => {
   const { data } = useGetIntegrationsQuery();
