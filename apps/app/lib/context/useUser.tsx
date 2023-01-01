@@ -1,7 +1,7 @@
 import { createContext, useEffect, useMemo, ReactNode, useState, useContext } from "react";
 import { useAuthenticated, useUserId } from "@nhost/nextjs";
 
-import { LoadingIndicator } from "~/components/LoadingIndicator";
+import { LoadingIndicator } from "~/components/Common/LoadingIndicator";
 import { frontendIdentify } from "../analytics";
 import { trpc, RouterOutput } from "../trpc";
 

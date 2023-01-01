@@ -15,7 +15,7 @@ import { Step, StepContent, Steps, useSteps } from "~/components/Layout/Vertical
 import { Header } from "./Header";
 import { CopyTemplate } from "./CopyTemplate";
 import { DestinationCredentials, DestinationAccounts, DestinationName, SyncStartDate, TableConfigs } from "../../Destination";
-import { DividerWithText } from "~/components/DividerWithText";
+import { DividerWithText } from "~/components/Common/DividerWithText";
 
 
 interface SetupDestinationProps {

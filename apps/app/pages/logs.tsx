@@ -1,8 +1,8 @@
 import { Card, CardBody, Button, ButtonGroup, HStack } from "@chakra-ui/react";
 import { useState } from "react";
-import { EmptyState } from "~/components/EmptyState";
+import { EmptyState } from "~/components/Common/EmptyState";
 import { PageHeader } from "~/components/Layout/PageHeader";
-import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { SyncLogsList } from "~/components/SyncLogsList";
 import { useGetSyncLogsQuery } from "~/graphql/frontend";
 import { authGate } from "~/lib/authGate";

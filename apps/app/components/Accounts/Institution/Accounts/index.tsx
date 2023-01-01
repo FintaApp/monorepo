@@ -9,7 +9,7 @@ import {
 import _ from "lodash";
 
 import { Account } from "./Account";
-import { AccordionItem } from "~/components/AccordionItem";
+import { AccordionItem } from "~/components/Common/AccordionItem";
 import { usePlaidItem } from "../context"
 
 export const Accounts = () => {

@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { Integration } from "@prisma/client";
 
-import { LargeIconButton } from "~/components/LargeIconButton";
+import { LargeIconButton } from "~/components/Common/LargeIconButton";
 import { IntegrationLogo } from "~/components/Common/IntegrationLogo";
 import { integrationsMeta } from "~/lib/integrations/meta";
 

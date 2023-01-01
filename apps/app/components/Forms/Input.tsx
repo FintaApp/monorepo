@@ -6,14 +6,14 @@ interface InputProps extends Omit<ChakraInputProps, 'variant'> {
 }
 
 export const Input: ComponentWithAs<As<any>, InputProps> = forwardRef(({ mode = 'edit', onFocus, onBlur, ...inputProps }: InputProps, ref) => {
-  const [ isFocused, setIsFocused ] = useState(false);
-  console.log(isFocused)
+  const [ isFocused, setIsFocused ] = useState(false)
   return (
     <ChakraInput 
       ref = { ref }
       variant = { mode === 'edit' || isFocused ? 'outline' : 'flushed' }
       onFocus = { event => { setIsFocused(true); onFocus && onFocus(event) } }
       onBlur = { event => { setIsFocused(false); onBlur && onBlur(event) } }
+      flexGrow = "1"
       { ...inputProps }
     />
   )

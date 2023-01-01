@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { exchangeNotionToken } from "~/utils/frontend/functions";
 import { AccessDenied, Success } from "~/components/Oauth";
-import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from "~/lib/authGate";
 import { useUser } from "~/lib/context/useUser";

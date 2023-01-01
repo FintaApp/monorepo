@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Fade, VStack } from "@chakra-ui/react";
 
-import { EmptyState } from "~/components/EmptyState";
+import { EmptyState } from "~/components/Common/EmptyState";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { useGetPlaidItemsSubscription } from "~/graphql/frontend";
 import { PageHeader } from "~/components/Layout/PageHeader";

@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { AccessDenied, Success } from "~/components/Oauth";
-import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from '~/lib/authGate';
 import { useUser } from '~/lib/context/useUser';

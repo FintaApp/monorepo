@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { useGetOAuthClientQuery } from "~/graphql/frontend";
-import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { AddDestination, ClientError, HasInactiveSubscription } from "~/components/OAuthAuthorize";
 import { authGate } from "~/lib/authGate";
 import { useUser } from "~/lib/context/useUser";

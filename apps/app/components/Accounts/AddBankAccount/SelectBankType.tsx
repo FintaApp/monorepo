@@ -3,7 +3,7 @@ import {
 } from "@chakra-ui/react";
 import { AiFillBank, AiOutlineLineChart } from 'react-icons/ai';
 
-import { LargeIconButton } from "~/components/LargeIconButton";
+import { LargeIconButton } from "~/components/Common/LargeIconButton";
 import { PlaidProduct } from "~/types";
 
 interface SelectBankTypeProps {

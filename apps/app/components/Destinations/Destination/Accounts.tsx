@@ -12,10 +12,10 @@ import {
 import * as _ from "lodash";
 import { ReactNode } from "react";
 
-import { FieldGroup } from "~/components/FieldGroup";
+import { FieldGroup } from "~/components/Common/FieldGroup";
 import { useDestination } from "../context"
-import { EmptyState } from "~/components/EmptyState";
-import { AccordionItem } from "~/components/AccordionItem";
+import { EmptyState } from "~/components/Common/EmptyState";
+import { AccordionItem } from "~/components/Common/AccordionItem";
 
 const Wrapper = ({ isSetupMode, accountsCount, children }: { isSetupMode: boolean; accountsCount: number, children: ReactNode }) => {
   if ( isSetupMode ) { return <>{ children }</>};

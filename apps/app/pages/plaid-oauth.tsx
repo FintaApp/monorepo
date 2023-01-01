@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 
-import { LoadingSpinner } from "~/components/LoadingSpinner";
+import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { PlaidLink } from "~/components/Accounts/PlaidLink";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
 import { authGate } from "~/lib/authGate";

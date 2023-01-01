@@ -1,6 +1,6 @@
 import { Integration } from "@prisma/client";
 import { ReactNode } from "react";
-import { AccordionItem } from "~/components/AccordionItem";
+import { AccordionItem } from "~/components/Common/AccordionItem";
 
 import { useDestination } from "../../context";
 import { Airtable } from "./Airtable";

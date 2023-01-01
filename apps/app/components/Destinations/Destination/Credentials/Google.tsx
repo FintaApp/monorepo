@@ -10,7 +10,7 @@ import {
 import { Pencil2Icon, Cross1Icon, CheckIcon } from "@radix-ui/react-icons";
 
 import { useDestination } from "../../context"
-import { CopiableText } from "~/components/CopiableText";
+import { CopiableText } from "~/components/Common/CopiableText";
 import { FormLabelWithTooltip, Input } from "~/components/Forms";
 
 export const Google = () => {

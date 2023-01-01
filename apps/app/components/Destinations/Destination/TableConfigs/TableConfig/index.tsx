@@ -6,10 +6,10 @@ import { useDestination } from "~/components/Destinations/context";
 import { tableConfigsMeta } from "~/lib/tableConfigsMeta";
 import { TableConfig as TableConfigType } from "~/types";
 
-import { AccordionItem } from "~/components/AccordionItem";
+import { AccordionItem } from "~/components/Common/AccordionItem";
 import { EnableTableSwitch } from "./EnableTableSwitch";
 import { TableSelection } from "./TableSelection";
-import { FieldGroup } from "~/components/FieldGroup";
+import { FieldGroup } from "~/components/Common/FieldGroup";
 import { FieldMapping } from "./FieldMapping";
 
 export const TableConfig = ({ tableType }: { tableType: Table }) => {

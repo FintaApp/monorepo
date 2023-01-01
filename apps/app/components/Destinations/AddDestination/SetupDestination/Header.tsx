@@ -7,7 +7,7 @@ import {
 import { TriangleUpIcon } from "@radix-ui/react-icons";
 import { Integration } from "@prisma/client";
 
-import { Logo } from "~/components/Logo";
+import { Logo } from "~/components/Common/Logo";
 import { IntegrationLogo } from "~/components/Common/IntegrationLogo";
 import { integrationsMeta } from "~/lib/integrations/meta";
 

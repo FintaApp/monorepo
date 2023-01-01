@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { AiOutlineBank, AiOutlineHistory } from "react-icons/ai";
 import { DashboardIcon } from '@radix-ui/react-icons';
 
-import { Logo } from "~/components/Logo";
+import { Logo } from "~/components/Common/Logo";
 
 import { NavItem } from './NavItem';
 import { ProfileDropdown } from "./ProfileDropdown";

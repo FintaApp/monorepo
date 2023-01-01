@@ -4,7 +4,7 @@ import { Accordion, Fade, VStack } from "@chakra-ui/react";
 import { useGetDestinationsSubscription } from "~/graphql/frontend";
 import { DestinationModel } from "~/types/frontend";
 import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { EmptyState } from "~/components/EmptyState";
+import { EmptyState } from "~/components/Common/EmptyState";
 import { Destination, AddDestination } from "~/components/Destinations";
 import { authGate } from "~/lib/authGate";
 import { useUser } from "~/lib/context/useUser";
