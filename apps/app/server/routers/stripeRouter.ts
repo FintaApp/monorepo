@@ -22,9 +22,9 @@ export const stripeRouter = router({
     .query(async ({ ctx: { user, logger}, input: { customerId }}) => {
       const userId = user.id;
       const [ customer, subscription ] = await Promise.all([
-        stripe.getCustomer({ customerId }).then(({ lastResponse, ...customer }: (Stripe.Customer & { lastResponse: any })) => {
+        stripe.getCustomer({ customerId }).then(customer => {
           logger.info("Get customer", { customer });
-          return customer;
+          return customer as Stripe.Customer;
         }),
 
         stripe.getCustomerSubscription({ customerId }).then(subscription => {
@@ -63,9 +63,9 @@ export const stripeRouter = router({
         returnUrl: z.string()
       })
     )
-    .mutation(async ({ ctx: { session, db, logger }, input: { returnUrl }}) => {
-      const user = await db.user.findFirstOrThrow({ where: { id: session!.user.id }}); // TODO: Remove when using nextAuth session
-      const customerId = user.stripeCustomerId;
+    .mutation(async ({ ctx: { user, db, logger }, input: { returnUrl }}) => {
+      const dbUser = await db.user.findFirstOrThrow({ where: { id: user.id }}); // TODO: Remove when using nextAuth session
+      const customerId = dbUser.stripeCustomerId;
 
       return stripe.createBillingPortalSession({ customerId, returnUrl })
         .then(async response => {
@@ -83,9 +83,9 @@ export const stripeRouter = router({
           priceId: z.string()
         })
       )
-      .mutation(async ({ ctx: { session, db, logger }, input }) => {
-        const user = await db.user.findFirstOrThrow({ where: { id: session!.user.id }}); // TODO: Remove when using nextAuth session
-        const customerId = user.stripeCustomerId;
+      .mutation(async ({ ctx: { user, db, logger }, input }) => {
+        const dbUser = await db.user.findFirstOrThrow({ where: { id: user.id }}); // TODO: Remove when using nextAuth session
+        const customerId = dbUser.stripeCustomerId;
   
         const [ customer, subscription ] = await Promise.all([
           stripe.getCustomer({ customerId }).then(customer => {

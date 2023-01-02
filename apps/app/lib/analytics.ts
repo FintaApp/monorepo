@@ -156,6 +156,70 @@ export const trackSyncCompleted = ({ userId, trigger, integration, institutionsS
     }
   })
 
+export const trackPlaidAccountUpdated = ({ userId, field }: { userId: string; field: 'name' }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_ACCOUNT_UPDATED,
+    properties: { field }
+  })
+
+export const trackInstitutionCreated = ({ userId, institution, itemId }: { userId: string; institution: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_CREATED,
+    properties: { institution, item_id: itemId }
+  })
+
+export const trackInstitutionReconnected = ({ userId, itemId }: { userId: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_RECONNECTED,
+    properties: { item_id: itemId }
+  })
+
+export const trackInstitutionDeleted = ({ userId, itemId }: { userId: string; itemId: string }) => 
+  track({
+    userId,
+    event: Event.INSTITUTION_DELETED,
+    properties: { item_id: itemId }
+  })
+
+export const trackInstitutionErrorTriggered = ({ userId, institution, error, itemId }: { userId: string; institution: string; error: string; itemId: string; }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_ERROR_TRIGGERED,
+    properties: { item_id: itemId, institution, error }
+  })
+
+export const trackInstitutionConsentRevoked = ({ userId, institution, itemId }: { userId: string; institution: string; itemId: string; }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_CONSENT_REVOKED,
+    properties: { item_id: itemId, institution }
+  })
+
+export const trackNotionConnectionAdded = ({ userId }: { userId: string }) =>
+  track({ userId, event: Event.NOTION_CONNECTION_ADDED })
+
+export const trackDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  track({ userId, event: Event.DESTINATION_CREATED, properties: { integration, destination_id: destinationId }})
+
+export const trackDestinationUpdated = ({ userId, integration, destinationId, field }: { userId: string; integration: Integration; destinationId: string; field: 'name' | 'table_configs' | 'credentials' | 'sync_start_date' }) =>
+  track({ userId, event: Event.DESTINATION_UPDATED, properties: { integration, destination_id: destinationId, field }})
+
+export const trackDestinationDeleted = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  track({ userId, event: Event.DESTINATION_DELETED, properties: { integration, destination_id: destinationId }})
+
+export const trackInstitutionAccountsUpdated = ({ userId, itemId, accountsCreated, accountsDeleted }: { userId: string; itemId: string; accountsCreated: number; accountsDeleted: number }) =>
+  track({
+    userId,
+    event: Event.INSTITUTION_ACCOUNTS_UPDATED,
+    properties: { item_id: itemId, accounts_created: accountsCreated, accounts_deleted: accountsDeleted }
+  })
+
+export const trackDestinationAccountsUpdated = ({ userId, action, count, destinationId }: { userId: string; action: 'add' | 'remove'; count: number; destinationId: string; }) =>
+  track({ userId, event: Event.DESTINATION_ACCOUNTS_UPDATED, properties: { action, count, destination_id: destinationId }});
+
 export const backendIdentify = ({ userId, traits, timestamp }: { userId: string; traits: UserTraits; timestamp?: Date }) =>
   new Promise((resolve, reject) => {
     analytics.identify({
@@ -183,6 +247,8 @@ enum Event {
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   INSTITUTION_ACCOUNTS_UPDATED = "Institution Accounts Updated",
+  INSTITUTION_CONSENT_REVOKED = "Institution Consent Revoked",
+  INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
   PASSWORD_CHANGED = "Password Changed",
   PLAID_LINK_INITIATED = "Plaid Link Initiated",

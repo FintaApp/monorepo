@@ -37,12 +37,14 @@ export default wrapper(async ({ req, logger }) => {
       trigger,
       triggerDestinationId: destination.id,
       results: {
-        create: plaidItems.map(item => ({
-          plaidItemId: item.id,
-          destinationId: destination.id,
-          shouldSyncInstitution: true,
-          institutionsAdded: 1
-        }))
+        createMany: {
+          data: plaidItems.map(item => ({
+            plaidItemId: item.id,
+            destinationId: destination.id,
+            shouldSyncInstitution: true,
+            institutionsAdded: 1
+          }))
+        }
       }
     }
   }).then(sync => { logger.info("Created sync", { sync }); return sync; });

@@ -91,6 +91,14 @@ export const logAirtableTokenAdded = ({ userId }: { userId: string }) =>
       tags: { [Tag.USER_ID]: userId }
   })
 
+export const logNotionConnectionAdded = ({ userId }: { userId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.NOTION_CONNECTION_ADDED,
+    icon: '🗺',
+    tags: { [Tag.USER_ID]: userId }
+  })
+
 export const logDestinationErrorTriggered = ({ userId, destinationId, error, syncId }: {
   userId: string;
   destinationId: string;
@@ -106,6 +114,60 @@ export const logDestinationErrorTriggered = ({ userId, destinationId, error, syn
       [Tag.USER_ID]: userId,
       [Tag.DESTINATION_ID]: destinationId,
       [Tag.SYNC_ID]: syncId
+    }
+  })
+
+export const logInstitutionErrorTriggered = ({ userId, institution, itemId, error }: {
+  userId: string;
+  institution: string;
+  itemId: string;
+  error: string;
+}) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.INSTITUTION_ERROR_TRIGGERED,
+    description: `Error: ${error}`,
+      icon: '🏦',
+      tags: {
+        [Tag.USER_ID]: userId,
+        [Tag.INSTITUTION]: institution,
+        [Tag.ITEM_ID]: itemId
+      }
+  })
+
+export const logInstitutionReconnected = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.INSTITUTION_RECONNECTED,
+    icon: "🏦",
+    tags: {
+      [Tag.INSTITUTION ]: institution, 
+      [Tag.USER_ID]: userId,
+      [Tag.ITEM_ID]: itemId
+    }
+  })
+
+export const logInstitutionCreated = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.INSTITUTION_CREATED,
+    icon: "🏦",
+    tags: {
+      [Tag.INSTITUTION ]: institution, 
+      [Tag.USER_ID]: userId,
+      [Tag.ITEM_ID]: itemId
+    }
+  })
+
+export const logInstitutionDeleted = ({ institution, userId, itemId }: { institution: string; userId: string; itemId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.INSTITUTION_DELETED,
+    icon: "🏦",
+    tags: {
+      [Tag.INSTITUTION ]: institution, 
+      [Tag.USER_ID]: userId,
+      [Tag.ITEM_ID]: itemId
     }
   })
 
@@ -132,6 +194,39 @@ export const logSyncCompleted = ({ trigger, userId, integration, destinationId, 
     }
   })
 
+export const logDestinationCreated = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.DESTINATION_CREATED,
+    icon: "🗺",
+    tags: { 
+      [Tag.INTEGRATION]: integration, 
+      [Tag.USER_ID]: userId,
+      [Tag.DESTINATION_ID]: destinationId
+    }
+  })
+
+export const logDestinationDeleted = ({ userId, integration, destinationId }: { userId: string; integration: Integration; destinationId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.DESTINATION_DELETED,
+    icon: "🗺",
+    tags: { 
+      [Tag.INTEGRATION]: integration, 
+      [Tag.USER_ID]: userId,
+      [Tag.DESTINATION_ID]: destinationId
+    }
+  })
+
+export const logUserDeleted = ({ userId }: { userId: string }) =>
+  logsnagPublish({
+    channel: Channel.ACTIVITY,
+    event: Event.USER_DELETED,
+    icon: '😭',
+    notify: true,
+    tags: { [Tag.USER_ID]: userId}
+  })
+
 // Types
 enum Channel {
   ACTIVITY = 'activity',
@@ -146,6 +241,7 @@ enum Event {
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",
+  INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",
   INSTITUTION_RECONNECTED = "Institution Reconnected",
   NOTION_CONNECTION_ADDED = "Notion Connection Added",
   REVENUE = 'Incoming Revenue!',
@@ -155,6 +251,7 @@ enum Event {
   SUBSCRIPTION_RENEWED = "Subscription Renewed",
   SYNC_COMPLETED = "Sync Completed",
   UNHANDLED = "Unhandled",
+  USER_DELETED = "User Deleted",
   USER_SIGNED_UP = "User Signed Up",
 }
 

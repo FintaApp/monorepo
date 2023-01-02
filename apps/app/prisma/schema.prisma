@@ -203,6 +203,7 @@ model Destination {
   @@index([notionCredentialId])
   
   @@map("destinations")
+  @@index([userId])
 }
 
 model DestinationTableConfig {
@@ -432,6 +433,8 @@ enum SyncTrigger {
   InvestmentTransactionsUpdate  @map("investment_transactions_update")
   Refresh                     @map("refresh")
   HistoricalSync              @map("historical_sync")
+  ItemUpdate                  @map("item_update")
+  LiabilitiesUpdate           @map("liabilities_update")
   @@map("sync_triggers")
 }
 

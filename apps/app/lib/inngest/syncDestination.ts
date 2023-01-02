@@ -9,7 +9,7 @@ import { getDestinationObject } from "../integrations/getDestinationObject";
 import moment from "moment-timezone";
 import { logDestinationErrorTriggered, logSyncCompleted } from "../logsnag";
 import { trackDestinationErrorTriggered, trackSyncCompleted } from "../analytics";
-import { LiabilitiesGetResponse } from "plaid";
+import { LiabilitiesGetResponse, Security } from "plaid";
 
 export const syncDestination = createStepFunction("Sync Destination", "destination/sync", async ({ event, tools }) => {
   const { destinationId, startDate, syncId, itemIds, tablesToSync, trigger } = event.data;
@@ -22,7 +22,11 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
     const destination = await db.destination.findFirstOrThrow({
       where: { id: destinationId },
       include: { 
-        accounts: true, 
+        accounts: {
+          where: {
+            item: { disabledAt: null }
+          }
+        }, 
         tableConfigs: { 
           include: { fieldConfigs: true }
         },
@@ -172,11 +176,11 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         : undefined;
       const { holdings, securities: holdingsSecurities } = shouldSyncHoldings
         ? await plaid.getHoldings({ accessToken: item.accessToken, options: { account_ids: accountIds }}).then(response => response.data)
-        : { holdings: undefined, securities: [] };
+        : { holdings: undefined, securities: [] as Security[] };
       const { investmentTransactions, securities: investmentTransactionsSecurities } = shouldSyncInvestmentTransactions
         ? await plaid.getAllInvestmentTransactions({ accessToken: item.accessToken, startDate, endDate, options: { account_ids: accountIds }})
-        : { investmentTransactions: undefined, securities: [] };
-      const securities = _.uniqBy((holdingsSecurities || []).concat(investmentTransactionsSecurities || []), 'security_id')
+        : { investmentTransactions: undefined, securities: [] as Security[] };
+      const securities = _.uniqBy((holdingsSecurities).concat(investmentTransactionsSecurities), 'security_id')
 
       const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item });
       itemLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
@@ -186,7 +190,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         { records: categoryRecords, results: categoryResults }, 
         { records: securityRecords, results: securityResults } 
       ] = await Promise.all([
-        Destination.upsertAccounts({ accounts, item, institutionRecord, creditLiabilities: credit, mortgageLiabilities: mortgage, studentLiabilities: student })
+        Destination.upsertAccounts({ accounts, item, institutionRecord, creditLiabilities: credit || undefined, mortgageLiabilities: mortgage || undefined, studentLiabilities: student || undefined })
           .then(response => { itemLogger.info("Upserted accounts", { results: response.results }); return response }),
         Destination.upsertCategories({ categories })
           .then(response => { itemLogger.info("Upserted categories", { results: response.results }); return response }),

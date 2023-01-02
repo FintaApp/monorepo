@@ -14,7 +14,7 @@ export const getDestinationFromRequest = async ({ req, logger }: { req: NextApiR
   const destination = await db.destination.findFirst({ 
     where: { codaCredential: { accessTokenHash: tokenHash }},
     include: { 
-      accounts: { include: { item: { include: { institution: true }} }},
+      accounts: { where: { item: { disabledAt: null } }, include: { item: { include: { institution: true }} }},
       tableConfigs: true,
       user: { select: { id: true, stripeCustomerId: true }}
     }

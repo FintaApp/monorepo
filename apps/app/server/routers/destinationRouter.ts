@@ -21,8 +21,8 @@ export const destinationRouter = router({
         airtableApiKey: z.optional(z.string()),
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
+      const userId = user.id;
       const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
       if ( !credentials ) { throw new TRPCError({ code: 'BAD_REQUEST', message: "Incorrect integration"})}
 
@@ -56,8 +56,8 @@ export const destinationRouter = router({
         )
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId, tableConfigs }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, logger, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId, tableConfigs }}) => {
+      const userId = user.id;
 
       if ( integration === Integration.Coda ) { return { isValid: true, errors: [] }}
       const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
@@ -97,12 +97,11 @@ export const destinationRouter = router({
         connectedAccountIds: z.array(z.string())
       })
     )
-    .mutation(async ({ ctx: { session, db, logger }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, tableConfigs, name, syncStartDate, connectedAccountIds, codaCredentialId }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, db, logger }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, tableConfigs, name, syncStartDate, connectedAccountIds, codaCredentialId }}) => {
+      const userId = user.id;
 
       const destination = await db.destination.create({
         data: {
-          userId,
           airtableCredential: integration === Integration.Airtable ? { create: { baseId: airtableBaseId! }} : undefined,
           notionCredential: integration === Integration.Notion ? { connect: { botId: notionBotId! }} : undefined,
           googleSheetsCredential: integration === Integration.Google ? { create: { spreadsheetId: googleSpreadsheetId! }} : undefined,
@@ -111,7 +110,8 @@ export const destinationRouter = router({
           name,
           syncStartDate,
           accounts: { connect: connectedAccountIds.map(id => ({ id }))},
-          tableConfigs: { createMany: { data: tableConfigs.map(({ isEnabled, table, tableId }) => ({ isEnabled, table, tableId }))}}
+          tableConfigs: { createMany: { data: tableConfigs.map(({ isEnabled, table, tableId }) => ({ isEnabled, table, tableId }))}},
+          user: { connect: { id: userId }}
         },
         include: { tableConfigs: true }
       });
@@ -142,8 +142,8 @@ export const destinationRouter = router({
         airtableApiKey: z.optional(z.string())
       })
     )
-    .query(async ({ ctx: { session, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, airtableApiKey }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableBaseId, airtableApiKey }}) => {
+      const userId = user.id;
       const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
 
       if ( integration === Integration.Coda || !credentials ) { return [] }
@@ -163,8 +163,8 @@ export const destinationRouter = router({
         airtableApiKey: z.optional(z.string())
       })
     )
-    .mutation(async ({ ctx: { session, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, db }, input: { integration, googleSpreadsheetId, notionBotId, airtableApiKey, airtableBaseId }}) => {
+      const userId = user.id;
       const credentials = await getCredentials({ db, integration, googleSpreadsheetId, airtableApiKey, airtableBaseId, notionBotId })
 
       if ( integration === Integration.Coda || !credentials ) { return { tableConfigs: [
@@ -181,8 +181,8 @@ export const destinationRouter = router({
     }),
 
     getAllDestinations: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }}) => {
+      const userId = user.id;
       return db.destination.findMany({ 
         where: { userId, disabledAt: null }, 
         select: { id: true, name: true, codaCredential: { select: { exchangedAt: true }} },
@@ -196,8 +196,8 @@ export const destinationRouter = router({
           id: z.string()
         })
       )
-      .query(async ({ ctx: { session, db }, input: { id }}) => {
-        const userId = session!.user.id;
+      .query(async ({ ctx: { user, db }, input: { id }}) => {
+        const userId = user.id;
         return db.destination.findFirstOrThrow({ 
           where: { userId, id },
           select: {
@@ -227,8 +227,8 @@ export const destinationRouter = router({
           accountIds: z.array(z.string())
         })
       )
-      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, action, accountIds }}) => {
-        const userId = session!.user.id;
+      .mutation(async ({ ctx: { user, db, logger }, input: { destinationId, action, accountIds }}) => {
+        const userId = user.id;
         const currentAccountIds = await db.destination.findFirstOrThrow({ where: { id: destinationId }, select: { accounts: true }})
           .then(response => {
             logger.info("Fetched current destination accounts", { response });
@@ -259,8 +259,8 @@ export const destinationRouter = router({
           airtableApiKey: z.optional(z.string())
         })
       )
-      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, googleSpreadsheetId, notionBotId, airtableBaseId }}) => {
-        const userId = session!.user.id;
+      .mutation(async ({ ctx: { user, db, logger }, input: { destinationId, googleSpreadsheetId, notionBotId, airtableBaseId }}) => {
+        const userId = user.id;
         const destination = await db.destination.findFirstOrThrow({ 
           where: { id: destinationId, userId },
           select: { integration: true, googleSheetsCredentialId: true, notionCredentialId: true, airtableCredentialId: true }
@@ -309,8 +309,8 @@ export const destinationRouter = router({
           )),
         })
       )
-      .mutation(async ({ ctx: { session, db, logger }, input: { destinationId, name, syncStartDate, tableConfigs }}) => {
-        const userId = session!.user.id;
+      .mutation(async ({ ctx: { user, db, logger }, input: { destinationId, name, syncStartDate, tableConfigs }}) => {
+        const userId = user.id;
         const { integration } = await db.destination.findFirstOrThrow({ where: { userId, id: destinationId }, select: { integration: true }});
         logger.info("Fetched integration", { integration });
 
@@ -348,8 +348,8 @@ export const destinationRouter = router({
 
     disableDestination: protectedProcedure
       .input(z.string())
-      .mutation(async ({ ctx: { session, db, logger }, input: id }) => {
-        const userId = session!.user.id;
+      .mutation(async ({ ctx: { user, db, logger }, input: id }) => {
+        const userId = user.id;
         const destination = await db.destination.findFirstOrThrow({ where: { id, userId }});
         logger.info("Fetched destination", { destination });
 
@@ -429,7 +429,7 @@ export const destinationRouter = router({
       .query(async ({ ctx: { db }, input: syncId }) => {
         return db.sync.findFirstOrThrow({ 
           where: { id: syncId }, 
-          include: { metadata: true, logs: true }
+          include: { results: true }
         })
     })
 })

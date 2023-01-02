@@ -15,11 +15,11 @@ export const plaidRouter = router({
         isAccountSelectionEnabled: z.optional(z.boolean())
       })
     )
-    .mutation(async ({ ctx: { req: { headers: { host }}, session, logger, db }, input: { product, plaidItemId, isAccountSelectionEnabled }}) => {
+    .mutation(async ({ ctx: { req: { headers: { host }}, user, logger, db }, input: { product, plaidItemId, isAccountSelectionEnabled }}) => {
       const mode = plaidItemId
         ? ( isAccountSelectionEnabled ? 'addAccounts' : 'reconnect')
         : 'create'
-      const userId = session!.user.id;
+      const userId = user.id;
       const originUrl = `https://${host}`;
       const webhookURL = `${originUrl}/api/plaid/webhook`;
       const redirectUri = `${originUrl}/plaid-oauth`;
@@ -71,11 +71,11 @@ export const plaidRouter = router({
         name: z.string()
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { id, name }}) => {
+    .mutation(async ({ ctx: { user, logger, db }, input: { id, name }}) => {
       return db.plaidAccount.update({ where: { id }, data: { name }})
         .then(async response => {
           logger.info("Account updated", { response });
-          await trackPlaidAccountUpdated({ userId: session!.user.id, field: 'name' })
+          await trackPlaidAccountUpdated({ userId: user.id, field: 'name' })
         })
     }),
   
@@ -85,8 +85,8 @@ export const plaidRouter = router({
         plaidItemId: z.string()
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { plaidItemId }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, logger, db }, input: { plaidItemId }}) => {
+      const userId = user.id;
       const plaidItem = await db.plaidItem.update({ 
         where: { id: plaidItemId },
         data: { disabledAt: new Date()},
@@ -106,15 +106,15 @@ export const plaidRouter = router({
     }),
 
   removePlaidLink: protectedProcedure
-    .mutation(async ({ ctx: { session, logger, db }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, logger, db }}) => {
+      const userId = user.id;
       return db.linkToken.delete({ where: { userId }})
         .then(response => logger.info("Link token deleted", { response }))
     }),
 
   getAllPlaidAccounts: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }}) => {
+      const userId = user.id;
       return db.plaidAccount.findMany({
         where: { item: { userId, disabledAt: null }},
         select: { 
@@ -128,8 +128,8 @@ export const plaidRouter = router({
     }),
 
   getAllPlaidItems: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }}) => {
+      const userId = user.id;
       return db.plaidItem.findMany({ 
         where: { userId, disabledAt: null }, 
         select: { id: true },
@@ -143,8 +143,8 @@ export const plaidRouter = router({
         id: z.string()
       })
     )
-    .query(async ({ ctx: { session, db }, input: { id }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }, input: { id }}) => {
+      const userId = user.id;
       return db.plaidItem.findFirstOrThrow({ 
         where: { userId, id },
         select: {
@@ -187,8 +187,8 @@ export const plaidRouter = router({
         }))
       })
     )
-    .mutation(async ({ ctx: { session, logger, db }, input: { publicToken, institution, accounts }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, logger, db }, input: { publicToken, institution, accounts }}) => {
+      const userId = user.id;
       const { access_token: accessToken, item_id } = await exchangePublicToken({ publicToken })
         .then(response => {
           logger.info("Exchange public token response", { data: response.data });
@@ -315,7 +315,7 @@ export const plaidRouter = router({
           destinationIds: z.array(z.string())
         })
       )
-      .mutation(async ({ ctx: { session, db, logger }, input: { destinationIds, plaidItemId }}) => {
+      .mutation(async ({ ctx: { db, logger }, input: { destinationIds, plaidItemId }}) => {
         const plaidItem = await db.plaidItem.findFirstOrThrow({ where: { id: plaidItemId }, include: { accounts: true }});
         logger.info("Fetched Plaid item", { plaidItem });
         const accounts = plaidItem.accounts.map(account => ({ id: account.id }))
@@ -324,8 +324,8 @@ export const plaidRouter = router({
       }),
 
     getActiveLinkToken: protectedProcedure
-      .query(async ({ ctx: { session, db }}) => {
-        const userId = session!.user.id;
+      .query(async ({ ctx: { user, db }}) => {
+        const userId = user.id;
         return db.linkToken.findFirst({ where: { userId }});
       })
 })

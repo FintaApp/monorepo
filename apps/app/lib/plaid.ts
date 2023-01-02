@@ -1,4 +1,4 @@
-import { Configuration, PlaidApi, PlaidEnvironments, InvestmentHoldingsGetRequestOptions, LiabilitiesGetRequestOptions, CountryCode, InvestmentsTransactionsGetRequestOptions, AccountsGetRequestOptions, PlaidError, TransactionsGetRequestOptions, Transaction, InvestmentTransaction, Products, TransactionsSyncRequestOptions, LiabilitiesGetResponse, AccountsGetResponse } from "plaid";
+import { Configuration, PlaidApi, PlaidEnvironments, InvestmentHoldingsGetRequestOptions, LiabilitiesGetRequestOptions, CountryCode, InvestmentsTransactionsGetRequestOptions, AccountsGetRequestOptions, PlaidError, TransactionsGetRequestOptions, Transaction, InvestmentTransaction, Products, TransactionsSyncRequestOptions, LiabilitiesGetResponse, AccountsGetResponse, InvestmentsHoldingsGetResponse, Security, Holding, AccountBase, Item } from "plaid";
 import * as _ from 'lodash';
 
 const allowedErrorCodes = ['NO_INVESTMENT_ACCOUNTS', 'NO_ACCOUNTS', "PRODUCT_NOT_READY"];
@@ -72,7 +72,7 @@ export const getAccounts = async ({ accessToken, options = {} }: {
   .catch(err => {
     const error = err.response?.data as PlaidError;
     if ( error?.error_code && allowedErrorCodes.includes(error.error_code) ) {
-      return { data: { accounts: [], item: undefined, request_id: undefined } as AccountsGetResponse }
+      return { data: { accounts: [] as AccountBase[], item: {} as Item, request_id: "" } as AccountsGetResponse }
     }
 
     throw err;
@@ -88,12 +88,12 @@ export const getHoldings = async ({ accessToken, options = {} }: {
     // Check to be sure account_id, security_id combinations are unique
     const uniqueHoldings = _.uniqWith(holdings, (h1, h2) => h1.account_id === h2.account_id && h1.security_id == h2.security_id) 
     // Ensure that each holding is unique? Whyyyy
-    return { ...response, data: { ...response.data, holdings: uniqueHoldings}}
+    return { ...response, data: { ...response.data, holdings: uniqueHoldings }}
   })
   .catch(err => {
     const error = err.response?.data as PlaidError;
     if ( error?.error_code && allowedErrorCodes.includes(error.error_code) ) {
-      return { data: { holdings: [], accounts: [], securities: [] } }
+      return { data: { holdings: [] as Holding[], accounts: [] as AccountBase[], securities: [] as Security[] } as InvestmentsHoldingsGetResponse }
     }
 
     throw err;
@@ -123,7 +123,7 @@ export const getLiabilities = async ({ accessToken, options = {} }: {
   .catch(err => {
     const error = err.response?.data as PlaidError;
     if ( error?.error_code && allowedErrorCodes.includes(error.error_code) ) {
-      return { data: { accounts: [], item: undefined, request_id: undefined, liabilities: { student: [], mortgage: [], credit: [] } } as LiabilitiesGetResponse}
+      return { data: { accounts: [] as AccountBase[], item: {} as Item, request_id: "", liabilities: { student: [], mortgage: [], credit: [] } } as LiabilitiesGetResponse}
     }
 
     throw err;
@@ -203,5 +203,5 @@ export const getAllInvestmentTransactions = async ({ accessToken, startDate, end
     investmentTransactions = investmentTransactions.concat(paginatedRequest.data.investment_transactions);
   }
 
-  return { investmentTransactions, accounts, securities }
+  return { investmentTransactions, accounts, securities: securities as Security[] }
 }

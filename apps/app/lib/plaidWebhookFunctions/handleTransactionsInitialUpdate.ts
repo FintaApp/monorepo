@@ -1,22 +1,23 @@
+import { Logger } from "next-axiom";
 import { InitialUpdateWebhook, WebhookEnvironmentValues } from "plaid";
 
 import { handleSyncUpdatesAvailable } from "./handleSyncUpdatesAvailable";
-import { PlaidItemModel, DestinationModel } from "~/types/backend/models";
-import { Logger } from "../logger";
+
+import { Destinations, Item } from "./types";
 
 export const handleTransactionsInitialUpdate = async ({ item, destinations, logger, asAdmin }: {
-  item: PlaidItemModel;
+  item: Item;
   data: InitialUpdateWebhook;
-  destinations: DestinationModel[];
+  destinations: Destinations;
   logger: Logger;
   asAdmin: boolean;
 }) => {
-  const { plaid_sync_cursor } = item;
-  if ( plaid_sync_cursor ) { return; }
+  const { plaidSyncCursor } = item;
+  if ( plaidSyncCursor ) { return; }
   return handleSyncUpdatesAvailable({ 
     item, 
     data: { 
-      historical_update_complete: item.is_historical_update_complete, 
+      historical_update_complete: item.isHistoricalUpdateComplete, 
       initial_update_complete: true,
       webhook_type: 'TRANSACTIONS',
       webhook_code: 'SYNC_UPDATES_AVAILABLE',

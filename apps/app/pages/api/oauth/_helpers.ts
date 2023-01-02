@@ -1,5 +1,5 @@
 import { PlaidError } from "plaid";
-import * as plaidWebhookFunctions from "~/utils/backend/plaidWebhookFunctions"
+import * as plaidWebhookFunctions from "~/lib/plaidWebhookFunctions"
 import { Logger } from "next-axiom";
 import { PlaidItem, SyncError } from "@prisma/client";
 import { db } from "~/lib/db";

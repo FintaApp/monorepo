@@ -60,11 +60,13 @@ export default wrapper(async ({ req, logger }) => {
       trigger, 
       triggerDestinationId: destination.id,
       results: {
-        create: plaidItems.map(item => ({
-          plaidItemid: item.id,
+        createMany: {
+          data: plaidItems.map(item => ({
+          plaidItemId: item.id,
           destinationId: destination.id,
           shouldSyncAccounts: true
-        }))
+          }))
+        }
       }
     }
   }).then(sync => { logger.info("Created sync", { sync }); return sync });

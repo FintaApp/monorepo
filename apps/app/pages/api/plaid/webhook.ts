@@ -1,24 +1,23 @@
-import moment from "moment-timezone";
+import { wrapper } from "~/lib/apiWrapper";
+import { db } from "~/lib/db";
+import { logUnhandledEvent } from "~/lib/logsnag";
+import * as plaidWebhookFunctions from "~/lib/plaidWebhookFunctions";
 
-import { wrapper } from "~/utils/backend/apiWrapper";
-import * as plaidWebhookFunctions from "~/utils/backend/plaidWebhookFunctions";
-import { graphql } from "~/graphql/backend";
-import { DestinationModel } from "~/types/backend/models";
-
-
-export default wrapper('public', async function handler({ req, logger }) {
+export default wrapper(async ({ req, logger }) => {
   const { webhook_type, webhook_code, item_id, asAdmin } = req.body;
-  const item = await graphql.GetPlaidItem({ plaidItemId: item_id, include_removed_transactions: true, date: moment().subtract(24, 'hours').toISOString() }).then(response => response.plaidItem);
-  logger.info("Fetched item");
-  if ( !item ) { throw new Error("Item does not exist") }
-  const { user } = item;
-  logger.addContext({ user: { id: user.id }});
+  const item = await db.plaidItem.findFirst({ where: { id: item_id }, include: { accounts: true, institution: true }});
+  logger.info("Fetched item", { item });
+  if ( !item ) {
+    logUnhandledEvent(`Item does not exist - ${item_id}`)
+    return { status: 404, message: "Item not found"}
+  }
 
-  const destinations = await graphql.GetDestinations({ 
-    where: { disabled_at: { _is_null: true }, account_connections: { account: { plaid_item_id: { _eq: item.id }}}},
-    account_connections_where: { account: { plaid_item_id: { _eq: item.id }}}
-  }).then(response => response.destinations as DestinationModel[]);
-  logger.info("Fetched destination", { destinationsCount: destinations.length });
+  const destinations = await db.destination.findMany({ 
+    where: { disabledAt: null, accounts: { some: { plaidItemId: item_id }}},
+    include: { accounts: true, tableConfigs: { include: { fieldConfigs: true } }, airtableCredential: true, googleSheetsCredential: true, notionCredential: true }
+  });
+
+  logger.info("Connected destinations", { count: destinations.length });
 
   if ( webhook_type === 'HOLDINGS' ) {
     if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleHoldingsDefaultUpdate({ item, destinations, logger, asAdmin })}
@@ -34,7 +33,7 @@ export default wrapper('public', async function handler({ req, logger }) {
     if ( webhook_code === 'WEBHOOK_UPDATE_ACKNOWLEDGED' ) { await plaidWebhookFunctions.handleWebhookUpdateAcknowledged() }
 
   } else if ( webhook_type === 'LIABILITIES') {
-    if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleLiabilitiesDefaultUpdate() }
+    if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleLiabilitiesDefaultUpdate({ item, logger, destinations}) }
 
   } else if ( webhook_type === 'TRANSACTIONS') {
     if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleTransactionsDefaultUpdate({ item, destinations, logger, data: req.body, asAdmin })}

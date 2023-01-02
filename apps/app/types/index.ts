@@ -1,6 +1,6 @@
 
 import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { Field, Integration, Table, AirtableCredential, GoogleSheetsCredential, NotionCredential } from "@prisma/client";
+import { Field, Table, AirtableCredential, GoogleSheetsCredential, NotionCredential } from "@prisma/client";
 
 export type PlaidProduct = 'transactions' | 'investments';
 
