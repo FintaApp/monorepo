@@ -280,8 +280,7 @@ export const DestinationProvider = ({ children, isSetupMode, integration: integr
 
   const triggerSync = useCallback(async (startDate?: string) => {
     if ( destination ) {
-      console.log(startDate || destination.syncStartDate)
-      triggerManualSync({ destinationId: destination.id, startDate: startDate || destination.syncStartDate })
+      triggerManualSync({ destinationId: destination.id, startDate })
         .then(({ syncId }) => {
           if ( syncId ) { setCurrentActiveSyncId(syncId) }
         })

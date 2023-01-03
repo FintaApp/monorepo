@@ -5,6 +5,7 @@ import { destinationRouter } from "./destinationRouter";
 import { notionRouter } from "./notionRouter";
 import { plaidRouter } from "./plaidRouter";
 import { stripeRouter } from "./stripeRouter";
+import { syncRouter } from "./syncRouter";
 import { userRouter } from './userRouter';
 import { zendeskRouter } from './zendeskRouter';
 
@@ -14,6 +15,7 @@ export const appRouter = router({
   notion: notionRouter,
   plaid: plaidRouter,
   stripe: stripeRouter,
+  syncs: syncRouter,
   users: userRouter,
   zendesk: zendeskRouter
 })

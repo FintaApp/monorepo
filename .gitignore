@@ -43,3 +43,4 @@ apps/app/tests/terraform.tfstate
 apps/app/tests/terraform.tfstate.backup
 
 .next
+apps/app/dataMigration.ts

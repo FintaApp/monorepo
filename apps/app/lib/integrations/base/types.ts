@@ -3,7 +3,7 @@ import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import { GoogleSpreadsheetRow } from "google-spreadsheet";
 
 import { AirtableCredential, Field, GoogleSheetsCredential, NotionCredential, PlaidAccount, PlaidInstitution, PlaidItem as DBPlaidItem, SyncError, Table } from "@prisma/client";
-import { DestinationFieldType, TableConfig } from "~/types";
+import { DestinationFieldType, TableConfig, TableConfigError } from "~/types";
 import { AccountBase, CreditCardLiability, Holding, InvestmentTransaction, MortgageLiability, Security, StudentLoan, Transaction } from "plaid";
 
 export interface IntegrationBaseProps {
@@ -55,7 +55,7 @@ export type ValidateDestinationCredentialsResponse = { isValid: boolean; error?:
 export type GetDestinationTablesRepsonse = { tables: { tableId: string; name: string; fields: { fieldId: string; name: string; type?: DestinationFieldType }[] }[]}
 export type GetDefaultTableConfigsResponse = { tableConfigs: TableConfig[]}
 export type ValidateTableConfigsFuncProps = { tableTypes?: Table[] | 'all'; tableConfigs: TableConfig[] };
-export type ValidateTableConfigsFuncResponse = { isValid: boolean; errors: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; }[]};
+export type ValidateTableConfigsFuncResponse = { isValid: boolean; errors: TableConfigError[] };
 
 export type InstitutionFormatter = {
   new: ({ item }: { item: PlaidItem}) => Record<Field, any>

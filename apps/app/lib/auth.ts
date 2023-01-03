@@ -125,7 +125,7 @@ export const nextAuthOptions: NextAuthOptions = {
           select: { emailVerified: true, id: true }
         })
         
-        const templateId = user?.emailVerified
+        const templateId = user
           ? EMAIL_TEMPLATES.SIGN_IN
           : EMAIL_TEMPLATES.ACTIVATE_ACCOUNT
         
@@ -170,7 +170,6 @@ export const nextAuthOptions: NextAuthOptions = {
     signIn: async ({ user, isNewUser, account }) => {
       const userId = user.id;
       const provider = account?.provider;
-      console.log(provider)
       if ( provider === 'credentials' ) { return; }
       if ( isNewUser ) { 
         await trackUserSignedUp({ userId, provider })

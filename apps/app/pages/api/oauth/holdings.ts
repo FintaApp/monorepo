@@ -13,6 +13,7 @@ import { trackSyncCompleted } from "~/lib/analytics";
 import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
 import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
 import { getHoldings } from "~/lib/plaid";
+import { SyncMetadata } from "~/types";
 
 export default wrapper(async ({ req, logger }) => {
   const trigger = SyncTrigger.Destination;
@@ -21,10 +22,11 @@ export default wrapper(async ({ req, logger }) => {
 
   logger.info("Fetched destination", { destination, hasAppAccess });
 
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Holdings } as SyncMetadata }
+
   if ( !hasAppAccess ) {
     return db.sync.create({ data: {
-      trigger,
-      triggerDestinationId: destination.id,
+      ...syncData,
       error: SyncError.NoSubscription,
       isSuccess: false,
       endedAt: new Date()
@@ -38,10 +40,9 @@ export default wrapper(async ({ req, logger }) => {
   const tableConfig = destination.tableConfigs.find(config => config.table === Table.Holdings) || { isEnabled: false };
   if ( !tableConfig.isEnabled ) {
     return db.sync.create({ data: { 
-        triggerDestinationId: destination.id, 
+        ...syncData,
         isSuccess: false, 
         error: SyncError.HoldingsDisabled, 
-        trigger,
         endedAt: new Date()
       }})
       .then(sync => {
@@ -55,8 +56,7 @@ export default wrapper(async ({ req, logger }) => {
   const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
   if ( errorItems.length > 0 ) {
     return db.sync.create({ data: {
-      triggerDestinationId: destination.id,
-      trigger,
+      ...syncData,
       isSuccess: false,
       error: SyncError.ItemError,
       endedAt: new Date(),
@@ -71,8 +71,7 @@ export default wrapper(async ({ req, logger }) => {
 
   const sync = await db.sync.create({
     data: { 
-      trigger, 
-      triggerDestinationId: destination.id,
+      ...syncData,
       results: {
         createMany: {
           data: plaidItems.map(item => ({

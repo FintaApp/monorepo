@@ -12,7 +12,7 @@ import { TrialProgressBar } from "./TrialProgressBar";
 const navigationPages = [
   { label: 'Destinations', href: '/destinations', icon: DashboardIcon },
   { label: 'Accounts', href: '/accounts', icon: AiOutlineBank },
-  // { label: 'Logs', href: '/logs', icon: AiOutlineHistory}
+  { label: 'Logs', href: '/logs', icon: AiOutlineHistory}
 ]
 
 export const Navigation = () => {

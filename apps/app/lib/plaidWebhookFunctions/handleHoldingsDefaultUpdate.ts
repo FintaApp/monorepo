@@ -27,6 +27,7 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
     data: {
       trigger,
       triggerPlaidItemId: item.id,
+      userId: item.userId,
       results: {
         createMany: {
           data: filteredDestinations.map(destination => ({
@@ -81,8 +82,9 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
     const validateTableConfigsResponse = await Destination.validateTableConfigs({ tableTypes, tableConfigs: destination.tableConfigs });
     destinationLogger.info("Validate table configs response", { response: validateTableConfigsResponse });
     if ( !validateTableConfigsResponse.isValid ) {
+      const { code: tableConfigErrorCode, ...tableConfigErrorMetaData } = validateTableConfigsResponse.errors[0];
       await Promise.all([
-        db.syncResult.update({ where: syncResultWhere, data: { error: validateTableConfigsResponse.errors[0]!.code }}),
+        db.syncResult.update({ where: syncResultWhere, data: { error: tableConfigErrorCode, errorMetadata: tableConfigErrorMetaData }}),
 
         logDestinationErrorTriggered({
           userId: destination.userId,

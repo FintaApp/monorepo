@@ -54,7 +54,7 @@ export const DestinationAccounts = () => {
               </Thead>
 
               <Tbody>
-                { _.sortBy(allPlaidAccounts, ['institution', 'created_at', 'id'])
+                { _.sortBy(allPlaidAccounts, account => account.item.institution.name)
                 .map(account => {
                   const isLinked = selectedAccountIds?.includes(account.id);
                   

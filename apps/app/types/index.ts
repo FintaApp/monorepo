@@ -1,6 +1,6 @@
 
 import { PropertyItemObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { Field, Table, AirtableCredential, GoogleSheetsCredential, NotionCredential, PlaidItem, PlaidInstitution, PlaidAccount, DestinationTableConfig, DestinationFieldConfig, Destination, User } from "@prisma/client";
+import { Field, Table, AirtableCredential, GoogleSheetsCredential, NotionCredential, PlaidItem, PlaidInstitution, PlaidAccount, DestinationTableConfig, DestinationFieldConfig, Destination, User, SyncError } from "@prisma/client";
 
 export type PlaidProduct = 'transactions' | 'investments';
 
@@ -29,3 +29,17 @@ export type PlaidWebhookItem = PlaidItem & {
 export type OauthItem = PlaidItem & {
   institution: PlaidInstitution;
 }
+
+export interface TableConfigError {
+  code: SyncError;
+  table?: Table;
+  tableId?: string;
+  tableName?: string;
+  field?: Field;
+  fieldId?: string;
+  fieldName?: string;
+}
+
+// JSON Field Types
+export type SyncMetadata = { targetTable: Table };
+export type SyncErrorMetadata = Omit<TableConfigError, 'code'>
