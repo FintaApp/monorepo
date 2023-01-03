@@ -23,14 +23,14 @@ export class Google extends IntegrationBase {
     this.formatter = formatter;
     this.isGoogle = true;
 
-    const JwtClient = new google.auth.JWT(process.env.GOOGLE_CLIENT_EMAIL, undefined, process.env.GOOGLE_PRIVATE_KEY, ['https://www.googleapis.com/auth/drive']);
+    const JwtClient = new google.auth.JWT(process.env.GOOGLE_CLIENT_EMAIL, undefined, process.env.GOOGLE_PRIVATE_KEY?.replace(/(\\r)|(\\n)/g, '\n'), ['https://www.googleapis.com/auth/drive']);
     this.sheets = google.sheets({ version: 'v4', auth: JwtClient });
     this.drive = google.drive({ version: 'v3', auth: JwtClient });
   }
 
   async init(): Promise<void> {
     const doc = new GoogleSpreadsheet(this.spreadsheetId);
-    await doc.useServiceAccountAuth({ client_email: process.env.GOOGLE_CLIENT_EMAIL!, private_key: process.env.GOOGLE_PRIVATE_KEY! })
+    await doc.useServiceAccountAuth({ client_email: process.env.GOOGLE_CLIENT_EMAIL!, private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/(\\r)|(\\n)/g, '\n')! })
     await doc.loadInfo()
     .catch(() => null) // Catching the error here because it will be dealt with in validateCredentials
     
