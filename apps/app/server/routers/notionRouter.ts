@@ -12,8 +12,8 @@ export const notionRouter = router({
         originUrl: z.string()
       })
     )
-    .query(async ({ ctx: { session, db, logger }, input: { code, originUrl }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db, logger }, input: { code, originUrl }}) => {
+      const userId = user.id;
       const redirectUri = `${originUrl}/auth/notion`;
 
       const response = await axios.post('https://api.notion.com/v1/oauth/token', {
@@ -61,8 +61,8 @@ export const notionRouter = router({
     }),
 
   getCredentials: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }}) => {
+      const userId = user.id;
 
       const notionCredentials = await db.notionCredential.findMany({ where: { userId }, select: { botId: true, workspaceName: true }});
       return notionCredentials

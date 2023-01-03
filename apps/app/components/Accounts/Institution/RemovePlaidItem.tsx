@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { TrashIcon } from "@radix-ui/react-icons";
 
-import { useLogger } from "~/utils/frontend/useLogger";
+import { useLogger } from "~/lib/context/useLogger";
 import { usePlaidItem } from "./context";
 import { trpc } from "~/lib/trpc";
 import _ from "lodash";

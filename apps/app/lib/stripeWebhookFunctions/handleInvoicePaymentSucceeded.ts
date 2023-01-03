@@ -1,8 +1,9 @@
 import Stripe from "stripe";
 
+import * as baremetrics from "../baremetrics";
 import * as stripe from "../stripe";
 import { backendIdentify as identify, trackSubscriptionInvoicePaid } from "../analytics";
-import { logRevenue } from "../logsnag";
+import { logRevenue, logUnhandledEvent, logsnagInsight } from "../logsnag";
 
 export const handleInvoicePaymentSucceeded = async (
   { invoice, customerId, userId, userName, timestamp }: 
@@ -33,6 +34,16 @@ export const handleInvoicePaymentSucceeded = async (
   });
 
   const logPromise = logRevenue({ userId, userName, lifetimeRevenue, revenue });
+
+  const insightsPromise = baremetrics.metrics()
+    .then(({ arr, mrr, net_revenue }) => {
+      return Promise.all([
+        logsnagInsight({ title: 'ARR', value: `$${arr.toLocaleString()}`, icon: 'chart' }),
+        logsnagInsight({ title: 'MRR', value: `$${mrr.toLocaleString()}`, icon: 'chart' }),
+        logsnagInsight({ title: 'Net Revenue', value: `$${net_revenue.toLocaleString()}`, icon: 'revenue' })
+      ])
+    })
+    .catch(err => logUnhandledEvent(err))
   
-  await Promise.all([ identifyPromise, trackPromise, logPromise ])
+  await Promise.all([ identifyPromise, trackPromise, logPromise, insightsPromise ])
 }

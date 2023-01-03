@@ -6,11 +6,11 @@ import { getLiabilities } from "../plaid";
 import {  Table, Integration, SyncTrigger } from "@prisma/client";
 import { logDestinationErrorTriggered, logSyncCompleted } from "../logsnag";
 import { trackDestinationErrorTriggered, trackSyncCompleted } from "../analytics";
-import { Destinations, Item } from "./types";
+import { PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
-export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logger }: { item: Item; destinations: Destinations, asAdmin: boolean; logger: Logger }) => {
+export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logger }: { item: PlaidWebhookItem; destinations: PlaidWebhookDestination[], asAdmin: boolean; logger: Logger }) => {
   const tableTypes = [ Table.Institutions, Table.Accounts ];
-  const destinationFilter = (destination: Destinations[0]) => {
+  const destinationFilter = (destination: PlaidWebhookDestination) => {
     const destinationItems = destination.accounts.map(account => account.plaidItemId);
     return destinationItems.includes(item.id) && destination.integration !== Integration.Coda;
   };
@@ -112,11 +112,13 @@ export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logge
     destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
 
     const [
-      { records: accountRecords, results: accountResults }
+      { results: accountResults }
     ] = await Promise.all([
       Destination.upsertAccounts({ accounts: destinationAccounts, item, institutionRecord, creditLiabilities: destinationCreditLiabilities, studentLiabilities: destinationStudentLiabilities, mortgageLiabilities: destinationMortgageLiabilities })
         .then(response => { destinationLogger.info("Upserted accounts", { results: response.results }); return response }),
     ]);
+
+    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone })
 
     await Promise.all([
       db.syncResult.update({

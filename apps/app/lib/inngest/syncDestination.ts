@@ -15,7 +15,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
   const { destinationId, startDate, syncId, itemIds, tablesToSync, trigger } = event.data;
   const logger = log.with({ syncId, destinationId })
 
-  const { destination, plaidItems, Destination, canSync, error } = await tools.run("Initialization", async () => {
+  const { destination, plaidItems, canSync, error } = await tools.run("Initialization", async () => {
     let canSync = true;
     let error: { code: SyncError, table?: Table, tableId?: string; tableName?: string; field?: Field; fieldId?: string; fieldName?: string; } | undefined;
 
@@ -39,7 +39,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
 
     const plaidItems = await db.plaidItem.findMany({ 
       where: { id: { in: itemIds }},
-      include: { accounts: true, institution: true }
+      include: { accounts: true, institution: true, user: true }
     })
 
     const Destination = getDestinationObject({ 
@@ -63,8 +63,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
       logger.info("Validated table configs", { response: validateTableConfigsResponse });
 
       if ( validateTableConfigsResponse.isValid ) {
-        await Destination.load({ tableTypes: tablesToSync, tableConfigs: destination.tableConfigs });
-        logger.info("Loaded destination data");
+
       } else {
         canSync = false;
         error = validateTableConfigsResponse.errors[0]
@@ -92,7 +91,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
       })
     }
 
-    return { destination, plaidItems, Destination, canSync, error }
+    return { destination, plaidItems, canSync, error }
   });
 
   if ( !canSync ) {
@@ -142,6 +141,15 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
   const shouldSyncLiabilities = products.includes('liabilities');
 
     tools.run(`Syncing item - ${item.id}`, async () => {
+      const Destination = getDestinationObject({ 
+        integration: destination.integration, 
+        credentials: (destination.airtableCredential || destination.googleSheetsCredential || destination.notionCredential)!,
+        userId: destination.userId
+      })!;
+  
+      await Destination.init();
+      await Destination.load({ tableTypes: tablesToSync, tableConfigs: destination.tableConfigs });
+      
       const itemLogger = logger.with({ itemId: item.id });
       // Initialize results
       await db.syncResult.upsert({
@@ -167,7 +175,10 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         : { student: [], credit: [], mortgage: []} as LiabilitiesGetResponse['liabilities'];
       const transactions = shouldSyncTransactions
         ? await plaid.getAllTransactions({ accessToken: item.accessToken, startDate, endDate, options: { account_ids: accountIds }})
-            .then(response => response.transactions)
+            .then(response => {
+              itemLogger.info("Transactions fetched", { count: response.transactions.length})
+              return response.transactions;
+            })
         : [];
       const categories = shouldSyncCategories
         ? _.uniqBy(transactions?.filter(transaction => !!transaction.category_id && !!transaction.category)
@@ -206,6 +217,9 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         Destination.upsertInvestmentTransactions({ investmentTransactions, securityRecords, accountRecords })
           .then(response => { itemLogger.info("Upserted investment transactions", { results: response }); return response }),
       ])
+
+      await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone })
+        .then(() => itemLogger.info("Updated item record with last sync at"))
 
       await db.syncResult.update({
         where: { syncId_plaidItemId_destinationId: whereKey },

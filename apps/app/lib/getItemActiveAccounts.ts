@@ -2,9 +2,9 @@ import { handlePlaidError } from "~/pages/api/oauth/_helpers";
 import { getAccounts } from "~/lib/plaid";
 import { Logger } from "next-axiom";
 import { PlaidError } from "plaid";
-import { PlaidItem } from "@prisma/client";
+import { OauthItem } from "~/types";
 
-export const getItemActiveAccounts = async ({ item, logger }: { item: PlaidItem; logger: Logger}) => {
+export const getItemActiveAccounts = async ({ item, logger }: { item: OauthItem; logger: Logger}) => {
   const { accountIds: validAccountIds, hasAuthError } = await getAccounts({ accessToken: item.accessToken })
     .then(response => ({ accountIds: response.data.accounts.map(account => account.account_id), hasAuthError: false }))
     .catch(async err => {

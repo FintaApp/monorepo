@@ -1,4 +1,4 @@
-import { NotionPropertyType, AirtableFieldType } from "~/types/shared/models";
+import { NotionPropertyType, AirtableFieldType } from "~/types";
 import { ToastStatusType } from "~/components/Common/Toast";
 import { Integration, Table } from "@prisma/client";
 

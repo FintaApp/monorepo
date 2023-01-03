@@ -7,8 +7,7 @@ import {
   usePlaidLink
 } from "react-plaid-link";
 
-import { useLogger } from "~/utils/frontend/useLogger";
-import * as analytics from "~/utils/frontend/analytics";
+import { useLogger } from "~/lib/context/useLogger";
 import { useUser } from "~/lib/context/useUser";
 import { RouterOutput, trpc } from "~/lib/trpc";
 
@@ -38,15 +37,13 @@ export const PlaidLink = ({ onConnectCallback, onSuccessCallback, onExitCallback
   const onEvent = useCallback<PlaidLinkOnEvent>(async (eventName, metadata) => {
     logger.info("Plaid Link event", { eventName, metadata });
     if (["HANDOFF", "EXIT"].includes(eventName)) { onExitCallback() }
-    if ( eventName === "OPEN" ) { analytics.track({ event: analytics.EventNames.PLAID_PORTAL_OPENED }); }
     if ( eventName === "TRANSITION_VIEW" && metadata.view_name === 'CONNECTED' ) { onConnectCallback && onConnectCallback() }
   }, [ onExitCallback, onConnectCallback ]);
 
   const onExit = useCallback<PlaidLinkOnExit>(async (error, metadata) => {
     if ( error ) { logger.error(new Error("Plaid Link error"), { error, metadata })};
     await Promise.all([
-      removeLinkToken(),
-      analytics.track({ event: analytics.EventNames.PLAID_PORTAL_CLOSED, properties: { has_error: !!error }})
+      removeLinkToken()
     ])
     onExitCallback();
   }, [ onExitCallback, userId ])

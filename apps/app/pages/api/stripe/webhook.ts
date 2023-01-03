@@ -15,7 +15,7 @@ export const config = {
 export default wrapper(async function handler({ req, logger }) {
   const { isValid, event, error } = await validateStripeWebhook(req);
   logger.info("Validated webhook", { isValid, error })
-  if ( !isValid ) { return { status: 400, message: error }};
+  if ( !isValid || !event ) { return { status: 400, message: error }};
 
   const { created, data, type: eventType, id } = event;
   const timestamp = new Date(created * 1000);
@@ -68,26 +68,26 @@ export default wrapper(async function handler({ req, logger }) {
   try {
     switch (eventType) {
       case 'customer.subscription.created': {
-        const subscription = data.object;
+        const subscription = data.object as Stripe.Subscription;
         await functions.handleCustomerSubscriptionCreated({ subscription, userId: user.id, customer, timestamp })
         break;
       }
 
       case 'customer.subscription.updated': {
-        const subscription = data.object;
-        const previousAttributes = data.previous_attributes;
+        const subscription = data.object as Stripe.Subscription;
+        const previousAttributes = data.previous_attributes as Record<string, any>;
         await functions.handleCustomerSubscriptionUpdated({ subscription, userId: user.id, customer, timestamp, previousAttributes })
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = data.object;
+        const subscription = data.object as Stripe.Subscription;
         await functions.handleCustomerSubscriptionDeleted({ subscription, customer, userId: user.id, timestamp })
         break;
       }
 
       case 'invoice.payment_succeeded': {
-        const invoice = data.object;
+        const invoice = data.object as Stripe.Invoice;
         await functions.handleInvoicePaymentSucceeded({ invoice, userId: user.id, userName: user.name || user.email!, timestamp, customerId })
         break;
       }

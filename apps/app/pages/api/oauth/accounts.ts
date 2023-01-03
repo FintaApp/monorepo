@@ -94,7 +94,7 @@ export default wrapper(async ({ req, logger }) => {
       .then(response => ({ accounts: response.data.accounts as AccountBase[], hasAuthError: false }))
       .catch(async error => {
         const errorData = error.response.data;
-        const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id });
+        const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id, destinationId: destination.id });
         if ( !hasAuthError ) { logger.error(error, { data: errorData })};
         return ({ accounts: [] as AccountBase[], hasAuthError });
       })
@@ -113,9 +113,9 @@ export default wrapper(async ({ req, logger }) => {
 
     const formattedAccounts = plaidAccounts.map(plaidAccount => {
       const itemAccount = destination.accounts.find(account => account.id === plaidAccount.account_id)!;
-      const liability = liabilities.student.find(s => s.account_id === plaidAccount.account_id)
-        || liabilities.mortgage.find(s => s.account_id === plaidAccount.account_id)
-        || liabilities.credit.find(s => s.account_id === plaidAccount.account_id)
+      const liability = liabilities.student?.find(s => s.account_id === plaidAccount.account_id)
+        || liabilities.mortgage?.find(s => s.account_id === plaidAccount.account_id)
+        || liabilities.credit?.find(s => s.account_id === plaidAccount.account_id)
       
       return formatter.account({ itemId: item.id, plaidAccount, itemAccount, liability })
     });

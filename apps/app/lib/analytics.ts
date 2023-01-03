@@ -234,6 +234,17 @@ export const frontendIdentify = ({ userId }: { userId: string }) => {
   browserAnalytics.identify(userId);
 }
 
+export const reset = () =>{
+  if ( typeof global === 'undefined' ) { return;}
+  browserAnalytics.reset();
+}
+
+export const page = (params: PageParams) => {
+  const { name, properties } = params;
+  if ( typeof global === 'undefined' ) { return; };
+  browserAnalytics.page(name, properties);
+}
+
 // Types
 enum Event {
   AIRTABLE_TOKEN_ADDED = "Airtable Token Added",
@@ -268,8 +279,15 @@ enum Event {
 
 export enum AnalyticsPage {
   ACCOUNTS = 'Accounts',
+  AIRTABLE_AUTHORIZE = 'Airtable Authorize',
+  DESTINATIONS = 'Destinations',
   LOG_IN = 'Log In',
-  SIGN_UP = 'Sign Up'
+  LOGS = 'Logs',
+  NOTION_AUTHORIZE = 'Notion Authorize',
+  OAUTH_AUTHORIZE = 'Oauth Authorize',
+  PLAID_OAUTH = "Plaid OAuth",
+  SETTINGS = 'Settings',
+  SIGN_UP = 'Sign Up',
 }
 
 type UserTraits = {
@@ -289,6 +307,11 @@ type UserTraits = {
   lifetime_revenue?: number;
   deleted_at?: Date;
   institutions_count?: number;
+}
+
+export interface PageParams {
+  name: AnalyticsPage;
+  properties?: {}
 }
 
 // Helpers

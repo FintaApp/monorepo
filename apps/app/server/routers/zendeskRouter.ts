@@ -12,9 +12,9 @@ export const zendeskRouter = router({
         subject: z.string()
       })
     )
-    .mutation(async ({ ctx: { db, session, logger }, input: { subject, body }}) => {
-      const { id: userId, displayName, email } = session!.user;
-      await createTicket({ subject, body, user: { name: displayName, email }})
+    .mutation(async ({ ctx: { db, user, logger }, input: { subject, body }}) => {
+      const { id: userId, name, email } = user;
+      await createTicket({ subject, body, user: { name: name || "", email: email! }})
         .then(response => logger.info("Created support ticket", { response: response.data }))
       await trackSupportTicketCreated({ userId })
         .then(() => logger.info("Tracked support ticket created event"));

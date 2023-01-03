@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { AccessDenied, Success } from "~/components/Oauth";
 import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
-import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { AnalyticsPage } from "~/lib/analytics";
 import { authGate } from '~/lib/authGate';
 import { useUser } from '~/lib/context/useUser';
 import { trpc } from '~/lib/trpc';

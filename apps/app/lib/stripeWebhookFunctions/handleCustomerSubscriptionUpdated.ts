@@ -1,8 +1,11 @@
 import Stripe from "stripe";
 import moment from "moment-timezone";
+
+import * as baremetrics from "../baremetrics";
 import { formatSubscriptionForIdentify, backendIdentify as identify, trackSubscriptionRenewed, trackSubscriptionCanceled } from "../analytics";
-import { logSubscriptionRenewed, logSubscriptionCanceled } from "../logsnag";
+import { logSubscriptionRenewed, logSubscriptionCanceled, logsnagInsight, logUnhandledEvent } from "../logsnag";
 import { calculateTrialEndsAt } from "../stripe";
+import { db } from "../db";
 
 export const handleCustomerSubscriptionUpdated = async (
   { subscription, customer, userId, timestamp, previousAttributes } : 
@@ -33,4 +36,18 @@ export const handleCustomerSubscriptionUpdated = async (
       logSubscriptionCanceled({ userId, plan })
     ])
   }
+
+  await Promise.all([
+    baremetrics.metrics(),
+    db.user.aggregate({ where: { disabledAt: null }, _count: true })
+  ])
+    .then(([{ subscriptions }, { _count: totalUsers }]) => {
+      return Promise.all([
+        logsnagInsight({ title: 'Monthly Subscribers', value: subscriptions.month, icon: 'user' }),
+        logsnagInsight({ title: 'Yearly Subscribers', value: subscriptions.year, icon: 'user' }),
+        logsnagInsight({ title: 'Trials', value: totalUsers - subscriptions.month - subscriptions.year, icon: 'hourglass'}),
+        logsnagInsight({ title: 'Total Users', value: totalUsers, icon: 'user'})
+      ])
+    })
+    .catch(err => logUnhandledEvent(err))
 }

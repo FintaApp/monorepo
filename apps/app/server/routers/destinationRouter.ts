@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { trackDestinationAccountsUpdated, trackDestinationCreated, trackDestinationDeleted, trackDestinationUpdated } from "~/lib/analytics";
 import { getDestinationObject } from "~/lib/integrations/getDestinationObject";
-import { logDestinationCreated, logDestinationDeleted } from "~/lib/logsnag";
+import { logDestinationCreated, logDestinationDeleted, logsnagInsight } from "~/lib/logsnag";
 import { router, protectedProcedure } from "../trpc";
 import { Context } from "../context";
 import { createToken, hash } from "~/lib/crypto";
@@ -124,9 +124,24 @@ export const destinationRouter = router({
       }))
       logger.info("Created field configs");
 
+      const insightsPromise = Promise.all([
+          db.destination.groupBy({ where: { disabledAt: null }, by: ['integration'], _count: { _all: true, integration: true } }),
+          db.destination.aggregate({ where: { disabledAt: null }, _count: true })
+      ])
+        .then(([ groupedResults, totalResults ]) => {
+          Promise.all([
+            logsnagInsight({ title: 'Airtable Destinations', value: groupedResults.find(r => r.integration === Integration.Airtable)?._count.integration || 0, icon: 'destination' }),
+            logsnagInsight({ title: 'Coda Destinations', value: groupedResults.find(r => r.integration === Integration.Coda)?._count.integration || 0, icon: 'destination' }),
+            logsnagInsight({ title: 'Google Sheets Destinations', value: groupedResults.find(r => r.integration === Integration.Google)?._count.integration || 0, icon: 'destination' }),
+            logsnagInsight({ title: 'Notion Destinations', value: groupedResults.find(r => r.integration === Integration.Notion)?._count.integration || 0, icon: 'destination' }),
+            logsnagInsight({ title: 'Total Destinations', value: totalResults._count, icon: 'destination' })
+          ])
+        }).catch(() => null);
+
       await Promise.all([
         trackDestinationCreated({ userId, integration, destinationId: destination.id }),
-        logDestinationCreated({ userId, integration, destinationId: destination.id })
+        logDestinationCreated({ userId, integration, destinationId: destination.id }),
+        insightsPromise
       ]);
 
       return destination;
@@ -354,7 +369,23 @@ export const destinationRouter = router({
         logger.info("Fetched destination", { destination });
 
         await Promise.all([
-          db.destination.update({ where: { id }, data: { disabledAt: new Date(), accounts: { set: [] } }}).then(() => logger.info("Destination disabled")),
+          db.destination.update({ where: { id }, data: { disabledAt: new Date(), accounts: { set: [] } }}).then(() => {
+            logger.info("Destination disabled");
+
+            return Promise.all([
+                db.destination.groupBy({ where: { disabledAt: null }, by: ['integration'], _count: { _all: true, integration: true } }),
+                db.destination.aggregate({ where: { disabledAt: null }, _count: true })
+            ])
+            .then(([ groupedResults, totalResults ]) => {
+              Promise.all([
+                logsnagInsight({ title: 'Airtable Destinations', value: groupedResults.find(r => r.integration === Integration.Airtable)?._count.integration || 0, icon: 'destination' }),
+                logsnagInsight({ title: 'Coda Destinations', value: groupedResults.find(r => r.integration === Integration.Coda)?._count.integration || 0, icon: 'destination' }),
+                logsnagInsight({ title: 'Google Sheets Destinations', value: groupedResults.find(r => r.integration === Integration.Google)?._count.integration || 0, icon: 'destination' }),
+                logsnagInsight({ title: 'Notion Destinations', value: groupedResults.find(r => r.integration === Integration.Notion)?._count.integration || 0, icon: 'destination' }),
+                logsnagInsight({ title: 'Total Destinations', value: totalResults._count, icon: 'destination' })
+              ])
+            }).catch(() => null);
+          }),
 
           destination.integration === Integration.Google 
             ? db.googleSheetsCredential.delete({ where: { id: destination.googleSheetsCredentialId! }})

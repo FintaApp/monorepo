@@ -3,12 +3,12 @@ import { InitialUpdateWebhook, WebhookEnvironmentValues } from "plaid";
 
 import { handleSyncUpdatesAvailable } from "./handleSyncUpdatesAvailable";
 
-import { Destinations, Item } from "./types";
+import { PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
 export const handleTransactionsInitialUpdate = async ({ item, destinations, logger, asAdmin }: {
-  item: Item;
+  item: PlaidWebhookItem;
   data: InitialUpdateWebhook;
-  destinations: Destinations;
+  destinations: PlaidWebhookDestination[];
   logger: Logger;
   asAdmin: boolean;
 }) => {

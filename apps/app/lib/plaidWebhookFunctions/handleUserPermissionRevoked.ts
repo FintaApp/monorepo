@@ -1,10 +1,10 @@
 import { trackInstitutionConsentRevoked } from "../analytics";
 import { logInstitutionDeleted } from "../logsnag";
 import { db } from "../db";
-import { Item } from "./types";
+import { PlaidWebhookItem } from "~/types";
 
 
-export const handleUserPermissionRevoked = async ({ item }: { item: Item; }) => {
+export const handleUserPermissionRevoked = async ({ item }: { item: PlaidWebhookItem; }) => {
   return Promise.all([
     trackInstitutionConsentRevoked({ userId: item.userId, institution: item.institution.name, itemId: item.id }),
 

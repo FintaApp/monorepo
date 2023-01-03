@@ -1,6 +1,6 @@
 import { Field, Integration, Table } from "@prisma/client";
 
-import { NotionPropertyType, AirtableFieldType } from "~/types/shared/models";
+import { NotionPropertyType, AirtableFieldType } from "~/types";
 
 export const tableConfigsMeta = [
   // Institutions
@@ -140,7 +140,7 @@ export const tableConfigsMeta = [
   { table: Table.Securities, isRequired: true, templateName: "Securities", fields: [
     { field: Field.Symbol, label: "Symbol", templateName: { withoutId: "Symbol" }, isRequired: true, allowedTypes: { [Integration.Notion]: ['title'], [Integration.Airtable]: [ 'primary' ]}},
     { field: Field.Id, label: "Security ID", templateName: { withoutId: "ID" }, isRequired: true, allowedTypes: { [Integration.Notion]: ['rich_text'], [Integration.Airtable]: [ 'singleLineText', 'richText', 'multilineText' ]}},
-    { field: Field.Name, label: "Security Name", templateName: { withoutId: "Name" }, isRequired: false, allowedTypes: { [Integration.Notion]: ['rich_text'], [Integration.Airtable]: [ 'singleLineText', 'richText', 'multilineText' ]}},
+    { field: Field.Name, label: "Security Name", templateName: { withoutId: "Name" }, isRequired: true, allowedTypes: { [Integration.Notion]: ['rich_text'], [Integration.Airtable]: [ 'singleLineText', 'richText', 'multilineText' ]}},
     { field: Field.ClosePrice, label: "Close Price", templateName: { withoutId: "Close Price" }, isRequired: false, allowedTypes: { [Integration.Notion]: ['number'], [Integration.Airtable]: [ 'currency', 'number']}},
     { field: Field.ClosePriceAsOf, label: "Close Price As Of", templateName: { withoutId: "Close Price As Of" }, isRequired: false, allowedTypes: { [Integration.Notion]: ['date'], [Integration.Airtable]: [ 'date', 'dateTime' ]}},
     { field: Field.Type, label: "Security Type", templateName: { withoutId: "Type" }, isRequired: false, allowedTypes: { [Integration.Notion]: ['select'], [Integration.Airtable]: [ 'multipleSelects', 'singleSelect' ]}}

@@ -17,8 +17,8 @@ export const airtableRouter = router({
         state: z.string()
       })
     )
-    .query(async ({ ctx: { session, db, logger }, input: { code, originUrl, state }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db, logger }, input: { code, originUrl, state }}) => {
+      const userId = user.id;
       const cache = await db.airtableAuthorizationCache.findFirstOrThrow({ where: { userId, state }})
       logger.info("Fetched airtable cache", { cache });
 
@@ -69,8 +69,8 @@ export const airtableRouter = router({
     }),
 
     getAuthorizationUrl: protectedProcedure // Source: https://github.com/Airtable/oauth-example/blob/main/index.js
-    .mutation(async ({ ctx: { session, db, logger }}) => {
-      const userId = session!.user.id;
+    .mutation(async ({ ctx: { user, db, logger }}) => {
+      const userId = user.id;
       const state = crypto.randomBytes(100).toString('base64url');
       const codeVerifier = crypto.randomBytes(96).toString('base64url');
       const codeChallengeMethod = 'S256'
@@ -107,8 +107,8 @@ export const airtableRouter = router({
     }),
 
     getBases: protectedProcedure
-    .query(async ({ ctx: { session, logger }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, logger }}) => {
+      const userId = user.id;
       const airtable = new Airtable({ userId, credentials: { id: "", baseId: "", apiKey: null }});
       await airtable.init();
       logger.info("Initialized Airtable");
@@ -117,8 +117,8 @@ export const airtableRouter = router({
     }),
 
   doesUserHaveToken: protectedProcedure
-    .query(async ({ ctx: { session, db }}) => {
-      const userId = session!.user.id;
+    .query(async ({ ctx: { user, db }}) => {
+      const userId = user.id;
 
       return db.airtableToken.findFirst({ where: { userId }}).then(Boolean);
     })

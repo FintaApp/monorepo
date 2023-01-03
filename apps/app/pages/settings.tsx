@@ -1,6 +1,6 @@
 import { Stack } from "@chakra-ui/react";
 
-import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { AnalyticsPage } from "~/lib/analytics";
 import { SettingsSection, Profile, Subscription, Notifications, DeleteAccount } from "~/components/Settings"
 
 import { PageHeader } from "~/components/Layout/PageHeader";

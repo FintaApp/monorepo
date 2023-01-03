@@ -26,7 +26,6 @@ export class Notion extends IntegrationBase {
       .then(() => ({ isValid: true }))
       .catch(({ code, ...rest }) => {
         if ( code === 'unauthorized' ) {
-          console.log("TAYLOR", rest)
           return {
             isValid: false,
             error: {
@@ -134,6 +133,7 @@ async function retryWrapper<T extends Array<any>, U>(func: () => Promise<U>): Pr
           console.log("HIT RATE LIMIT!", err);
           return { didProcess: false, response: null }
         } else {
+          console.log("ERROR", err)
           if ( !err.body.message.includes('ancestor') ) {
             await logUnhandledEvent(`Unhandled Notion API error: ${JSON.stringify(err)}`)
           }

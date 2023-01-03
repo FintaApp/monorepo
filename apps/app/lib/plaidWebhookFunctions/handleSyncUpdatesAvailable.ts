@@ -8,13 +8,13 @@ import { transactionsSync, getAccounts } from "../plaid";
 import {  Table, Integration, SyncTrigger } from "@prisma/client";
 import { logDestinationErrorTriggered, logSyncCompleted, logUnhandledEvent } from "../logsnag";
 import { trackDestinationErrorTriggered, trackSyncCompleted } from "../analytics";
-import { Destinations, Item } from "./types";
+import { PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
-export const handleSyncUpdatesAvailable = async ({ item, data, destinations, logger }: { item: Item; data: SyncUpdatesAvailableWebhook, destinations: Destinations, logger: Logger, asAdmin: boolean }) => {
+export const handleSyncUpdatesAvailable = async ({ item, data, destinations, logger }: { item: PlaidWebhookItem; data: SyncUpdatesAvailableWebhook, destinations: PlaidWebhookDestination[], logger: Logger, asAdmin: boolean }) => {
   const tableTypes = [ Table.Institutions, Table.Accounts, Table.Holdings, Table.Securities ];
   const { historical_update_complete, initial_update_complete } = data;
 
-  const destinationFilter = (destination: Destinations[0]) => {
+  const destinationFilter = (destination: PlaidWebhookDestination) => {
     const destinationItems = destination.accounts.map(account => account.plaidItemId);
     const transactionsTableConfig = destination.tableConfigs.find(config => config.table === Table.Transactions); 
     return transactionsTableConfig?.isEnabled && destinationItems.includes(item.id) && destination.integration !== Integration.Coda;
@@ -161,6 +161,8 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
 
     const removedTransactionsResults = await Destination.removeTransactions({ removedTransactionIds: removed as string[] });
 
+    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone });
+    
     await Promise.all([
       db.syncResult.update({
         where: syncResultWhere,

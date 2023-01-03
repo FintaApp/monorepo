@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
 import { PlaidLink } from "~/components/Accounts/PlaidLink";
-import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { AnalyticsPage } from "~/lib/analytics";
 import { authGate } from "~/lib/authGate";
 import { useUser } from "~/lib/context/useUser";
 import { trpc } from "~/lib/trpc";

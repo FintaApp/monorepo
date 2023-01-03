@@ -2,7 +2,7 @@ import { ExitIcon, ChevronDownIcon, MixerHorizontalIcon} from '@radix-ui/react-i
 import { Menu, MenuButton, HStack, Avatar, Text, forwardRef, MenuList, MenuDivider, MenuItem, Icon } from '@chakra-ui/react';
 import { signOut } from 'next-auth/react';
 
-import { reset } from "~/utils/frontend/analytics";
+import { reset } from "~/lib/analytics";
 import { useRouter } from 'next/router';
 import { ShareFeedback } from '~/components/Layout/Navigation/ShareFeedback';
 import { useUser } from '~/lib/context/useUser';

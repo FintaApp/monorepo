@@ -1,4 +1,4 @@
-import { AirtableFieldType } from "~/types/shared/models";
+import { AirtableFieldType } from "~/types";
 
 export type GetBasesResponse = {
   bases: {

@@ -7,7 +7,6 @@ import {
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
 
-import { useToast } from "~/utils/frontend/useToast";
 import { useDestination } from "../../../context";
 import { Integration } from "@prisma/client";
 import { SyncProgress } from "./SyncProgress";

@@ -119,7 +119,7 @@ export default wrapper(async ({ req, logger }) => {
     .then(response => ({ ...response.data, hasAuthError: false }))
     .catch(async error => {
       const errorData = error.response.data;
-      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id });
+      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id, destinationId: destination.id });
       if ( !hasAuthError ) { logger.error(error, { data: errorData })};
       return ({ transactions: [], total_transactions: 0, hasAuthError })
     });

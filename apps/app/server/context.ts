@@ -1,8 +1,9 @@
-import { getNhostSession } from "@nhost/nextjs";
 import crypto from "crypto";
 import { AxiomAPIRequest } from "next-axiom/dist/withAxiom";
 import { inferAsyncReturnType } from '@trpc/server';
 import trpcNext from "@trpc/server/adapters/next";
+import { unstable_getServerSession } from 'next-auth';
+import { nextAuthOptions } from '~/lib/auth';
 
 import { db } from "~/lib/db";
 import { NextApiRequest } from "next";
@@ -18,15 +19,11 @@ export async function createContext(context: trpcNext.CreateNextContextOptions) 
     throw new Error("req is not the AxiomAPIRequest I expected")
   }
 
-  const nhostContext = { ...context, query: context.req.query, resolvedUrl: context.req.url || "" };
-  const session = await getNhostSession(process.env.NHOST_BACKEND_URL || "", nhostContext);
-  const user = session?.user
-    ? { id: session.user.id }
-    : undefined;
+  const session = await unstable_getServerSession(context.req, context.res, nextAuthOptions);
 
-  const logger = context.req.log.with({ userId: user?.id, requestId: crypto.randomUUID() });
+  const logger = context.req.log.with({ userId: session?.user?.id, requestId: crypto.randomUUID() });
 
-  return { ...context, user, db, logger }
+  return { ...context, user: session?.user, db, logger }
 };
 
 export type Context = inferAsyncReturnType<typeof createContext>;

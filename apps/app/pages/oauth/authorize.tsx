@@ -1,32 +1,23 @@
 import { useRouter } from "next/router";
 
-import { AnalyticsPage } from "~/utils/frontend/analytics";
-import { useGetOAuthClientQuery } from "~/graphql/frontend";
-import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
-import { AddDestination, ClientError, HasInactiveSubscription } from "~/components/OAuthAuthorize";
+import { AnalyticsPage } from "~/lib/analytics";
+import { AddDestination, HasInactiveSubscription } from "~/components/OAuthAuthorize";
 import { authGate } from "~/lib/authGate";
+import { DestinationProvider } from "~/components/Destinations/context";
+import { Integration } from "@prisma/client";
 import { useUser } from "~/lib/context/useUser";
 
 const OauthAuthorize = () => {
   const router = useRouter();
   const { user, hasAppAccess } = useUser();
 
-  const { client_id: clientId, state } = router.query;
+  const { state } = router.query;
 
-  const { data: oauthClientData, loading } = useGetOAuthClientQuery({ 
-    variables: { client_id: clientId }, 
-    skip: !clientId || !user }
-  )
-  const oauthClient = oauthClientData?.oauth_client;
+  if ( !user ) { return <></> }
 
-  return (
-    <>
-      { loading ? <LoadingSpinner /> : (
-        oauthClient ? <AddDestination oauthClient = { oauthClient } state = { state } /> : <ClientError />
-      )}
-      < HasInactiveSubscription isOpen = { !hasAppAccess } />
-    </>
-  )
+  return hasAppAccess
+    ? <DestinationProvider isSetupMode = { true } integration = { Integration.Coda }><AddDestination state = { state } /></DestinationProvider>
+    : < HasInactiveSubscription isOpen = { !hasAppAccess } />
 }
 
 export const getServerSideProps = authGate(async context => {

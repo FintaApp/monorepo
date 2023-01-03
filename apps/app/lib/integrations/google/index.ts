@@ -126,7 +126,7 @@ export class Google extends IntegrationBase {
         valueInputOption: 'USER_ENTERED',
         data: data.map(d => ({
           range: `${sheet.title}!A${d.record.id}:${sheet.lastColumnLetter}${d.record.id}`,
-          values: [ headerRow.map(header => data[header as keyof typeof data]) ]
+          values: [ headerRow.map(header => d.fields[header as keyof typeof d.fields]) ]
         }))
       }
     })

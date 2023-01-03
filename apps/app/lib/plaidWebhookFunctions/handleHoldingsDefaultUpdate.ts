@@ -6,11 +6,11 @@ import { getHoldings } from "../plaid";
 import {  Table, Integration, SyncTrigger } from "@prisma/client";
 import { logDestinationErrorTriggered, logSyncCompleted } from "../logsnag";
 import { trackDestinationErrorTriggered, trackSyncCompleted } from "../analytics";
-import { Destinations, Item } from "./types";
+import { PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
-export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }: { item: Item; destinations: Destinations, asAdmin: boolean; logger: Logger }) => {
+export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }: { item: PlaidWebhookItem; destinations: PlaidWebhookDestination[], asAdmin: boolean; logger: Logger }) => {
   const tableTypes = [ Table.Institutions, Table.Accounts, Table.Holdings, Table.Securities ];
-  const destinationFilter = (destination: Destinations[0]) => {
+  const destinationFilter = (destination: PlaidWebhookDestination) => {
     const destinationItems = destination.accounts.map(account => account.plaidItemId);
     const holdingsTableConfig = destination.tableConfigs.find(config => config.table === Table.Holdings); 
     return holdingsTableConfig?.isEnabled && destinationItems.includes(item.id) && destination.integration !== Integration.Coda;
@@ -126,6 +126,8 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
 
     const holdingsResults = await Destination.upsertHoldings({ holdings: destinationHoldings, securityRecords, accountRecords })
       .then(response => { destinationLogger.info("Upserted holdings", { results: response }); return response })
+
+    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone })
 
     await Promise.all([
       db.syncResult.update({

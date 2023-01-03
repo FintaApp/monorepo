@@ -1,5 +1,5 @@
 import { createContext, useEffect, useMemo, ReactNode, useState, useContext } from "react";
-import { useAuthenticated, useUserId } from "@nhost/nextjs";
+import { useSession } from "next-auth/react";
 
 import { LoadingIndicator } from "~/components/Common/LoadingIndicator";
 import { frontendIdentify } from "../analytics";
@@ -20,11 +20,12 @@ const UserContext = createContext<UserContextType>({} as UserContextType);
 
 export const UserProvider = ({ children, isProtectedRoute }: { children: ReactNode, isProtectedRoute: boolean }) => {
   const [ isUserIdentified, setIsUserIdentified ] = useState(false);
-  const userId = useUserId();
-  const isAuthenticated = useAuthenticated();
+  const session = useSession();
+  const userId = session.data?.user.id;
+  const sessionStatus = session.status;
 
   const { data: user, isLoading: isLoadingUser, refetch: refetchUser } = trpc.users.getUser.useQuery(undefined, { enabled: !!userId });
-  const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = trpc.stripe.getSubscription.useQuery({ customerId: user?.stripeCustomerId! }, { enabled: !!user?.stripeCustomerId });
+  const { data: subscriptionData, isLoading: isLoadingSubscription, refetch: refetchSubscription } = trpc.stripe.getSubscription.useQuery(undefined, { enabled: !!userId });
   const isLoading = isLoadingUser || isLoadingSubscription;
 
   useEffect(() => {
@@ -40,10 +41,10 @@ export const UserProvider = ({ children, isProtectedRoute }: { children: ReactNo
     hasAppAccess: subscriptionData?.hasAppAccess,
     trialEndsAt: subscriptionData?.trialEndsAt,
     subscription: subscriptionData?.subscription,
-    isAuthenticated,
+    isAuthenticated: sessionStatus === 'authenticated',
     refetchUser,
     refetchSubscription
-  }) as UserContextType, [ user, subscriptionData, isAuthenticated ]);
+  }) as UserContextType, [ user, subscriptionData, sessionStatus ]);
 
   if ( isLoading && isProtectedRoute ) { return <LoadingIndicator />};
 

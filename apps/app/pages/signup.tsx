@@ -7,7 +7,7 @@ import {
 
 import { LogoHeader, CenteredContent } from "~/components/Layout";
 import { UserAuthForm } from "~/components/Forms/UserAuthForm";
-import { AnalyticsPage } from "~/utils/frontend/analytics";
+import { AnalyticsPage } from "~/lib/analytics";
 import { authGate } from "~/lib/authGate";
 
 const Signup = () => {
@@ -15,7 +15,7 @@ const Signup = () => {
     <CenteredContent>
       <VStack width = 'full'>
         <LogoHeader title = 'Create your Finta account' variant = 'full' />
-        <UserAuthForm mode = 'signUp' />
+        <UserAuthForm mode = 'signup' />
       </VStack>
 
       <Text mt = "8" align = "center" fontWeight = "medium">

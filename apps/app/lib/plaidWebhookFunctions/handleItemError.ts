@@ -7,9 +7,9 @@ import { db } from "../db";
 import { Table, Integration, SyncTrigger } from "@prisma/client";
 import { logDestinationErrorTriggered, logInstitutionErrorTriggered, logSyncCompleted, logUnhandledEvent } from "../logsnag";
 import { trackDestinationErrorTriggered, trackInstitutionErrorTriggered } from "../analytics";
-import { Destinations, Item } from "./types";
+import { OauthItem, PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
-export const handleItemError = async ({ item, data, destinations, logger }: { destinations?: Destinations; logger: Logger, item: Item; data: ItemErrorWebhook | { error: { error_code: string }}; }) => {
+export const handleItemError = async ({ item, data, destinations, logger }: { destinations?: PlaidWebhookDestination[]; logger: Logger, item: PlaidWebhookItem | OauthItem; data: ItemErrorWebhook | { error: { error_code: string }}; }) => {
   const { error_code } = data.error || { error_code: null };
   if ( error_code !== 'ITEM_LOGIN_REQUIRED' ) {
     logUnhandledEvent(`Unhandled Item Error Code - ${error_code}`);
@@ -17,7 +17,7 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
   }
 
   const tableTypes = [ Table.Institutions ];
-  const destinationFilter = (destination: Destinations[0]) => {
+  const destinationFilter = (destination: PlaidWebhookDestination) => {
     const destinationItems = destination.accounts.map(account => account.plaidItemId);
     return destinationItems.includes(item.id) && destination.integration !== Integration.Coda;
   };
@@ -104,8 +104,10 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
       await Destination.load({ tableTypes, tableConfigs: destination.tableConfigs });
       destinationLogger.info("Loaded destination data");
 
-      const { isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item: { ...item, error: error_code } });
+      const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item: { ...item, error: error_code } as PlaidWebhookItem });
       destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew });
+
+      await Destination.updateItemOnFinish({ item: item as PlaidWebhookItem, institutionRecord, timezone: (item as PlaidWebhookItem).user.timezone })
 
       return Promise.all([
         db.syncResult.update({

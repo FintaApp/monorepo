@@ -83,9 +83,10 @@ export const createCheckoutPortalSession = ({ customerId, priceId, successUrl, c
 export const validateStripeWebhook = async (req: AxiomAPIRequest) => {
   const sig = req.headers['stripe-signature'];
   const reqBuffer = await buffer(req);
-  let event: Stripe.Event
+  let event: Stripe.Event;
+  if ( !sig ) { return { isValid: false, event: null, error: "No stripe signature"} }
   try {
-    event = client.webhooks.constructEvent(reqBuffer, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET);
+    event = client.webhooks.constructEvent(reqBuffer, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET!);
     return { isValid: true, event, error: null }
   } catch (err) {
     console.log(err);

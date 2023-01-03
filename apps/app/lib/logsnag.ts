@@ -4,10 +4,19 @@ import { log } from "next-axiom";
 
 const shouldMockLogsnag = ['development', 'preview'].includes(process.env.VERCEL_ENV || "");
 
-const logsnag = new LogSnag({ 
+export const logsnag = new LogSnag({ 
   token: process.env.LOGSNAG_TOKEN!,
   project: 'finta'
 });
+
+const icons = {
+  chart: "📈",
+  revenue: '💰',
+  user: '👤',
+  hourglass: '⏳',
+  destination: '🗺',
+  item: '🏦'
+}
 
 const logsnagPublish = (options: PublishOptions) => {
   if ( shouldMockLogsnag ) {
@@ -16,6 +25,14 @@ const logsnagPublish = (options: PublishOptions) => {
   
   return logsnag.publish(options).then(() => log.info("Published to Logsnag", { options }))
 };
+
+export const logsnagInsight = async ({ title, value, icon }: { title: string; value: any, icon: keyof typeof icons }) => {
+  if ( shouldMockLogsnag ) {
+    return log.info("Mocking Logsnag insight", { title, value, icon: icons[icon] })
+  }
+
+  return logsnag.insight({ title, value, icon: icons[icon]})
+}
 
 export const logUnhandledEvent = (description: string) => logsnagPublish({
   channel: Channel.ERRORS,

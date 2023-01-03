@@ -2,12 +2,12 @@ import { Logger } from "next-axiom";
 import { HistoricalUpdateWebhook, WebhookEnvironmentValues } from "plaid";
 import { handleSyncUpdatesAvailable } from "./handleSyncUpdatesAvailable";
 
-import { Destinations, Item } from "./types";
+import { PlaidWebhookDestination, PlaidWebhookItem } from "~/types";
 
 export const handleTransactionsHistoricalUpdate = async ({ item, destinations, logger, asAdmin }: {
-  item: Item;
+  item: PlaidWebhookItem;
   data: HistoricalUpdateWebhook;
-  destinations: Destinations
+  destinations: PlaidWebhookDestination[]
   logger: Logger,
   asAdmin: boolean
 }) => {

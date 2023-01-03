@@ -16,11 +16,13 @@ export const getDestinationFromRequest = async ({ req, logger }: { req: NextApiR
     include: { 
       accounts: { where: { item: { disabledAt: null } }, include: { item: { include: { institution: true }} }},
       tableConfigs: true,
-      user: { select: { id: true, stripeCustomerId: true }}
+      user: true
     }
   });
 
-  const router = appRouter.createCaller({ req, db, logger, res: {} as any, user: { id: destination.userId } });
-  const { hasAppAccess } = await router.stripe.getSubscription({ customerId: destination.user.stripeCustomerId });
+  if ( !destination ) { return { destination: null, hasAppAccess: false }}
+
+  const router = appRouter.createCaller({ req, db, logger, res: {} as any, user: destination.user });
+  const { hasAppAccess } = await router.stripe.getSubscription();
   return { destination, hasAppAccess }
 }

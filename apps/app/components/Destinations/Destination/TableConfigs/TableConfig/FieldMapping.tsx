@@ -11,7 +11,7 @@ from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import { Input, Select } from "~/components/Forms";
 import { TrashIcon } from "@radix-ui/react-icons";
-import {  DestinationFieldType } from "~/types/shared/models"
+import {  AirtableFieldType, DestinationFieldType, NotionPropertyType } from "~/types"
 
 import { fieldHelperText } from "../constants";
 import { ConfigError, useDestination } from "~/components/Destinations/context";
@@ -87,10 +87,10 @@ const getAllowedFieldOptions = (integration: Integration, tableType: Table, fiel
   if ( integration === Integration.Google || integration === Integration.Coda ) { return fieldOptions }
   const fieldToTypeMappingforFieldType = tableConfigsMeta.find(meta => meta.table === tableType)!.fields.find(f => f.field === field)?.allowedTypes;
   if ( integration === Integration.Notion && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType?.Notion.map(type => ({ label: fieldHelperText.Notion[type], options: fieldOptions.filter(option => type === option.type) }))
+    return fieldToTypeMappingforFieldType?.Notion.map(type => ({ label: fieldHelperText.Notion[type as NotionPropertyType], options: fieldOptions.filter(option => type === option.type) }))
   }
   if ( integration === Integration.Airtable && fieldToTypeMappingforFieldType ) {
-    return fieldToTypeMappingforFieldType?.Airtable.map(type => ({ label: fieldHelperText.Airtable[type], options: fieldOptions.filter(option => type === option.type) }))
+    return fieldToTypeMappingforFieldType?.Airtable.map(type => ({ label: fieldHelperText.Airtable[type as AirtableFieldType], options: fieldOptions.filter(option => type === option.type) }))
   }
 }
 

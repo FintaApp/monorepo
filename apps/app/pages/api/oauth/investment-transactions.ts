@@ -11,7 +11,7 @@ import * as formatter from "~/lib/integrations/coda/formatter";
 import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
 import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
 import { handlePlaidError } from "./_helpers";
-import * as plaid from "~/utils/backend/plaid"
+import * as plaid from "~/lib/plaid"
 import { SyncError, SyncTrigger, Table } from "@prisma/client";
 import { logSyncCompleted } from "~/lib/logsnag";
 import { trackSyncCompleted } from "~/lib/analytics";
@@ -120,7 +120,7 @@ export default wrapper(async ({ req, logger }) => {
     .then(response => ({ ...response.data, hasAuthError: false }))
     .catch(async error => {
       const errorData = error.response.data;
-      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id });
+      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id, destinationId: destination.id });
       if ( !hasAuthError ) { logger.error(error, { data: errorData })};
       return ({ investment_transactions: [], total_investment_transactions: 0, hasAuthError, securities: [] })
     });

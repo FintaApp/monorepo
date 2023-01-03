@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { trackPlaidLinkInitiated, backendIdentify as identify, trackInstitutionReconnected, trackInstitutionAccountsUpdated, trackInstitutionCreated, trackInstitutionDeleted, trackPlaidAccountUpdated } from "~/lib/analytics";
-import { logInstitutionCreated, logInstitutionDeleted, logInstitutionReconnected } from "~/lib/logsnag";
+import { logInstitutionCreated, logInstitutionDeleted, logInstitutionReconnected, logsnagInsight } from "~/lib/logsnag";
 import { createLinkToken, exchangePublicToken, removeItem } from "~/lib/plaid";
 import { router, protectedProcedure } from "../trpc";
 import { inngest } from "~/lib/inngest";
@@ -93,6 +93,9 @@ export const plaidRouter = router({
         select: { institution: { select: { name: true }}, accessToken: true, accounts: true }
       });
 
+      const insightsPromise = db.plaidItem.aggregate({ where: { disabledAt: null }, _count: true })
+        .then(async ({ _count: totalItems }) => logsnagInsight({ title: "Total Items", value: totalItems, icon: 'item'}).catch(() => null))
+
       await Promise.all([
         removeItem({ accessToken: plaidItem.accessToken! })
           .then(response => logger.info("Plaid Item access token disabled", { response: response.data })),
@@ -101,7 +104,9 @@ export const plaidRouter = router({
         
         trackInstitutionDeleted({ userId, itemId: plaidItemId }),
 
-        logInstitutionDeleted({ institution: plaidItem.institution.name, userId, itemId: plaidItemId })
+        logInstitutionDeleted({ institution: plaidItem.institution.name, userId, itemId: plaidItemId }),
+
+        insightsPromise
       ])
     }),
 
@@ -267,6 +272,9 @@ export const plaidRouter = router({
       const innestPromise = dbItem ? Promise.resolve()
         : inngest.send({ name: 'plaid_item/setup', data: { plaidItemId: item_id }, user: { id: userId }});
 
+      const insightsPromise = db.plaidItem.aggregate({ where: { disabledAt: null }, _count: true })
+        .then(async ({ _count: totalItems }) => logsnagInsight({ title: "Total Items", value: totalItems, icon: 'item'}).catch(() => null))
+
       const trackInstitutionReconnectedPromise = dbItem && (dbItem.error || dbItem.consentExpiresAt)
         ? Promise.all([
           trackInstitutionReconnected({ userId, itemId: item_id }),
@@ -296,7 +304,8 @@ export const plaidRouter = router({
         trackInstitutionReconnectedPromise,
         trackInstitutionAccountsUpdatedPromise,
         trackInstitutionCreatedPromise,
-        removeLinkTokenPromise
+        removeLinkTokenPromise,
+        insightsPromise
       ])
 
       return db.plaidItem.findFirst({ 

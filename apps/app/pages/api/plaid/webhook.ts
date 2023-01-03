@@ -5,7 +5,7 @@ import * as plaidWebhookFunctions from "~/lib/plaidWebhookFunctions";
 
 export default wrapper(async ({ req, logger }) => {
   const { webhook_type, webhook_code, item_id, asAdmin } = req.body;
-  const item = await db.plaidItem.findFirst({ where: { id: item_id }, include: { accounts: true, institution: true }});
+  const item = await db.plaidItem.findFirst({ where: { id: item_id }, include: { accounts: true, institution: true, user: true }});
   logger.info("Fetched item", { item });
   if ( !item ) {
     logUnhandledEvent(`Item does not exist - ${item_id}`)
@@ -33,7 +33,7 @@ export default wrapper(async ({ req, logger }) => {
     if ( webhook_code === 'WEBHOOK_UPDATE_ACKNOWLEDGED' ) { await plaidWebhookFunctions.handleWebhookUpdateAcknowledged() }
 
   } else if ( webhook_type === 'LIABILITIES') {
-    if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleLiabilitiesDefaultUpdate({ item, logger, destinations}) }
+    if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleLiabilitiesDefaultUpdate({ item, logger, destinations, asAdmin }) }
 
   } else if ( webhook_type === 'TRANSACTIONS') {
     if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleTransactionsDefaultUpdate({ item, destinations, logger, data: req.body, asAdmin })}

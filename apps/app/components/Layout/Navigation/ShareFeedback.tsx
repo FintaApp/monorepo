@@ -21,7 +21,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Input } from "../../Forms";
-import { useToast } from "~/utils/frontend/useToast";
+import { useToast } from "~/lib/context/useToast";
 import { trpc } from "~/lib/trpc";
 import { ISupportTicketSchema, supportTicketSchema } from "~/lib/validation/forms";
 

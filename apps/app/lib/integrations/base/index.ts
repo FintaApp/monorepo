@@ -136,7 +136,7 @@ export class IntegrationBase {
     if ( record ) { return { record, isNew: false } };
 
     const data = this.formatter.institution.new({ item });
-    return this.createRecords({ tableId, data: [ data ], fieldConfigs }).then(response => ({ record: response[0], isNew: true }))
+    return this.createRecords({ tableId, data: [ this.getIntegrationFieldsFromData({ data, fieldConfigs }) ], fieldConfigs }).then(response => ({ record: response[0], isNew: true }))
   }
 
   async updateItemOnFinish({ item, institutionRecord, timezone }: { item: types.PlaidItem; institutionRecord: types.IntegrationRecord; timezone?: string }) {
@@ -146,7 +146,7 @@ export class IntegrationBase {
       tableId,
       data: [{
         record: institutionRecord,
-        fields: this.formatter.institution.updated({ item, timezone })
+        fields: this.getIntegrationFieldsFromData({ data: this.formatter.institution.updated({ item, timezone }), fieldConfigs })
       }],
       fieldConfigs,
       iconUrl: item.institution.logoUrl || undefined
@@ -270,7 +270,7 @@ export class IntegrationBase {
     { transactions?: Transaction[]; categoryRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[]}
   ): Promise<{ added: number; updated: number; }> {
     const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Transactions) || defaultConfig;
-    if ( !isEnabled || tableId || !transactions || transactions.length === 0 ) { return { added: 0, updated: 0 }};
+    if ( !isEnabled || !tableId || !transactions || transactions.length === 0 ) { return { added: 0, updated: 0 }};
 
     const mappedTransactions = transactions.map(transaction => {
       const accountRecord = accountRecords.find(record => record.properties[Field.Id] === transaction.account_id);
@@ -310,7 +310,7 @@ export class IntegrationBase {
 
   async removeTransactions({ removedTransactionIds }: { removedTransactionIds?: string[] }): Promise<{ removed: number; }> {
     const { tableId, records, isEnabled } = this.config!.find(config => config.table === Table.Transactions) || defaultConfig;
-    if ( !isEnabled || tableId || !removedTransactionIds || removedTransactionIds.length === 0 ) { return { removed: 0 }};
+    if ( !isEnabled || !tableId || !removedTransactionIds || removedTransactionIds.length === 0 ) { return { removed: 0 }};
 
     const recordsToRemove = records.filter(record => removedTransactionIds.includes(record.properties[Field.Id]));
     return this.deleteRecords({ tableId, records: recordsToRemove }).then(() => ({ removed: 0 }))
@@ -326,7 +326,19 @@ export class IntegrationBase {
     const mappedHoldings = holdings.map(holding => {
       const accountRecord = accountRecords.find(record => record.properties[Field.Id] === holding.account_id);
       const securityRecord = securityRecords.find(record => record.properties[Field.Id] === holding.security_id);
-      const holdingRecord = records.find(record => record.properties[Field.Account] === holding.account_id && record.properties[Field.Security] === holding.security_id);
+      const holdingRecord = records.find(record => {
+        if ( this.integration === Integration.Notion ) {
+          return record.properties[Field.Account] === accountRecord?.id && record.properties[Field.Security] === securityRecord?.id;
+        }
+
+        if ( this.integration === Integration.Google ) {
+          return record.properties[Field.Account] === holding.account_id && record.properties[Field.Security] === holding.security_id;
+        }
+
+        if ( this.integration === Integration.Airtable ) {
+          return record.properties[Field.Account][0] === accountRecord?.id && record.properties[Field.Security][0] === securityRecord?.id
+        }
+      });
       const shouldUpdate = holdingRecord && (
         (holdingRecord?.properties[Field.CostBasis] !== holding.cost_basis && !!fieldConfigs.find(config => config.field === Field.CostBasis))
         || (holdingRecord?.properties[Field.Currency] !== holding.iso_currency_code && !!fieldConfigs.find(config => config.field === Field.Currency))
@@ -342,7 +354,7 @@ export class IntegrationBase {
           holding,
           accountRecordId: this.isGoogle ? holding.account_id : accountRecord?.id as string,
           securityRecordId: this.isGoogle ? holding.security_id : securityRecord?.id as string,
-          symbol: securityRecord?.properties[Field.Symbol] || ""
+          symbol: securityRecord?.properties[Field.Symbol] || securityRecord?.properties[Field.Name] || ""
         });
         return this.getIntegrationFieldsFromData({ data, fieldConfigs })
       })

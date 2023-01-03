@@ -14,15 +14,10 @@ export const stripeRouter = router({
     }),
 
   getSubscription: protectedProcedure
-    .input(
-      z.object({
-        customerId: z.string() //TODO: Remove this after switching to React Auth
-      })
-    )
-    .query(async ({ ctx: { user, logger}, input: { customerId }}) => {
-      const userId = user.id;
+    .query(async ({ ctx: { user, logger }}) => {
+      const customerId = user.stripeCustomerId;
       const [ customer, subscription ] = await Promise.all([
-        stripe.getCustomer({ customerId }).then(customer => {
+        stripe.getCustomer({ customerId }).then(({ lastResponse, ...customer }: any) => {
           logger.info("Get customer", { customer });
           return customer as Stripe.Customer;
         }),
@@ -63,9 +58,8 @@ export const stripeRouter = router({
         returnUrl: z.string()
       })
     )
-    .mutation(async ({ ctx: { user, db, logger }, input: { returnUrl }}) => {
-      const dbUser = await db.user.findFirstOrThrow({ where: { id: user.id }}); // TODO: Remove when using nextAuth session
-      const customerId = dbUser.stripeCustomerId;
+    .mutation(async ({ ctx: { user, logger }, input: { returnUrl }}) => {
+      const customerId = user.stripeCustomerId;
 
       return stripe.createBillingPortalSession({ customerId, returnUrl })
         .then(async response => {
@@ -83,12 +77,11 @@ export const stripeRouter = router({
           priceId: z.string()
         })
       )
-      .mutation(async ({ ctx: { user, db, logger }, input }) => {
-        const dbUser = await db.user.findFirstOrThrow({ where: { id: user.id }}); // TODO: Remove when using nextAuth session
-        const customerId = dbUser.stripeCustomerId;
+      .mutation(async ({ ctx: { user, logger }, input }) => {
+        const customerId = user.stripeCustomerId;
   
         const [ customer, subscription ] = await Promise.all([
-          stripe.getCustomer({ customerId }).then(customer => {
+          stripe.getCustomer({ customerId }).then(({ lastResponse, ...customer }: any) => {
             logger.info("Get customer", { customer })
             return customer as Stripe.Customer
           }),

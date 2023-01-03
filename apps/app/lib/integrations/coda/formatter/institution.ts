@@ -9,6 +9,6 @@ export const institution = ({ item }: { item: Item }): OauthInstitution => ({
   id: item.id,
   name: item.institution.name,
   created_at: item.createdAt.toISOString(),
-  synced_at: item.lastSyncedAt.toISOString(),
+  synced_at: item.lastSyncedAt?.toISOString(),
   error: item.error
 })
