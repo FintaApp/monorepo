@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, FormLabel, FormControl, Link, VStack, Button, FormErrorMessage, Text } from "@chakra-ui/react";
 import z from "zod";
 import { useForm } from "react-hook-form";
@@ -30,13 +30,19 @@ const getButtonText = ({ mode, provider }: { mode: Mode, provider: Provider }) =
 export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
   const [ provider, setProvider ] = useState<Provider>('email')
   const renderToast = useToast();
-  const { register, handleSubmit, formState, setError, getValues } = useForm<IAuthSchema>({ resolver: zodResolver(authSchema) });
+  const { register, handleSubmit, formState, setError, getValues, trigger } = useForm<IAuthSchema>({ resolver: zodResolver(authSchema) });
   const [ isLoading, setIsLoading ] = useState(false);
   const [ isEmailSent, setIsEmailSent ] = useState(false);
   const router = useRouter();
 
   const searchParams = useSearchParams();
   const onLoginUrl = searchParams.get('next') || '/destinations';
+
+  const onToggleProvider = () => {
+    setProvider(prev => prev === 'credentials' ? 'email' : 'credentials' );
+  }
+
+  useEffect(() => { trigger() }, [ provider ])
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -81,11 +87,11 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
               autoFocus = { isNameInputVisible }
               id = 'name'
               placeholder = "Name"
-              { ...register("name", { required: isNameInputVisible })}
+              { ...register("name", { disabled: !isNameInputVisible })}
             />
           </FormControl>
 
-          <FormControl id = "email" isInvalid = { !!formState.errors.email }>
+          <FormControl id = "email" isInvalid = { !!formState.errors.email && formState.errors.email?.type !== "invalid_string" }>
             <FormLabel>Email</FormLabel>
             <Input 
               autoComplete = "email"
@@ -104,10 +110,10 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
               showHelpText = { mode === 'signup' }
               label = "Password"
               id = "password"
-              { ...register("password", { required: isPasswordInputVisible, minLength: mode === 'login' ? undefined : 8 })}
+              { ...register("password", { disabled: !isPasswordInputVisible })}
               display = { isPasswordInputVisible ? 'block' : 'none' }
               value = { getValues("password") }
-              isInvalid = { !!formState.errors.password }
+              isInvalid = { !!formState.errors.password && formState.errors.password?.type !== "too_small" }
               errorMessage = { formState.errors.password?.message }
             />
           </Box>
@@ -119,12 +125,12 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
               size = "md"
               fontSize = "md"
               width = "full"
-              isDisabled = { !formState.isValid }
+              isDisabled = { !formState.isValid || isEmailSent }
               isLoading = { isLoading }
             >{ isEmailSent ? "Link sent" : getButtonText({ mode, provider }) }</Button>
             { mode === 'login' && (
               <Button variant = "link"
-                onClick = { () => setProvider(prevProvider => prevProvider === 'credentials' ? 'email' : 'credentials' ) }
+                onClick = { onToggleProvider }
               >Log in with { provider === 'email' ? 'password' : 'magic link'}</Button>
             )}
             { mode === 'signup' && <Text mt = { 1 } fontSize = "sm" textAlign = "center">

@@ -125,7 +125,7 @@ export const nextAuthOptions: NextAuthOptions = {
           select: { emailVerified: true, id: true }
         })
         
-        const templateId = user?.emailVerified
+        const templateId = user
           ? EMAIL_TEMPLATES.SIGN_IN
           : EMAIL_TEMPLATES.ACTIVATE_ACCOUNT
         
