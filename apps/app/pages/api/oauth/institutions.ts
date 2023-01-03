@@ -1,4 +1,4 @@
-import { SyncError, SyncTrigger } from "@prisma/client";
+import { SyncError, SyncTrigger, Table } from "@prisma/client";
 import _ from "lodash";
 
 import { OauthGetInstitutionsResponse } from "@finta/shared";
@@ -9,6 +9,7 @@ import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
 import * as formatter from "~/lib/integrations/coda/formatter";
 import { logSyncCompleted } from "~/lib/logsnag";
 import { trackSyncCompleted } from "~/lib/analytics";
+import { SyncMetadata } from "~/types";
 
 export default wrapper(async ({ req, logger }) => {
   const trigger = SyncTrigger.Destination;
@@ -17,10 +18,11 @@ export default wrapper(async ({ req, logger }) => {
 
   logger.info("Fetched destination", { destination, hasAppAccess });
 
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Institutions } as SyncMetadata }
+
   if ( !hasAppAccess ) {
     return db.sync.create({ data: {
-      trigger,
-      triggerDestinationId: destination.id,
+      ...syncData,
       error: SyncError.NoSubscription,
       isSuccess: false,
       endedAt: new Date()
@@ -34,8 +36,7 @@ export default wrapper(async ({ req, logger }) => {
   const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
   const sync = await db.sync.create({
     data: {
-      trigger,
-      triggerDestinationId: destination.id,
+      ...syncData,
       results: {
         createMany: {
           data: plaidItems.map(item => ({

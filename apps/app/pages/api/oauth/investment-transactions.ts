@@ -15,6 +15,7 @@ import * as plaid from "~/lib/plaid"
 import { SyncError, SyncTrigger, Table } from "@prisma/client";
 import { logSyncCompleted } from "~/lib/logsnag";
 import { trackSyncCompleted } from "~/lib/analytics";
+import { SyncMetadata } from "~/types";
 
 export default wrapper(async ({ req, logger }) => {
   const trigger = SyncTrigger.Destination;
@@ -23,10 +24,11 @@ export default wrapper(async ({ req, logger }) => {
 
   logger.info("Fetched destination", { destination, hasAppAccess });
 
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.InvestmentTransactions } as SyncMetadata }
+
   if ( !hasAppAccess ) {
     return db.sync.create({ data: {
-      trigger,
-      triggerDestinationId: destination.id,
+      ...syncData,
       error: SyncError.NoSubscription,
       isSuccess: false,
       endedAt: new Date()
@@ -40,10 +42,9 @@ export default wrapper(async ({ req, logger }) => {
   const tableConfig = destination.tableConfigs.find(config => config.table === Table.InvestmentTransactions) || { isEnabled: false };
   if ( !tableConfig.isEnabled ) {
     return db.sync.create({ data: { 
-        triggerDestinationId: destination.id, 
+        ...syncData,
         isSuccess: false, 
         error: SyncError.InvestmentTransactionsDisabled, 
-        trigger,
         endedAt: new Date()
       }})
       .then(sync => {
@@ -57,8 +58,7 @@ export default wrapper(async ({ req, logger }) => {
   const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
   if ( errorItems.length > 0 ) {
     return db.sync.create({ data: {
-      triggerDestinationId: destination.id,
-      trigger,
+      ...syncData,
       isSuccess: false,
       error: SyncError.ItemError,
       endedAt: new Date(),
@@ -77,8 +77,7 @@ export default wrapper(async ({ req, logger }) => {
     ? { id: body.data.syncId }
     : (await db.sync.create({
       data: { 
-        trigger, 
-        triggerDestinationId: destination.id,
+        ...syncData,
         results: {
           create: plaidItems.map(item => ({
             plaidItemid: item.id,

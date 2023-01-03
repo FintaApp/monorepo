@@ -1,4 +1,3 @@
-import moment from "moment-timezone";
 import { SyncError, SyncTrigger, Table } from "@prisma/client";
 import _ from "lodash";
 
@@ -9,11 +8,12 @@ import { db } from "~/lib/db";
 import { getAccounts, getLiabilities } from "~/lib/plaid";
 import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
 import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
-import { AccountBase, CreditCardLiability, LiabilitiesGetRequestOptions, LiabilitiesGetResponse, MortgageLiability, PlaidError, StudentLoan } from "plaid";
+import { AccountBase, LiabilitiesGetRequestOptions, LiabilitiesGetResponse, PlaidError } from "plaid";
 import { handlePlaidError } from "./_helpers";
 import * as formatter from "~/lib/integrations/coda/formatter"
 import { logSyncCompleted } from "~/lib/logsnag";
 import { trackSyncCompleted } from "~/lib/analytics";
+import { SyncMetadata } from "~/types";
 
 export default wrapper(async ({ req, logger }) => {
   const trigger = SyncTrigger.Destination;
@@ -22,10 +22,11 @@ export default wrapper(async ({ req, logger }) => {
 
   logger.info("Fetched destination", { destination, hasAppAccess });
 
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Accounts } as SyncMetadata }
+
   if ( !hasAppAccess ) {
     return db.sync.create({ data: {
-      trigger,
-      triggerDestinationId: destination.id,
+      ...syncData,
       error: SyncError.NoSubscription,
       isSuccess: false,
       endedAt: new Date()
@@ -41,8 +42,7 @@ export default wrapper(async ({ req, logger }) => {
   const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
   if ( errorItems.length > 0 ) {
     return db.sync.create({ data: {
-      triggerDestinationId: destination.id,
-      trigger,
+      ...syncData,
       isSuccess: false,
       error: SyncError.ItemError,
       endedAt: new Date(),
@@ -57,8 +57,7 @@ export default wrapper(async ({ req, logger }) => {
 
   const sync = await db.sync.create({
     data: { 
-      trigger, 
-      triggerDestinationId: destination.id,
+      ...syncData,
       results: {
         createMany: {
           data: plaidItems.map(item => ({

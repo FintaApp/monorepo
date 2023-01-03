@@ -65,14 +65,15 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
       if ( validateTableConfigsResponse.isValid ) {
 
       } else {
+        const { code: tableConfigErrorCode, ...tableConfigErrorMetaData } = validateTableConfigsResponse.errors[0];
         canSync = false;
         error = validateTableConfigsResponse.errors[0]
         await db.sync.update({ 
           where: { id: syncId },
           data: {
             isSuccess: false,
-            error: validateTableConfigsResponse.errors[0]?.code,
-            errorMetadata: validateTableConfigsResponse.errors[0],
+            error: tableConfigErrorCode,
+            errorMetadata: tableConfigErrorMetaData,
             endedAt: new Date()
           }
         })
@@ -85,7 +86,7 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
         where: { id: syncId },
         data: {
           isSuccess: false,
-          error: validateCredentialsResponse.error?.code,
+          error: error.code,
           endedAt: new Date()
         }
       })

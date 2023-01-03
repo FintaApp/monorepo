@@ -170,7 +170,6 @@ export const nextAuthOptions: NextAuthOptions = {
     signIn: async ({ user, isNewUser, account }) => {
       const userId = user.id;
       const provider = account?.provider;
-      console.log(provider)
       if ( provider === 'credentials' ) { return; }
       if ( isNewUser ) { 
         await trackUserSignedUp({ userId, provider })

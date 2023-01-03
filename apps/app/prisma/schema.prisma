@@ -68,6 +68,7 @@ model User {
   airtableToken     AirtableToken?
   airtableAuthorizationCache AirtableAuthorizationCache?
   plaidItems        PlaidItem[]
+  syncs             Sync[]
 
   @@map("users")
 }
@@ -278,6 +279,9 @@ model Sync {
   isSuccess                   Boolean?    @map("is_success")
   error                       SyncError?
   errorMetadata               Json?       @map("error_metadata")
+  metadata                    Json?       
+  userId                      String      
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   triggerDestinationId        String?     @map("trigger_destination_id")
   triggerPlaidItemId          String?     @map("trigger_plaid_item_id")
   createdAt                   DateTime    @default(now()) @map("created_at")
@@ -290,6 +294,7 @@ model Sync {
   @@map("syncs")
   @@index([triggerDestinationId])
   @@index([triggerPlaidItemId])
+  @@index([userId])
 }
 
 model SyncResult {
@@ -297,6 +302,7 @@ model SyncResult {
   plaidItemId                 String      @map("plaid_item_id")
   destinationId               String      @map("destination_id")
   error                       SyncError?
+  errorMetadata               Json?       @map("error_metadata")
   institutionsAdded           Int         @default(0) @map("institutions_added")
   institutionsUpdated         Int         @default(0) @map("institutions_updated")
   accountsAdded               Int         @default(0) @map("accounts_added")

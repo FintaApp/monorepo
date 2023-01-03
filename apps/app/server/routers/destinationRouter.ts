@@ -413,22 +413,23 @@ export const destinationRouter = router({
       .input(
         z.object({
           destinationId: z.string(),
-          startDate: z.string()
+          startDate: z.string().optional()
         })
       )
-      .mutation(async ({ ctx: { db, logger }, input: { destinationId, startDate }}) => {
+      .mutation(async ({ ctx: { db, logger, user }, input: { destinationId, startDate }}) => {
         const destination = await db.destination.findFirstOrThrow({ where: { id: destinationId }, include: { accounts: { include: { item: true }} }});
         logger.info("Fetched destination", { destination });
         const plaidItems = _.uniqBy(destination.accounts.map(account => account.item).filter(item => item.error !== 'ITEM_LOGIN_REQUIRED'), 'id')
         if ( destination.integration === Integration.Coda ) { return { syncId: null, code: 'coda_integration' }}
         if ( plaidItems.length === 0 ) { return { syncId: null, code: 'no_connected_accounts' }}
-        const trigger = startDate === destination.syncStartDate ? SyncTrigger.Refresh : SyncTrigger.HistoricalSync;
+        const trigger = startDate ? SyncTrigger.HistoricalSync : SyncTrigger.Refresh;
 
         // Create sync
         const sync = await db.sync.create({
           data: {
             trigger,
-            triggerDestinationId: destinationId
+            triggerDestinationId: destinationId,
+            userId: user.id
           }
         })
         logger.info("Created sync", { sync });
@@ -438,7 +439,7 @@ export const destinationRouter = router({
           name: 'destination/sync',
           data: { 
             destinationId, 
-            startDate, 
+            startDate: startDate || destination.syncStartDate, 
             syncId: sync.id, 
             itemIds: plaidItems.map(item => item.id), 
             tablesToSync: [ 

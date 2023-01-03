@@ -75,6 +75,18 @@ export class IntegrationBase {
       }
 
       const tableFieldIds = table.fields.map(field => field.fieldId);
+      if ( this.integration === Integration.Google && tableFieldIds.length === 0 ) {
+        return {
+          isValid: false,
+          error: {
+            code: SyncError.NoHeaderRow,
+            table: tableType,
+            tableId,
+            tableName: table.name
+          }
+        }
+      };
+      
       const missingField = fieldConfigs.find(field => !tableFieldIds.includes(field.fieldId ));
       if ( missingField ) {
         return {

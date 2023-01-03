@@ -1,54 +1,55 @@
-// import { Card, CardBody, Button, ButtonGroup, HStack } from "@chakra-ui/react";
-// import { useState } from "react";
-// import { EmptyState } from "~/components/Common/EmptyState";
-// import { PageHeader } from "~/components/Layout/PageHeader";
-// import { LoadingSpinner } from "~/components/Common/LoadingSpinner";
-// import { SyncLogsList } from "~/components/SyncLogsList";
-// import { useGetSyncLogsQuery } from "~/graphql/frontend";
+import { useState } from "react";
 import { authGate } from "~/lib/authGate";
-// import { SyncLogModel } from "~/types/frontend";
 
 import { AnalyticsPage } from "~/lib//analytics";
+import { PageHeader } from "~/components/Layout/PageHeader";
+import { Accordion, Button, ButtonGroup, Fade, HStack, VStack } from "@chakra-ui/react";
+import { trpc } from "~/lib/trpc";
+import { useUser } from "~/lib/context/useUser";
+import { EmptyState } from "~/components/Common/EmptyState";
+import { Sync } from "~/components/Syncs";
 
 const Logs = () => {
-  // const [ offset, setOffset ] = useState(0)
-  // const { data, refetch, loading: isLoading } = useGetSyncLogsQuery({ variables: { offset }});
-  // const totalCount = data?.count.aggregate?.count || 0;
+  const { isAuthenticated } = useUser();
+  const [ offset, setOffset ] = useState(0);
+  const pageSize = 10;
+  const { data, isLoading, refetch, isRefetching } = trpc.syncs.getSyncs.useQuery({ take: pageSize, skip: offset }, { enabled: isAuthenticated })
 
-  // const pageSize = 10;
-  // const hasMore = ((offset + 1) * pageSize) <= totalCount;
-  
+  const totalSyncs = data?.totalSyncs;
+  const syncs = data?.syncs;
+  const hasMore = ((offset + 1) * pageSize) <= (totalSyncs || 0)
   return (
     <>
-      {/* <PageHeader title = "Sync Logs">
-        <Button onClick = { () => refetch() } variant = "primary">Refresh</Button>
+      <PageHeader title = "Syncs">
+        <Button isLoading = { isRefetching } onClick = { () => refetch() } variant = "primary">Refresh</Button>
       </PageHeader>
 
-      { isLoading ? <LoadingSpinner /> : totalCount === 0 
-        ? (
-          <Card width = "full">
-            <CardBody>
-              <EmptyState
+      <Fade in = { !isLoading }>
+        {
+          syncs?.length === 0
+            ? <EmptyState
                 title = "Waiting for the first sync..."
                 callToAction = "Come back after the first destination sync to see the sync logs"
                 icon = { "/icons/sync.svg" }
               />
-            </CardBody>
-          </Card>
-        ) : (
-          <>
-            <SyncLogsList 
-              syncLogs = { data?.sync_logs as SyncLogModel[] || [] }
-            />
+            : (
+              <>
+                <Accordion allowToggle>
+                  <VStack spacing = "4">
+                    { syncs?.map(sync => <Sync sync = { sync } key = { sync.id } /> )}
+                  </VStack>
+                </Accordion>
 
-            <HStack mt = '8' justifyContent = 'center'>
-              <ButtonGroup spacing = '2' size = 'sm' variant = 'primaryOutline'>
-                <Button onClick = { () => setOffset(prev => prev - 1)} isDisabled = { offset === 0 }>Prev</Button>
-                <Button onClick = { () => setOffset(prev => prev + 1)} isDisabled = { !hasMore }>Next</Button>
-              </ButtonGroup>
-            </HStack>
-          </>
-        )} */}
+                <HStack mt = '8' justifyContent = 'center'>
+                  <ButtonGroup spacing = '2' size = 'sm' variant = 'primaryOutline'>
+                    <Button onClick = { () => setOffset(prev => prev - 1)} isDisabled = { offset === 0 }>Prev</Button>
+                    <Button onClick = { () => setOffset(prev => prev + 1)} isDisabled = { !hasMore }>Next</Button>
+                  </ButtonGroup>
+                </HStack>
+              </>
+            )
+        }
+      </Fade>
     </>
   )
 }
