@@ -84,6 +84,7 @@ export class Google extends IntegrationBase {
   }
 
   async getTables(): Promise<types.GetDestinationTablesRepsonse> {
+    if ( !this.doc ) { await this.init() }
     const sheets = this.doc!.sheetsById;
     const tables = await Promise.all(Object.entries(sheets).map(async ([ sheetId, sheet ]: [string, GoogleSpreadsheetWorksheet ]) => {
       return sheet.loadHeaderRow()
@@ -97,8 +98,8 @@ export class Google extends IntegrationBase {
   }
 
   async queryTable({ tableId, fieldConfigs }: { tableId: string; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
-    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
-    const sheet = this.doc.sheetsById[tableId];
+    if ( !this.doc ) { await this.init() }
+    const sheet = this.doc!.sheetsById[tableId];
     if ( !sheet ) { return [] };
     const rows = await sheet.getRows();
     return rows.map(row => ({
@@ -109,14 +110,14 @@ export class Google extends IntegrationBase {
   }
 
   async createRecords({ tableId, data, fieldConfigs }: { tableId: string; data: Record<string, any>[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
-    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
-    return this.doc.sheetsById[tableId].addRows(data)
+    if ( !this.doc ) { await this.init() }
+    return this.doc!.sheetsById[tableId].addRows(data)
       .then(rows => rows.map(row => ({ id: row.rowIndex, properties: parseSheetProperties({ row, fieldConfigs }), object: row })))
   }
 
   async updateRecords({ tableId, data }: { tableId: string; data: { fields: Record<string, any>; record: types.IntegrationRecord; }[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
-    if ( !this.doc ) { throw new Error("Didn't initialized Google")}
-    const sheet = this.doc.sheetsById[tableId];
+    if ( !this.doc ) { await this.init() }
+    const sheet = this.doc!.sheetsById[tableId];
     await sheet.loadHeaderRow();
     const headerRow = sheet.headerValues;
 
