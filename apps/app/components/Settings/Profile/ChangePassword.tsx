@@ -10,22 +10,29 @@ import {
   Stack,
   useDisclosure 
 } from "@chakra-ui/react";
-import { Formik } from "formik";
+import z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Form } from "~/components/Forms/Form";
 import { PasswordField } from "~/components/Forms/PasswordField";
-import { useToast } from "~/utils/frontend/useToast";
-import { useAuth } from "~/utils/frontend/useAuth";
-import { password as isPasswordValid } from "~/utils/frontend/validate";
-import { nhost } from "~/utils/nhost";
-import { trackPasswordChanged} from "~/utils/frontend/analytics";
+import { useToast } from "~/lib/context/useToast";
+import { trpc } from "~/lib/trpc";
+import { changePasswordSchema, IChangePasswordSchema } from "~/lib/validation/forms";
 
+type FormData = z.infer<typeof changePasswordSchema>
 
 export const ChangePassword = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { parseAuthError } = useAuth();
   const renderToast = useToast();
+  const { register, handleSubmit, formState, setError, getValues } = useForm<IChangePasswordSchema>({ resolver: zodResolver(changePasswordSchema) });
+  const { mutateAsync, isLoading } = trpc.users.changePassword.useMutation();
 
+  const onSubmit = async (data: FormData) => {
+    mutateAsync({ password: data.password }).then(() => {
+      renderToast({ status: 'success', title: "Password Updated" });
+      onClose();
+    })
+  }
   return (
     <>
       <Button 
@@ -40,59 +47,32 @@ export const ChangePassword = () => {
         <ModalContent>
           <ModalHeader>Change Password</ModalHeader>
           <ModalCloseButton />
-          <Formik
-            initialValues = {{ password: "" }}
-            onSubmit = {({ password }, { setSubmitting, setFieldError }) => {
-              nhost.auth.changePassword({ newPassword: password })
-              .then(async ({ error }) => {
-                setSubmitting(false);
-                if ( error ) {
-                  const parsedError = await parseAuthError(error);
-                  setFieldError(parsedError.field, parsedError.message);
-                  return;
-                }
+          <form style = {{ width: '100%' }} onSubmit = { handleSubmit(onSubmit) }>
+            <ModalBody>
+              <PasswordField 
+                autoComplete = "new-password"
+                showHelpText = { true }
+                label = "Password"
+                id = "new-password-input"
+                { ...register("password")}
+                value = { getValues("password") }
+                errorMessage = { formState.errors.password?.message }
+                isInvalid = { !!formState.errors.password }
+              />
+            </ModalBody>
 
-                trackPasswordChanged()
-                renderToast({ status: 'success', title: "Password Updated" });
-                onClose();
-              })
-            }}
-            validate = {({ password }) => {
-              const errors = {} as { form: undefined | boolean };
-              if ( !isPasswordValid(password) ) { errors.form = true };
-              return errors;
-            }}
-          >
-            {({ handleSubmit, handleChange, isSubmitting, errors, values, isValid }) => (
-              <Form onSubmit = { handleSubmit }>
-                <ModalBody>
-                  <PasswordField 
-                    autoComplete = "new-password"
-                    showHelpText = { true }
-                    label = "Password"
-                    id = "new-password-input"
-                    name = "password"
-                    onChange = { handleChange }
-                    value = { values.password }
-                    errorMessage = { errors.password }
-                    isInvalid = { !!errors.password }
-                  />
-                </ModalBody>
-
-                <ModalFooter>
-                  <Stack direction = "row" justifyContent = "space-between" width = "full">
-                    <Button 
-                      width = "full"
-                      type = "submit" 
-                      variant = "primary"
-                      isDisabled = { !isValid }
-                      isLoading = { isSubmitting }
-                    >Change Password</Button>
-                  </Stack>
-                </ModalFooter>
-              </Form>
-            )}
-          </Formik>
+            <ModalFooter>
+              <Stack direction = "row" justifyContent = "space-between" width = "full">
+                <Button 
+                  width = "full"
+                  type = "submit" 
+                  variant = "primary"
+                  isDisabled = { !formState.isValid }
+                  isLoading = { isLoading }
+                >Change Password</Button>
+              </Stack>
+            </ModalFooter>
+          </form>
         </ModalContent>
       </Modal>
     </>

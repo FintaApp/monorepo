@@ -7,22 +7,21 @@ import {
   Text,
   useColorModeValue as mode
 } from "@chakra-ui/react";
+import Stripe from "stripe";
 
-import { useLogger } from "~/utils/frontend/useLogger";
-import { StripePrice, useGetStripePricesQuery } from "~/graphql/frontend";
-
-import { createCheckoutPortalSession } from "~/utils/frontend/functions";
+import { trpc } from "~/lib/trpc";
+import { useUser } from "~/lib/context/useUser";
 
 interface PriceBoxProps {
   isLoading: boolean;
   onClick: () => void;
-  price: StripePrice;
+  price: Stripe.Price;
 }
 const PriceBox = ({ isLoading, onClick, price }: PriceBoxProps) => (
   <Box borderWidth = "1px" borderColor = { mode('gray.light.6', 'gray.dark.6') } px = "2" py = "4" borderRadius = "sm" width = "full">
     <Box mb = "2" width = "full" display = "flex" alignItems = "center" justifyContent = "center">
-      <Text textAlign = "center" fontSize = "3xl" fontWeight = "medium">${price.unitAmount}</Text>
-      <Text fontSize = "lg">/{price.interval}</Text>
+      <Text textAlign = "center" fontSize = "3xl" fontWeight = "medium">${price.unit_amount! / 100.0 }</Text>
+      <Text fontSize = "lg">/{price.recurring?.interval}</Text>
     </Box>
 
     <Button
@@ -32,34 +31,32 @@ const PriceBox = ({ isLoading, onClick, price }: PriceBoxProps) => (
       onClick = { onClick }
       width = "full"
     >
-      Start {price.interval}ly plan
+      Start {price.recurring?.interval}ly plan
     </Button>
   </Box>
 )
 
 export const StartSubscription = () => {
   const router = useRouter();
-  const logger = useLogger();
   const [ loadingPriceId, setLoadingPricingId ] = useState("");
-  const { data: pricesData } = useGetStripePricesQuery({});
-  const prices = pricesData?.stripePrices;
+  const { data: prices } = trpc.stripe.getPrices.useQuery();
+  const { mutateAsync } = trpc.stripe.createCheckoutPortalSession.useMutation();
 
-  if ( !prices ) { return <></> }
+  if ( !prices ) { return <></> };
 
-  const monthlyPrice = prices.find(price => price.interval === "month");
-  const yearlyPrice = prices.find(price => price.interval === "year");
+  const monthlyPrice = prices.find(price => price.recurring?.interval === 'month');
+  const yearlyPrice = prices.find(price => price.recurring?.interval === 'year');
 
   if ( !monthlyPrice || !yearlyPrice ) { return <></> }
 
-  const loadPortal = (priceId: string) => {
+  const loadPortal = ( priceId: string ) => {
     setLoadingPricingId(priceId);
     const cancelUrl = window.location.href
-    const successUrl = cancelUrl + '?action=refetch_stripe';
+    const successUrl = cancelUrl;
 
-    createCheckoutPortalSession({ cancelUrl, successUrl, priceId })
-    .then((({ url }) => { url && router.push(url) }))
-    .catch(error => logger.error(error, {}, true))
-    .finally(() => setLoadingPricingId(""));
+    mutateAsync({ cancelUrl, successUrl, priceId })
+      .then(({ url }) => { if ( url ) { router.push(url)} })
+      .finally(() => setLoadingPricingId(""))
   }
 
   return (

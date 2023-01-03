@@ -1,3 +1,0 @@
-table:
-  name: webhook_events
-  schema: stripe

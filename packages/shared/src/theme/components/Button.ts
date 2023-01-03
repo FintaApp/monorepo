@@ -1,7 +1,7 @@
-import { StyleFunctionProps, theme } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { defineStyleConfig, theme } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Button = {
+export const Button: any = defineStyleConfig({
   ...theme.components.Button,
   baseStyle: {
     _focus: {
@@ -13,7 +13,7 @@ export const Button = {
     size: "sm"
   },
   variants: {
-    primary: (props: StyleFunctionProps) => ({
+    primary: (props) => ({
       color: 'white',
       bg: mode('primary.light.9', 'primary.dark.9')(props),
       _hover: {
@@ -23,7 +23,7 @@ export const Button = {
         }
       }
     }),
-    primaryOutline: (props: StyleFunctionProps) => ({
+    primaryOutline: (props) => ({
       color: mode('primary.light.11', 'primary.dark.11')(props),
       border: '1px',
       bg: mode('primary.light.1', 'primary.dark.1')(props),
@@ -35,7 +35,7 @@ export const Button = {
         }
       }
     }),
-    danger: (props: StyleFunctionProps) => ({
+    danger: (props) => ({
       color: 'white',
       bg: mode('tomato.light.9', 'tomato.dark.9')(props),
       _hover: {
@@ -45,7 +45,7 @@ export const Button = {
         }
       }
     }),
-    dangerOutline: (props: StyleFunctionProps) => ({
+    dangerOutline: (props) => ({
       color: mode('tomato.light.11', 'tomato.dark.11')(props),
       border: '1px',
       bg: mode('tomato.light.1', 'tomato.dark.1')(props),
@@ -57,7 +57,7 @@ export const Button = {
         }
       }
     }),
-    icon: (props: StyleFunctionProps) => ({
+    icon: (props) => ({
       width: 10,
       height: 10,
       p: 1,
@@ -69,7 +69,7 @@ export const Button = {
       },
       _active: { bg: mode(`gray.light.5`, `gray.dark.5`)(props) },
     }),
-    primaryIcon: (props: StyleFunctionProps) => ({
+    primaryIcon: (props) => ({
       width: 10,
       height: 10,
       p: 1,
@@ -83,4 +83,4 @@ export const Button = {
       _active: { bg: mode(`primary.light.5`, `primary.dark.5`)(props) },
     })
   }
-}
+})

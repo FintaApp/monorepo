@@ -13,6 +13,7 @@ export const Input: ComponentWithAs<As<any>, InputProps> = forwardRef(({ mode = 
       variant = { mode === 'edit' || isFocused ? 'outline' : 'flushed' }
       onFocus = { event => { setIsFocused(true); onFocus && onFocus(event) } }
       onBlur = { event => { setIsFocused(false); onBlur && onBlur(event) } }
+      flexGrow = "1"
       { ...inputProps }
     />
   )

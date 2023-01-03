@@ -1,8 +1,11 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { progressAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Progress = {
-  baseStyle: (props: StyleFunctionProps) => ({
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(progressAnatomy.keys)
+
+export const Progress: any = defineMultiStyleConfig({
+  baseStyle: (props) => ({
       filledTrack: {
         bg: mode('primary.light.9', 'primary.dark.9')(props)
       },
@@ -11,4 +14,4 @@ export const Progress = {
         shadow: mode("light.sm", "dark.sm")(props),
       }
     })
-  }
+  })

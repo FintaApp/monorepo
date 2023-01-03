@@ -1,140 +1,192 @@
 import moment from "moment-timezone";
-import { TransactionsGetRequestOptions, Transaction } from "plaid";
-import * as formatter from "~/utils/backend/formatter";
-import { graphql } from "~/graphql/backend";
-import { wrapper } from "~/utils/backend/apiWrapper";
-import { getItemActiveAccounts } from "~/utils/backend/getItemActiveAccounts";
-import { handlePlaidError, getOauthPlaidItems } from "./_helpers";
-import { OauthTransaction, GetTransactionsNextContinuation } from "@finta/shared";
-import * as plaid from "~/utils/backend/plaid"
+import { SyncError, SyncTrigger, Table } from "@prisma/client";
+import _ from "lodash";
 
-export default wrapper('oauth', async function handler({ req, logger, destination, plaidEnv }) {
-  const trigger = 'destination';
-  const syncLog = req.body.data?.syncLogId ? { id: req.body.data.syncLogId } : (await graphql.InsertSyncLog({ sync_log: { 
-    trigger,
-    destination_sync_logs: { data: [{ destination_id: destination.id }]},
-    metadata: { 'target_table': 'transactions' }
-  }}).then(response => response.sync_log!));
-  logger.addContext({ syncLogId: syncLog.id });
+import { GetTransactionsNextContinuation, OauthTransaction } from "@finta/shared";
 
-  const transactionsTableConfig = destination.table_configs.transactions;
-  const shouldSyncTransactions = (transactionsTableConfig && transactionsTableConfig.is_enabled) || (!transactionsTableConfig && destination.should_sync_transactions)
-  if ( !shouldSyncTransactions ) {
-    await graphql.UpdateSyncLog({
-      sync_log_id: syncLog.id,
-      _set: {
-        error: { error_code: 'transactions_disabled' },
-        is_success: false,
-        ended_at: new Date()
-      }
+import { wrapper } from "~/lib/apiWrapper";
+import { db } from "~/lib/db";
+import { getTransactions } from "~/lib/plaid";
+import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
+import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
+import { Transaction, TransactionsGetRequestOptions } from "plaid";
+import { handlePlaidError } from "./_helpers";
+import * as formatter from "~/lib/integrations/coda/formatter"
+import { logSyncCompleted } from "~/lib/logsnag";
+import { trackSyncCompleted } from "~/lib/analytics";
+import { SyncMetadata } from "~/types";
+
+
+export default wrapper(async ({ req, logger }) => {
+  const trigger = SyncTrigger.Destination;
+  const { destination, hasAppAccess } = await getDestinationFromRequest({ req, logger });
+  if ( !destination ) { return { status: 404, message: "Destination not found" }};
+
+  logger.info("Fetched destination", { destination, hasAppAccess });
+
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Transactions } as SyncMetadata }
+
+  if ( !hasAppAccess ) {
+    return db.sync.create({ data: {
+      ...syncData,
+      error: SyncError.NoSubscription,
+      isSuccess: false,
+      endedAt: new Date()
+    }})
+    .then(sync => {
+      logger.info("Sync created", { sync });
+      return { status: 200, message: "OK"}
     });
-    return { status: 200, message: { transactions: [] }}
   }
 
-  const { plaid_items, error_count } = await getOauthPlaidItems(destination.id, syncLog.id);
-  if ( error_count > 0 ) {
-    return { status: 428, message: "Has Error Item" }
-  };
+  const tableConfig = destination.tableConfigs.find(config => config.table === Table.Transactions) || { isEnabled: false };
+  if ( !tableConfig.isEnabled ) {
+    return db.sync.create({ data: { 
+        ...syncData,
+        isSuccess: false, 
+        error: SyncError.TransactionsDisabled, 
+        endedAt: new Date()
+      }})
+      .then(sync => {
+        logger.info("Sync created", { sync });
+        return { status: 200, message: "OK" }
+      })
+  }
 
+  const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
+
+  const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
+  if ( errorItems.length > 0 ) {
+    return db.sync.create({ data: {
+      ...syncData,
+      isSuccess: false,
+      error: SyncError.ItemError,
+      endedAt: new Date(),
+      results: { createMany: { data: errorItems.map(item => ({ plaidItemId: item.id, error: SyncError.ItemError, destinationId: destination.id }))}
+      }
+    }})
+    .then(response => {
+      logger.info("Sync created", { sync: response });
+      return { status: 428, message: "Has Error Item" }
+    })
+  }
+
+  const body = req.body as GetTransactionsNextContinuation;
+
+  const sync = req.body.data?.syncId 
+    ? { id: body.data.syncId }
+    : (await db.sync.create({
+      data: { 
+        ...syncData,
+        results: {
+          create: plaidItems.map(item => ({
+            plaidItemid: item.id,
+            destinationId: destination.id,
+            shouldSyncTransactions: (item.billedProducts as string[]).concat(item.availableProducts as string[]).includes('transactions')
+          }))
+        }
+      }
+    }).then(sync => { logger.info("Created sync", { sync }); return sync }))
+  
   const endDate = moment().format("YYYY-MM-DD");
-  const startDate = destination.sync_start_date;
-  const paginationByItem = req.body.data?.paginationByItem || [];
+  const startDate = destination.syncStartDate;
+  const paginationByItem = body.data?.paginationByItem || [];
 
-  return Promise.all(plaid_items.map(async item => {
-    const pagination = paginationByItem.find((pbi: any) => pbi.itemId === item.id) || { hasMore: true, totalTransactions: 0 };
+  return Promise.all(plaidItems.map(async item => {
+    const pagination = paginationByItem.find(pbi => pbi.itemId === item.id) || { hasMore: true, totalTransactions: 0 };
     const { hasMore, totalTransactions: previousTotalTransactions } = pagination;
-    const getItemActiveAccountsResponse = await getItemActiveAccounts(item, logger, plaidEnv);
+    const getItemActiveAccountsResponse = await getItemActiveAccounts({ item, logger });
     if ( getItemActiveAccountsResponse.hasAuthError ) { return ({ transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds: [], hasAuthError: true, itemId: item.id })};
-    const { accountIds: plaidAccountIds } = getItemActiveAccountsResponse;
-    const { accessToken, billed_products = [], available_products = [] } = item;
-    if ( plaidAccountIds.length === 0) { return ({ transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds, hasAuthError: false, itemId: item.id }) }
 
-    const products = billed_products.concat(available_products) as string[];
+    const destinationPlaidAccountIds = _.union(
+      getItemActiveAccountsResponse.accountIds,
+      destination.accounts
+        .filter(account => account.plaidItemId === item.id)
+        .map(account => account.id)
+    )
+
+    if ( destinationPlaidAccountIds.length === 0) { return ({ transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds: destinationPlaidAccountIds, hasAuthError: false, itemId: item.id }) }
+
+    const { accessToken, billedProducts = [], availableProducts = [] } = item;
+    const products = (billedProducts as string[]).concat(availableProducts as string[]);
     if ( !products.includes('transactions') || !hasMore ) {
-      return { hasAuthError: false, transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds, itemId: item.id }
+      return { hasAuthError: false, transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds: destinationPlaidAccountIds, itemId: item.id }
     }
 
-    const options = { account_ids: plaidAccountIds, offset: previousTotalTransactions } as TransactionsGetRequestOptions;
-
-    const { transactions, total_transactions, hasAuthError } = await plaid.getTransactions({ accessToken, startDate, endDate, options })
+    const options = { account_ids: destinationPlaidAccountIds, offset: previousTotalTransactions } as TransactionsGetRequestOptions;
+    const { transactions, total_transactions, hasAuthError } = await getTransactions({ accessToken, startDate, endDate, options })
     .then(response => ({ ...response.data, hasAuthError: false }))
     .catch(async error => {
       const errorData = error.response.data;
-      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncLogId: syncLog.id });
-      if ( !hasAuthError ) { 
-        await logger.error(error, { data: errorData })
-      };
+      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id, destinationId: destination.id });
+      if ( !hasAuthError ) { logger.error(error, { data: errorData })};
       return ({ transactions: [], total_transactions: 0, hasAuthError })
-    })
+    });
 
-    const formattedTransactions = transactions.map((transaction: Transaction) => formatter.coda.transaction({ transaction }));
+    const formattedTransactions = transactions.map((transaction: Transaction) => formatter.transaction({ transaction }));
     const newTotalTransactions = previousTotalTransactions + formattedTransactions.length;
     const newHasMore = newTotalTransactions < total_transactions;
+
+    await db.syncResult.update({ 
+      where: { syncId_plaidItemId_destinationId: { syncId: sync.id, plaidItemId: item.id, destinationId: destination.id }},
+      data: { transactionsAdded: { increment: formattedTransactions.length }}
+    })
 
     return {
       hasAuthError,
       transactions: formattedTransactions,
       hasMore: newHasMore,
       totalTransactions: newTotalTransactions,
-      itemId: item.id,
-      plaidAccountIds
+      itemId: item.id
     }
   }))
   .then(async responses => {
-    if ( !!responses.find(response => response.hasAuthError)) { return { status: 428, message: "Has Error Item" } }
+    if ( !!responses.find(response => response.hasAuthError)) { 
+      await db.sync.update({ where: { id: sync.id }, data: { isSuccess: false, error: SyncError.ItemError, endedAt: new Date() }})
+      return { status: 428, message: "Has Error Item" }
+    };
 
     const shouldContinue = !!responses.find(response => response.hasMore );
-    const nextContinuation = shouldContinue ? {
-      data: {
-        syncLogId: syncLog.id,
-        paginationByItem: responses.map(response => ({
-          itemId: response.itemId,
-          hasMore: response.hasMore,
-          totalTransactions: response.totalTransactions
-        }))
-      }
-      } as GetTransactionsNextContinuation : undefined;
+    const nextContinuation = shouldContinue 
+      ? { data: {
+          syncId: sync.id,
+          paginationByItem: responses.map(response => ({
+            itemId: response.itemId,
+            hasMore: response.hasMore,
+            totalTransactions: response.totalTransactions
+          }))
+        }} as GetTransactionsNextContinuation 
+      : undefined;
 
     if ( !shouldContinue ) {
       await Promise.all([
-        graphql.UpdateSyncLog({
-          sync_log_id: syncLog.id,
-          _set: {
-            is_success: true,
-            ended_at: new Date()
-          }
-        }),
-        logger.logSyncCompleted({
+        db.sync.update({ where: { id: sync.id }, data: { isSuccess: true, endedAt: new Date() }}),
+
+        logSyncCompleted({
           userId: destination.user.id,
           trigger,
-          isSuccess: true,
-          integration: destination.integration.id,
-          institutionsSynced: plaid_items.length,
-          syncLogId: syncLog.id,
+          integration: destination.integration,
+          institutionsSynced: plaidItems.length,
+          syncId: sync.id,
           destinationId: destination.id,
-          targetTable: "transactions"
         }),
-        graphql.InsertPlaidItemSyncLogs({
-          plaid_item_sync_logs: responses.map(response => ({
-            plaid_item_id: response.itemId,
-            accounts: {
-              added: response.plaidAccountIds,
-              updated: []
-            },
-            sync_log_id: syncLog.id,
-            transactions: {
-              added: response.totalTransactions,
-              updated: 0,
-              removed: 0
-            }
-          }))
+
+        trackSyncCompleted({ 
+          userId: destination.user.id, 
+          trigger, 
+          integration: destination.integration, 
+          institutionsSynced: plaidItems.length, 
+          destinationId: destination.id 
         })
       ])
+    };
+
+    return {
+      status: 200,
+      message: {
+        transactions: responses.reduce((all, response) => all.concat(response.transactions), [] as OauthTransaction[]),
+        nextContinuation
+      }
     }
-    
-    return { status: 200, message: {
-      transactions: responses.reduce((all, response) => all.concat(response.transactions), [] as OauthTransaction[]),
-      nextContinuation
-    }}
   })
 })

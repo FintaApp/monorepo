@@ -19,7 +19,7 @@ export const Navigation = () => {
       <HStack>
         <Logo 
           onClick = { () => router.push('/') } 
-          variant = { logoVariant }
+          variant = { logoVariant! }
           width = {{ base: 8, md: '10rem'}}
           height = {{ base: 8, md: 'auto' }}
         />

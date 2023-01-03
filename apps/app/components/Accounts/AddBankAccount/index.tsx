@@ -10,28 +10,30 @@ import {
   ModalOverlay,
   useDisclosure
 } from "@chakra-ui/react";
-import { useAuth } from "~/utils/frontend/useAuth";
-import { Products } from "plaid";
 
 import { PlaidLink } from "../PlaidLink";
-import { useLogger } from "~/utils/frontend/useLogger";
-import { PlaidItemModel } from "~/types/frontend/models";
-import { createPlaidLinkToken } from "~/utils/frontend/functions";
 
-import { OnSuccess } from "./OnSuccess";
 import { SelectBankType } from "./SelectBankType";
 import { LoadingPlaidItem } from "./LoadingPlaidItem";
 
-export const AddBankAccount = () => {
-  const { user } = useAuth();
-  const hasAppAccess = user?.profile.stripeData.hasAppAccess;
-  const logger = useLogger();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+import { useUser } from "~/lib/context/useUser";
+import { RouterOutput, trpc } from "~/lib/trpc";
+import { PlaidProduct } from "~/types";
+import { OnSuccess } from "./OnSuccess";
 
-  const [ newPlaidItem, setNewPlaidItem ] = useState(undefined as PlaidItemModel | undefined )
-  const [ loadingProduct, setLoadingProduct ] = useState(undefined as Products | undefined);
+export const AddBankAccount = () => {
+  const { plaid: { 
+    getAllPlaidAccounts: { refetch: refetchAllPlaidAccounts},
+    getAllPlaidItems: { refetch: refetchAllPlaidItems }
+  } } = trpc.useContext()
+  const { hasAppAccess } = useUser();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { mutateAsync } = trpc.plaid.createLinkToken.useMutation();
+  const [ newPlaidItem, setNewPlaidItem ] = useState(undefined as RouterOutput['plaid']['exchangePublicToken'] | undefined )
+  const [ loadingProduct, setLoadingProduct ] = useState(undefined as PlaidProduct | undefined);
   const [ mode, setMode ] = useState<"selectBankType" | "loadingPlaidItem" | "onSuccess">("selectBankType" );
   const [ linkToken, setLinkToken ] = useState(undefined as string | undefined);
+  const [ institutionName, setInstitutionName ] = useState("");
 
   useEffect(() => {
     setLoadingProduct(undefined);
@@ -42,26 +44,24 @@ export const AddBankAccount = () => {
 
   const canAddAccount = !!hasAppAccess;
 
-  const onSelectBankType = async (product: Products) => {
+  const onSelectBankType = async (product: PlaidProduct) => {
     setLoadingProduct(product);
-    createPlaidLinkToken({ products: [ product ]})
-    .then(response => {
-      logger.info("Link token created", { response });
-      const { link_token } = response;
-      if ( !link_token ) { logger.error(new Error("No link token returned"), {}, true); return; }
-      setLinkToken(link_token)
-    })
-    .finally(() => setLoadingProduct(null))
+    mutateAsync({ product })
+      .then(({ token }) => { setLinkToken(token)})
+      .finally(() => setLoadingProduct(undefined))
   }
 
   const onConnectCallback = useCallback(async () => { setMode("loadingPlaidItem")}, [])
 
-  const onSuccessCallback = useCallback(async (plaidItem: PlaidItemModel ) => {
+  const onSuccessCallback = useCallback(async ({ plaidItem, institutionName }: { plaidItem: RouterOutput['plaid']['exchangePublicToken']; institutionName: string }) => {
+    refetchAllPlaidItems();
+    refetchAllPlaidAccounts();
     setNewPlaidItem(plaidItem);
+    setInstitutionName(institutionName)
     setMode("onSuccess");
-  }, []);
+  }, [ refetchAllPlaidItems, refetchAllPlaidAccounts ]);
 
-  const onExitCallback = useCallback(() => setLinkToken(null), []);
+  const onExitCallback = useCallback(() => setLinkToken(undefined), []);
 
   return (
     <>
@@ -91,7 +91,7 @@ export const AddBankAccount = () => {
 
           <ModalBody>
             { mode === 'selectBankType' ? ( <SelectBankType onClick = { onSelectBankType } loadingProduct = { loadingProduct } /> ) : null }
-            { mode === "onSuccess" ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } /> ) : null }
+            { mode === "onSuccess" && newPlaidItem ? ( <OnSuccess plaidItem = { newPlaidItem } onFinish = { onClose } institutionName = { institutionName } /> ) : null }
             { mode === "loadingPlaidItem" ? ( <LoadingPlaidItem /> ) : null }
           </ModalBody>
         </ModalContent>

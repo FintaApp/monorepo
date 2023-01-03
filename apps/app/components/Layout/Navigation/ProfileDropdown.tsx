@@ -1,30 +1,28 @@
-import { useSignOut } from '@nhost/nextjs';
 import { ExitIcon, ChevronDownIcon, MixerHorizontalIcon} from '@radix-ui/react-icons';
 import { Menu, MenuButton, HStack, Avatar, Text, forwardRef, MenuList, MenuDivider, MenuItem, Icon } from '@chakra-ui/react';
+import { signOut } from 'next-auth/react';
 
-import { reset } from "~/utils/frontend/analytics";
-import { useRouter} from 'next/router';
-import { useAuth } from '~/utils/frontend/useAuth';
-import { FrontendUserModel } from '~/types/frontend';
-import { ShareFeedback } from '~/components/ShareFeedback';
+import { reset } from "~/lib/analytics";
+import { useRouter } from 'next/router';
+import { ShareFeedback } from '~/components/Layout/Navigation/ShareFeedback';
+import { useUser } from '~/lib/context/useUser';
+import { RouterOutput } from '~/lib/trpc';
 
-const DropdownButton = forwardRef(({ user }: { user: FrontendUserModel }, ref) => (
+const DropdownButton = forwardRef(({ user }: { user: RouterOutput['users']['getUser'] }, ref) => (
   <HStack spacing = {{ base: 1, md: 3 }}  ref = { ref } justifyContent = "space-between">
-    <Avatar size = 'sm' name = { user.displayName } />
-    <Text display = {{ base: 'none', md: 'flex'}}>{ user.displayName }</Text>
+    <Avatar size = 'sm' name = { user.name || user.email! } />
+    <Text display = {{ base: 'none', md: 'flex'}}>{ user.name }</Text>
     <ChevronDownIcon />
   </HStack>
 ))
 
 export const ProfileDropdown = () => {
   const router = useRouter();
-  const { signOut } = useSignOut();
-  const { user } = useAuth();
+  const { user } = useUser();
 
   const onSignOut = () => {
-    signOut().then(() => {
+    signOut({ callbackUrl: '/login'}).then(() => {
       reset();
-      router.push('/login');
     })
   }
 

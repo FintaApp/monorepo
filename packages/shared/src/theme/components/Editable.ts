@@ -1,15 +1,17 @@
-import { StyleFunctionProps } from '@chakra-ui/react';
+import { editableAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(editableAnatomy.keys)
 
 import { Input } from "./Input"
 
-export const Editable = {
-  parts: ["preview", "input"],
+export const Editable: any = defineMultiStyleConfig({
   defaultProps: {
     size: "sm"
   },
-  baseStyle: (props: StyleFunctionProps) => {
-    const outlineTheme = Input.variants.outline(props);
-    const flushedTheme = Input.variants.flushed(props);
+  baseStyle: (props) => {
+    const outlineTheme = Input.variants!.outline(props);
+    const flushedTheme = Input.variants!.flushed(props);
 
     return ({
       input: {
@@ -22,4 +24,4 @@ export const Editable = {
       }
     })
   }
-};
+});

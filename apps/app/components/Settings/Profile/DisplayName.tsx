@@ -4,27 +4,23 @@ import {
 } from "@chakra-ui/react";
 
 import { EditableInputWithButtons } from "../../Forms/EditableInputWithButtons";
-import { useToast } from "~/utils/frontend/useToast";
-import { useUpdateUserMutation } from "~/graphql/frontend";
-import { useAuth } from "~/utils/frontend/useAuth";
+
+import { useToast } from "~/lib/context/useToast";
+import { useUser } from "~/lib/context/useUser";
+import { trpc } from "~/lib/trpc";
 
 export const DisplayName = () => {
-  const { user } = useAuth();
+  const { user, refetchUser } = useUser();
   const renderToast = useToast();
 
-  const [ updateUserMutation, { loading } ] = useUpdateUserMutation();
+  const { mutateAsync, isLoading } = trpc.users.updateUser.useMutation({ onSuccess: refetchUser });
 
   if ( !user ) { return <></> }
 
   const onSubmitChanges = ( newValue: string ) => {
-    if ( newValue != user.displayName && newValue.length > 0 ) {
-      updateUserMutation({
-        variables: {
-          id: user.id,
-          _set: { displayName: newValue }
-        }
-      })
-      .then(() => renderToast({ status: "success", title: "Name Updated"}))
+    if ( newValue != user.name && newValue.length > 0 ) {
+      mutateAsync({ name: newValue })
+      renderToast({ status: "success", title: "Name Updated"});
     }
   }
 
@@ -32,9 +28,9 @@ export const DisplayName = () => {
     <FormControl>
       <FormLabel>
         <EditableInputWithButtons 
-          defaultValue = { user.displayName } 
+          defaultValue = { user.name || "" } 
           onSubmit = { onSubmitChanges }
-          isLoading = { loading }
+          isLoading = { isLoading }
         /> 
       </FormLabel>
     </FormControl>

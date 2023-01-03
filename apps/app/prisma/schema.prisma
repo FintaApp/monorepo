@@ -1,0 +1,453 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Account {
+  id                  String      @id @default(uuid())
+  userId              String      @map("user_id")
+  type                String
+  provider            String
+  providerAccountId   String      @map("provider_account_id")
+  refresh_token       String?     @db.Text
+  access_token        String?     @db.Text 
+  expires_at          DateTime?   
+  token_type          String?     
+  scope               String
+  id_token            String?     @db.Text
+  session_state       String?     
+
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_accounts")
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id                          String      @id @default(uuid())
+  sessionToken                String      @unique @map("session_token")
+  userId                      String      @map("user_id")
+  expires                     DateTime    @map("expires_at")
+
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions") 
+  @@index([userId])
+}
+
+model User {
+  id                          String      @id @default(uuid())
+  name                        String?
+  email                       String?     @unique
+  emailVerified               DateTime?   @map("email_verified_at")
+  passwordHash                String?     @map("password_hash")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  image                       String?     @map("image_url")
+  disabledAt                  DateTime?   @map("disabled_at")  
+  timezone                    String      @default("America/New_York")
+  stripeCustomerId            String      @map("stripe_customer_id")
+  isSubscribedGeneral         Boolean     @default(true) @map("is_subscribed_general")
+  isSubscribedPeriodicUpdates Boolean     @default(true) @map("is_subscribed_periodic_updates")
+  periodicUpdatesFrequency    Frequency   @default(Weekly) @map("periodic_updates_frequency")
+  periodicUpdatesJobId        String?     @map("periodic_updates_job_id")
+
+  accounts          Account[]
+  destinations      Destination[]
+  sessions          Session[]
+  linkToken         LinkToken?
+  airtableToken     AirtableToken?
+  airtableAuthorizationCache AirtableAuthorizationCache?
+  plaidItems        PlaidItem[]
+  syncs             Sync[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier                  String
+  token                       String      @unique
+  expires                     DateTime    @map("expires_at")
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model LinkToken {
+  id                          String      @id @default(uuid())
+  token                       String      @unique
+  userId                      String      @map("user_id") @unique
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  @@map("link_tokens")
+  @@index([userId])
+}
+
+model StripeWebhookEvent {
+  id                          String                      @id
+  event                       String
+  state                       StripeWebhookEventState     @default(Processed)
+  createdAt                   DateTime                    @map("created_at") @default(now())
+
+  @@map("stripe_webhook_events")
+}
+
+model AirtableToken {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id") @unique
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken                 String      @map("access_token")
+  refreshToken                String      @map("refresh_token")
+  tokenType                   String      @map("token_type")
+  scope                       String      @map("scope")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  refreshedAt                 DateTime    @default(now()) @map("refreshed_at")
+  accessTokenExpiresAt        DateTime    @map("access_token_expires_at")
+  refreshTokenExpiresAt       DateTime    @map("refresh_token_expires_at")
+  
+  @@map("airtable_tokens")
+  @@index([userId])
+}
+
+model AirtableAuthorizationCache {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id") @unique
+  state                       String
+  codeVerifier                String
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  @@index([userId])
+  @@map("airtable_authorization_cache")
+}
+
+model PlaidInstitution {
+  id                          String      @id
+  name                        String
+  logoUrl                     String?     @map("logo_url")
+  items                       PlaidItem[]
+  @@map("plaid_institutions")
+}
+
+model PlaidItem {
+  id                          String      @id
+  institutionId               String      @map("institution_id")
+  userId                      String      @map("user_id")
+  isInitialUpdateComplete     Boolean     @default(false) @map("is_initial_update_complete")
+  isHistoricalUpdateComplete  Boolean     @default(false) @map("is_historical_update_complete")
+  error                       String?     
+  accessToken                 String      @map("access_token")
+  plaidSyncCursor             String?     @map("plaid_sync_cursor")
+  availableProducts           Json        @map("available_products")
+  billedProducts              Json        @map("billed_products")
+  lastSyncedAt                DateTime?   @map("last_synced_at")
+  consentExpiresAt            DateTime?   @map("consent_expires_at")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  disabledAt                  DateTime?   @map("disabled_at")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution     PlaidInstitution        @relation(fields: [institutionId], references: [id], onDelete: Restrict)
+
+  accounts                    PlaidAccount[]
+  syncResults                 SyncResult[]
+  triggeredSyncs              Sync[]
+  @@map("plaid_items")
+  @@index([userId])
+  @@index([institutionId])
+}
+
+model PlaidAccount {
+  id                          String      @id
+  plaidItemId                 String      @map("plaid_item_id")
+  name                        String
+  mask                        String?
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  destinations                Destination[] 
+  item                        PlaidItem   @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  @@map("plaid_accounts")
+  @@index([plaidItemId])
+}
+
+model Destination {
+  id                          String      @id @default(uuid())
+  userId                      String      @map("user_id")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  airtableCredentialId        String?     @map("airtable_credential_id") @unique
+  airtableCredential          AirtableCredential?   @relation(fields: [airtableCredentialId], references: [id])
+  codaCredentialId            String?     @map("coda_credential_id") @unique
+  codaCredential              CodaCredential?   @relation(fields: [codaCredentialId], references: [id])
+  googleSheetsCredentialId    String?     @map("google_sheets_credential_id") @unique
+  googleSheetsCredential      GoogleSheetsCredential?   @relation(fields: [googleSheetsCredentialId], references: [id])
+  notionCredentialId          String?     @map("notion_credential_id")
+  notionCredential            NotionCredential?   @relation(fields: [notionCredentialId], references: [id])
+  integration                 Integration
+  name                        String
+  syncStartDate               String      @map("sync_start_date")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  disabledAt                  DateTime?   @map("disabled_at")
+  accounts                    PlaidAccount[]
+  tableConfigs                DestinationTableConfig[]
+  syncResults                 SyncResult[]
+  triggeredSyncs              Sync[]
+  @@index([airtableCredentialId])
+  @@index([codaCredentialId])
+  @@index([googleSheetsCredentialId])
+  @@index([notionCredentialId])
+  
+  @@map("destinations")
+  @@index([userId])
+}
+
+model DestinationTableConfig {
+  id                          String      @id @default(uuid())
+  destinationId               String      @map("destination_id")
+  destination                 Destination @relation(fields: [destinationId], references: [id] )
+  isEnabled                   Boolean     @map("is_enabled") @default(false)
+  table                       Table
+  tableId                     String      @map("table_id")
+  
+  fieldConfigs                DestinationFieldConfig[]
+  @@map("destination_table_configs")
+  @@index([destinationId])
+  @@unique([destinationId, table])
+}
+
+model DestinationFieldConfig {
+  id                          String      @id @default(uuid())
+  tableConfigId               String      @map("table_config_id")
+  tableConfig                 DestinationTableConfig  @relation(fields: [tableConfigId], references: [id], onDelete: Cascade)
+  field                       Field
+  fieldId                     String      @map("field_id")
+  
+  @@map("destination_field_configs")
+  @@index([tableConfigId])
+  @@unique([tableConfigId, field])
+}
+
+model AirtableCredential {
+  id                          String      @id @default(uuid())
+  baseId                      String      @map("base_id")
+  apiKey                      String?     @map("api_key")
+  destination                 Destination?
+  @@map("airtable_credentials")
+}
+
+model CodaCredential {
+  id                          String      @id @default(uuid())
+  accessToken                 String      @map("access_token")
+  accessTokenHash             String      @map("access_token_hash")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  exchangedAt                 DateTime?   @map("exchanged_at")
+  destination                 Destination?
+  @@map("coda_credentials")
+}
+
+model GoogleSheetsCredential {
+  id                          String      @id @default(uuid())
+  spreadsheetId               String      @map("spreadsheet_id")
+  destination                 Destination?
+  @@map("google_sheets_credentials")
+}
+
+model NotionCredential {
+  id                          String      @id @default(uuid())
+  botId                       String      @unique @map("bot_id")
+  userId                      String      @map("user_id")
+  accessToken                 String      @map("access_token")
+  workspaceId                 String      @map("workspace_id")
+  workspaceName               String?     @map("workspace_name")
+  workspaceIcon               String?     @map("workspace_icon")
+  owner                       Json        
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  destinations                Destination[]
+  @@map("notion_credentials")
+}
+
+model Sync {
+  id                          String      @id @default(uuid())
+  trigger                     SyncTrigger
+  isSuccess                   Boolean?    @map("is_success")
+  error                       SyncError?
+  errorMetadata               Json?       @map("error_metadata")
+  metadata                    Json?       
+  userId                      String      
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  triggerDestinationId        String?     @map("trigger_destination_id")
+  triggerPlaidItemId          String?     @map("trigger_plaid_item_id")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  endedAt                     DateTime?   @map("ended_at")
+  results                     SyncResult[]
+  triggerDestination          Destination?  @relation(fields: [triggerDestinationId], references: [id], onDelete: Cascade)
+  triggerPlaidItem            PlaidItem?  @relation(fields: [triggerPlaidItemId], references: [id], onDelete: Cascade)
+  
+  @@map("syncs")
+  @@index([triggerDestinationId])
+  @@index([triggerPlaidItemId])
+  @@index([userId])
+}
+
+model SyncResult {
+  syncId                      String      @map("sync_id")
+  plaidItemId                 String      @map("plaid_item_id")
+  destinationId               String      @map("destination_id")
+  error                       SyncError?
+  errorMetadata               Json?       @map("error_metadata")
+  institutionsAdded           Int         @default(0) @map("institutions_added")
+  institutionsUpdated         Int         @default(0) @map("institutions_updated")
+  accountsAdded               Int         @default(0) @map("accounts_added")
+  accountsUpdated             Int         @default(0) @map("accounts_updated")
+  categoriesAdded             Int         @default(0) @map("categories_added")
+  transactionsAdded           Int         @default(0) @map("transactions_added")
+  transactionsUpdated         Int         @default(0) @map("transactions_updated")
+  transactionsRemoved         Int         @default(0) @map("transactions_removed")
+  securitiesAdded             Int         @default(0) @map("securities_added")
+  securitiesUpdated           Int         @default(0) @map("securities_updated")
+  holdingsAdded               Int         @default(0) @map("holdings_added")
+  holdingsUpdated             Int         @default(0) @map("holdings_updated")
+  investmentTransactionsAdded Int         @default(0) @map("investment_transactions_added")
+  shouldSyncInstitution       Boolean?     @map("should_sync_institution")
+  shouldSyncAccounts          Boolean?     @map("should_sync_accounts")
+  shouldSyncTransactions      Boolean?     @map("should_sync_transactions")
+  shouldSyncHoldings          Boolean?     @map("should_sync_holdings")
+  shouldSyncInvestmentTransactions  Boolean?     @map("should_sync_investment_transactions")
+  shouldSyncSecurities        Boolean?     @map("should_sync_securities")
+  shouldSyncCategories        Boolean?     @map("should_sync_categories")
+  sync                        Sync        @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  plaidItem                   PlaidItem?   @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  destination                 Destination?  @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  
+  @@map("sync_results")
+  @@unique([syncId, plaidItemId, destinationId])
+  @@index([plaidItemId])
+  @@index([destinationId])
+}
+
+
+enum Frequency {
+  Daily      @map("daily")
+  Weekly     @map("weekly")
+  Monthly    @map("monthly")
+  Quarterly  @map("quarterly")
+  Yearly     @map("yearly")
+
+  @@map("frequencies")
+}
+
+enum StripeWebhookEventState {
+  Processed   @map("processed")
+  Failed      @map("failed")
+
+  @@map("stripe_webhook_event_states")
+}
+
+enum Integration {
+  Airtable
+  Coda
+  Google
+  Notion
+
+  @@map("integrations")
+}
+
+enum Table {
+  Institutions @map("institutions")
+  Accounts @map("accounts")
+  Transactions @map("transactions")
+  Holdings @map("holdings")
+  InvestmentTransactions @map("investment_transactions")
+  Securities @map("securities")
+  Categories @map("categories")
+  @@map("destination_tables")
+}
+
+enum Field {
+  Id @map("id")
+  Name @map("name")
+  Error @map("error")
+  LastUpdate @map("last_update")
+  Institution @map("institution")
+  Available @map("available")
+  Current @map("current")
+  Currency @map("currency")
+  Mask @map("mask")
+  Type @map("type")
+  Subtype @map("subtype")
+  Limit @map("limit")
+  InterestRate @map("interest_rate")
+  LastPaymentAmount @map("last_payment_amount")
+  LastPaymentDate @map("last_payment_date")
+  NextPaymentDueDate @map("next_payment_due_date")
+  LastStatementBalance @map("last_statement_balance")
+  MinimumPaymentAmount @map("minimum_payment_amount")
+  NextMonthlyPayment @map("next_monthly_payment")
+  OriginationDate @map("origination_date")
+  OriginationPrincipalAmount @map("origination_principal_amount")
+  Summary @map("summary")
+  Account @map("account")
+  SubAccount @map("sub_account")
+  Amount @map("amount")
+  IsPending @map("is_pending")
+  Category  @map("category")
+  CostBasis @map("cost_basis")
+  Quantity @map("quantity")
+  Security @map("security")
+  Date @map("date")
+  Fees @map("fees")
+  Price @map("price")
+  
+  Symbol @map("symbol")
+  ClosePrice @map("close_price")
+  ClosePriceAsOf @map("close_price_as_of")
+  Group @map("group")
+  @@map("destination_fields")
+}
+
+enum SyncError {
+  InvalidCredentials @map("invalid_credentials")
+  DestinationNotFound @map("destination_not_found")
+  NotAllowed @map("not_allowed")
+  InvalidRole @map("invalid_role")
+  NoHeaderRow @map("no_header_row")
+  MissingTable @map("missing_table")
+  MissingField @map("missing_field")
+  UnknownError @map("unknown_error")
+  IncorrectFieldType @map("incorrect_field_type")
+  TemplateDestination @map("template_destination")
+  ItemError @map("item_error")
+  TransactionsDisabled @map("transactions_disabled")
+  HoldingsDisabled @map("holdings_disabled")
+  InvestmentTransactionsDisabled @map("investment_transactions_disabled")
+  NoSubscription @map("no_subscription")
+  @@map("sync_errors")
+}
+
+enum SyncTrigger {
+  HoldingsUpdate              @map("holdings_update")
+  TransactionsUpdate          @map("transactions_update")
+  Destination                 @map("destination")
+  InvestmentTransactionsUpdate  @map("investment_transactions_update")
+  Refresh                     @map("refresh")
+  HistoricalSync              @map("historical_sync")
+  ItemUpdate                  @map("item_update")
+  LiabilitiesUpdate           @map("liabilities_update")
+  @@map("sync_triggers")
+}
+
+enum SyncEvent {
+  ValidateCredentials         @map("validate_credentials")
+  ValidateConfiguration       @map("validate_configuration")
+  LoadData                    @map("load_data")
+  
+  @@map("sync_events")
+}

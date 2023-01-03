@@ -1,10 +1,10 @@
 import moment from "moment-timezone";
 import { Text } from "@chakra-ui/react";
 
-import { useAuth } from "~/utils/frontend/useAuth";
-import { StripeSubscription } from "~/graphql/frontend";
+import { useUser } from "~/lib/context/useUser";
+import { RouterOutput } from "~/lib/trpc";
 
-const getSummaryText = ({ subscription, trialEndsAt }: { subscription: StripeSubscription, trialEndsAt: Date }) => {
+const getSummaryText = ({ subscription, trialEndsAt }: { subscription?: RouterOutput['stripe']['getSubscription']['subscription'] | null, trialEndsAt: Date }) => {
   const trialEndsAtMoment = moment(trialEndsAt)
   const isTrialOver = trialEndsAtMoment.isBefore(moment());
 
@@ -36,10 +36,9 @@ const getSummaryText = ({ subscription, trialEndsAt }: { subscription: StripeSub
 }
 
 export const SubscriptionSummary = () => {
-  const { user } = useAuth();
+  const { subscription, trialEndsAt } = useUser();
 
-  if ( !user ) { return <></> }
-  const { profile: { stripeData: { subscription, trialEndsAt }} } = user;
+  if ( !trialEndsAt ) { return <></> }
 
   const summaryText = getSummaryText({ subscription, trialEndsAt });
 

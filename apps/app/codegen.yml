@@ -1,8 +1,8 @@
 overwrite: true
 schema:
-  - http://localhost:1337/v1/graphql:
+  - https://xhjyapgshoqnoxvmnssu.nhost.run/v1/graphql:
       headers:
-        x-hasura-admin-secret: nhost-admin-secret
+        x-hasura-admin-secret: 2c96cf50331afc2b5aceffdf00273b4a
 generates:
   graphql/frontend/index.ts:
     documents: "graphql/frontend/**/*.graphql"

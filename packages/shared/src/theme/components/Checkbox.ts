@@ -1,8 +1,8 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { defineStyleConfig } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Checkbox = {
-  baseStyle: (props: StyleFunctionProps) => ({
+export const Checkbox: any = defineStyleConfig({
+  baseStyle: (props) => ({
     control: {
       _checked: {
         bg: mode(`primary.light.9`, `primary.dark.9`)(props),
@@ -19,4 +19,4 @@ export const Checkbox = {
       }
     }
   })
-}
+})

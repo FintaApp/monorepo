@@ -2,13 +2,13 @@ import {
   Stack
 } from "@chakra-ui/react";
 import { AiFillBank, AiOutlineLineChart } from 'react-icons/ai';
-import { Products } from "plaid";
 
-import { LargeIconButton } from "~/components/LargeIconButton";
+import { LargeIconButton } from "~/components/Common/LargeIconButton";
+import { PlaidProduct } from "~/types";
 
 interface SelectBankTypeProps {
-  onClick: (product: Products ) => void;
-  loadingProduct: Products | null
+  onClick: (product: PlaidProduct ) => void;
+  loadingProduct: PlaidProduct | undefined
 }
 
 export const SelectBankType = ({ onClick, loadingProduct }: SelectBankTypeProps) => (
@@ -17,14 +17,14 @@ export const SelectBankType = ({ onClick, loadingProduct }: SelectBankTypeProps)
       label = "Bank Account"
       Icon = { AiFillBank }
       description =  "Import bank account balances and transactions"
-      onClick = { () => onClick('transactions' as Products) }
+      onClick = { () => onClick('transactions') }
       isLoading = { loadingProduct === "transactions" }
     />
     <LargeIconButton
       label = "Investment Account"
       Icon = { AiOutlineLineChart }
       description =  "Import investment and crypto holdings and transactions"
-      onClick = { () => onClick('investments' as Products) }
+      onClick = { () => onClick('investments') }
       isLoading = { loadingProduct === "investments" }
     />
   </Stack>

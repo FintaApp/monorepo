@@ -1,5 +1,5 @@
 import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { mode } from "./mode";
 
 export const styles = {
   global: (props: StyleFunctionProps) => ({

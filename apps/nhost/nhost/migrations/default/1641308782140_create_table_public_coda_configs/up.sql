@@ -1,2 +1,0 @@
-CREATE TABLE "public"."coda_configs" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamptz NOT NULL DEFAULT now(), "access_token_hash" text NOT NULL, "destination_id" uuid NOT NULL, "is_ready" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id") , FOREIGN KEY ("destination_id") REFERENCES "public"."destinations"("id") ON UPDATE restrict ON DELETE cascade, UNIQUE ("access_token_hash"));
-CREATE EXTENSION IF NOT EXISTS pgcrypto;

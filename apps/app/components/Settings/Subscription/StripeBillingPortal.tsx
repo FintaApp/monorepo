@@ -1,28 +1,21 @@
-import { useState } from "react";
 import { Button } from "@chakra-ui/react";
-import { useLogger } from "~/utils/frontend/useLogger";
 import { useRouter } from "next/router";
 
-import { createBillingPortalSession } from "~/utils/frontend/functions";
+import { trpc } from "~/lib/trpc";
 
 export const StripeBillingPortal = () => {
-  const logger = useLogger();
   const router = useRouter();
 
-  const [ isLoading, toggleIsLoading ] = useState(false);
+  const { mutateAsync, isLoading } = trpc.stripe.createBillingPortalSession.useMutation();
 
-  const loadPortal = () => {
-    toggleIsLoading(true);
+  const onClick = () => {
     const returnUrl = window.location.href;
-
-    createBillingPortalSession({ returnUrl })
-    .then(({ url }) => router.push(url))
-    .catch(error => logger.error(error, {}, true))
-    .finally(() => toggleIsLoading(false))
+    mutateAsync({ returnUrl })
+      .then(({ url }) => router.push(url) )
   }
 
   return (
-    <Button width = {{ base: 'full', md: 'xs' }} variant = "outline" size = "sm" isLoading = { isLoading } onClick = { loadPortal }>
+    <Button width = {{ base: 'full', md: 'xs' }} variant = "outline" size = "sm" isLoading = { isLoading } onClick = { onClick }>
       Manage Subscription
     </Button>
   )

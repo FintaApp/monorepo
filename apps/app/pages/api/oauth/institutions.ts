@@ -1,62 +1,77 @@
-import * as formatter from "~/utils/backend/formatter";
-import { graphql } from "~/graphql/backend";
-import { wrapper } from "~/utils/backend/apiWrapper";
+import { SyncError, SyncTrigger, Table } from "@prisma/client";
+import _ from "lodash";
 
-import { getOauthPlaidItems } from "./_helpers";
 import { OauthGetInstitutionsResponse } from "@finta/shared";
 
-export default wrapper('oauth', async ({ req, destination, plaidEnv, logger }) => {
-  const trigger = 'destination'
-  const syncLog = await graphql.InsertSyncLog({ sync_log: { 
-    trigger,
-    destination_sync_logs: { data: [{ destination_id: destination.id }]},
-    metadata: { 'target_table': 'institutions' }
-  }}).then(response => response.sync_log!);
-  logger.addContext({ syncLogId: syncLog.id });
+import { wrapper } from "~/lib/apiWrapper";
+import { db } from "~/lib/db";
+import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
+import * as formatter from "~/lib/integrations/coda/formatter";
+import { logSyncCompleted } from "~/lib/logsnag";
+import { trackSyncCompleted } from "~/lib/analytics";
+import { SyncMetadata } from "~/types";
 
-  return getOauthPlaidItems(destination.id, undefined, true)
-  .then(async data => {
-    const items = data.plaid_items.map(item => formatter.coda.institution({ item }));
-    await Promise.all([
-      graphql.InsertPlaidItemSyncLogs({ 
-      plaid_item_sync_logs: items.map(item => ({ 
-        plaid_item_id: item.id,
-        sync_log_id: syncLog.id,
-      }))
-    }),
-    logger.logSyncCompleted({
+export default wrapper(async ({ req, logger }) => {
+  const trigger = SyncTrigger.Destination;
+  const { destination, hasAppAccess } = await getDestinationFromRequest({ req, logger });
+  if ( !destination ) { return { status: 404, message: "Destination not found" }};
+
+  logger.info("Fetched destination", { destination, hasAppAccess });
+
+  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Institutions } as SyncMetadata }
+
+  if ( !hasAppAccess ) {
+    return db.sync.create({ data: {
+      ...syncData,
+      error: SyncError.NoSubscription,
+      isSuccess: false,
+      endedAt: new Date()
+    }})
+    .then(sync => {
+      logger.info("Sync created", { sync });
+      return { status: 200, message: "OK"}
+    });
+  }
+
+  const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
+  const sync = await db.sync.create({
+    data: {
+      ...syncData,
+      results: {
+        createMany: {
+          data: plaidItems.map(item => ({
+            plaidItemId: item.id,
+            destinationId: destination.id,
+            shouldSyncInstitution: true,
+            institutionsAdded: 1
+          }))
+        }
+      }
+    }
+  }).then(sync => { logger.info("Created sync", { sync }); return sync; });
+
+  const formattedItems = plaidItems.map(item => formatter.institution({ item }));
+
+  await Promise.all([
+    db.sync.update({ where: { id: sync.id }, data: { isSuccess: true, endedAt: new Date() }}),
+
+    logSyncCompleted({
       userId: destination.user.id,
       trigger,
-      isSuccess: true,
-      integration: destination.integration.id,
-      institutionsSynced: items.length,
-      syncLogId: syncLog.id,
+      integration: destination.integration,
+      institutionsSynced: plaidItems.length,
+      syncId: sync.id,
       destinationId: destination.id,
-      targetTable: "institutions"
     }),
-    graphql.UpdateSyncLog({
-      sync_log_id: syncLog.id,
-      _set: {
-        is_success: true,
-        ended_at: new Date()
-      }
-    })
-  ])
 
-    return { status: 200, message: { institutions: items }}
-  })
-  .catch(async error => {
-    await graphql.UpdateSyncLog({
-      sync_log_id: syncLog.id,
-      _set: {
-        error: {
-          error_code: 'internal_error'
-        },
-        is_success: false,
-        ended_at: new Date()
-      }
-    });
-    logger.error(error)
-    return { status: 500, message: "Internal Error" }
-  });
-})
+    trackSyncCompleted({ 
+      userId: destination.user.id, 
+      trigger, 
+      integration: destination.integration, 
+      institutionsSynced: plaidItems.length, 
+      destinationId: destination.id 
+    })
+  ]);
+
+  return { status: 200, message: { institutions: formattedItems } as OauthGetInstitutionsResponse}
+});

@@ -1,8 +1,11 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { menuAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+import { mode } from '../mode';
 
-export const Menu = {
-  baseStyle: (props: StyleFunctionProps) => ({
+const { defineMultiStyleConfig } = createMultiStyleConfigHelpers(menuAnatomy.keys)
+
+export const Menu: any = defineMultiStyleConfig({
+  baseStyle: (props) => ({
     list: {
       boxShadow: "sm",
       px: 2,
@@ -24,4 +27,4 @@ export const Menu = {
       }
     }
   })
-};
+});

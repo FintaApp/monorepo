@@ -9,5 +9,6 @@ module.exports = withAxiom({
         permanent: true,
       },
     ]
-  }
+  },
+  experimental: { esmExternals: true }
 });

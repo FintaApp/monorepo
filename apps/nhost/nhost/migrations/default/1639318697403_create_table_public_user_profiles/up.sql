@@ -1,1 +1,0 @@
-CREATE TABLE "public"."user_profiles" ("user_id" uuid NOT NULL, "stripe_customer_id" text NOT NULL, PRIMARY KEY ("user_id") , FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON UPDATE restrict ON DELETE cascade);

@@ -1,1 +1,0 @@
-CREATE TABLE "public"."notion_connections" ("bot_id" text NOT NULL, "access_token" text NOT NULL, "workspace_id" text NOT NULL, "workspace_name" text, "workspace_icon" text, "owner" jsonb NOT NULL, "user_id" uuid NOT NULL, PRIMARY KEY ("bot_id") , FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON UPDATE restrict ON DELETE cascade);

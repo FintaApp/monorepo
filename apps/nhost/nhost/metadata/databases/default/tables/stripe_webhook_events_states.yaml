@@ -1,4 +1,0 @@
-table:
-  name: webhook_events_states
-  schema: stripe
-is_enum: true

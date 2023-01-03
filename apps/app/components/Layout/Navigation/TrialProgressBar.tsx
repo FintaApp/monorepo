@@ -1,13 +1,12 @@
 import { Box, Fade, Link, Progress, Stack, StackProps, Text } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import moment from "moment-timezone";
-import { useAuth } from '~/utils/frontend/useAuth';
+import { useUser } from "~/lib/context/useUser";
 
 export const TrialProgressBar = ({ ...props }: StackProps) => {
-  const { user } = useAuth();
+  const { user, subscription, trialEndsAt, customer } = useUser();
 
   if ( !user ) { return <></> }
-  const { subscription, trialEndsAt, customer } = user.profile.stripeData
 
   if ( subscription && ['active', 'canceled', 'incomplete_expired'].includes(subscription.status)) { return <></> }
   if ( subscription && !subscription.trialStartedAt && !subscription.trialEndedAt ) { return <></> }

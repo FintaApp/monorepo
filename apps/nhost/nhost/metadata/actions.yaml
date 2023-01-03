@@ -1,8 +1,0 @@
-actions: []
-custom_types:
-  enums: []
-  input_objects: []
-  objects:
-    - name: SetupUserResponse
-  scalars:
-    - name: uuid

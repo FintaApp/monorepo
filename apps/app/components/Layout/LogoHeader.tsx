@@ -1,7 +1,7 @@
 import { VStack } from "@chakra-ui/react";
 
-import { Heading } from "../Heading";
-import { Logo, LogoProps } from "../Logo";
+import { Heading } from "../Common/Heading";
+import { Logo, LogoProps } from "../Common/Logo";
 
 interface LogoHeaderProps extends LogoProps {
   title: string;

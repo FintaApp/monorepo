@@ -1,22 +1,14 @@
-import { StyleFunctionProps } from "@chakra-ui/react";
-import { mode } from '@chakra-ui/theme-tools';
+import { accordionAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers,  } from '@chakra-ui/react';
 
-export const Accordion = {
-  baseStyle: (props: StyleFunctionProps) => ({
-    container: {
-      border: "none"
-    },
-    button: {
-      _focus: {
-        boxShadow: "none"
-      },
-      _hover: {
-        bg: mode('gray.light.10', 'gray.dark.1')
-      },
-    },
-    item: {
-      //border: "none"
-      border: "1px"
-    }
-  }),
-};
+const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(accordionAnatomy.keys)
+
+const baseStyle = definePartsStyle(({ colorMode }) => ({
+  container: { border: 'none' },
+  button: {
+    _focus: { boxShadow: 'none' },
+    _hover: { bg: colorMode === 'light' ? 'gray.light.1' : 'gray.dark.1' }
+  }
+}));
+
+export const Accordion: any = defineMultiStyleConfig({ baseStyle })
