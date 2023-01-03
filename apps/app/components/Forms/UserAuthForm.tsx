@@ -3,7 +3,7 @@ import { Box, FormLabel, FormControl, Link, VStack, Button, FormErrorMessage, Te
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { IAuthSchema, authSchema } from "~/lib/validation/forms";
@@ -33,8 +33,10 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
   const { register, handleSubmit, formState, setError, getValues } = useForm<IAuthSchema>({ resolver: zodResolver(authSchema) });
   const [ isLoading, setIsLoading ] = useState(false);
   const [ isEmailSent, setIsEmailSent ] = useState(false);
+  const router = useRouter();
 
   const searchParams = useSearchParams();
+  const onLoginUrl = searchParams.get('next') || '/destinations';
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -45,7 +47,7 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
       name: provider === 'credentials' && mode === 'signup' && data.name,
       mode,
       redirect: false,
-      callbackUrl: searchParams.get('next') || '/destinations'
+      callbackUrl: onLoginUrl
     }).finally(() => setIsLoading(false));
 
     if ( !result?.ok) {
@@ -61,6 +63,8 @@ export const UserAuthForm = ({ mode }: UserAuthFormProps) => {
         message: "We sent you a login link. Be sure to check your spam too."
       })
     }
+
+    if ( provider === 'credentials' ) { router.push(onLoginUrl)}
   }
 
   const isNameInputVisible = mode === 'signup' && provider === 'credentials';
