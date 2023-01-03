@@ -80,7 +80,7 @@ export default wrapper(async ({ req, logger }) => {
         ...syncData,
         results: {
           create: plaidItems.map(item => ({
-            plaidItemid: item.id,
+            plaidItemId: item.id,
             destinationId: destination.id,
             shouldSyncTransactions: (item.billedProducts as string[]).concat(item.availableProducts as string[]).includes('transactions')
           }))
