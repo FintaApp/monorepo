@@ -29,7 +29,12 @@ export const notionRouter = router({
       const { access_token, bot_id, workspace_name, workspace_icon, workspace_id, owner } = response.data;
       const connectionExists = await db.notionCredential.findFirst({ where: { botId: bot_id }}).then(Boolean);
       const connection = await db.notionCredential.upsert({ 
-        where: { botId: bot_id },
+        where: { 
+          botId_userId: {
+            botId: bot_id,
+            userId
+          }
+         },
         create: {
           userId,
           botId: bot_id,
