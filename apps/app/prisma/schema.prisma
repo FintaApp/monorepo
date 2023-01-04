@@ -69,6 +69,7 @@ model User {
   airtableAuthorizationCache AirtableAuthorizationCache?
   plaidItems        PlaidItem[]
   syncs             Sync[]
+  notionCredetials NotionCredential[]
 
   @@map("users")
 }
@@ -260,8 +261,9 @@ model GoogleSheetsCredential {
 
 model NotionCredential {
   id                          String      @id @default(uuid())
-  botId                       String      @unique @map("bot_id")
+  botId                       String      @map("bot_id")
   userId                      String      @map("user_id")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken                 String      @map("access_token")
   workspaceId                 String      @map("workspace_id")
   workspaceName               String?     @map("workspace_name")
@@ -270,7 +272,10 @@ model NotionCredential {
   createdAt                   DateTime    @default(now()) @map("created_at")
   updatedAt                   DateTime    @updatedAt @map("updated_at")
   destinations                Destination[]
+
   @@map("notion_credentials")
+  @@index([userId])
+  @@unique([botId, userId])
 }
 
 model Sync {

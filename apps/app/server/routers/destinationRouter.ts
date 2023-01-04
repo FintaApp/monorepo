@@ -103,7 +103,7 @@ export const destinationRouter = router({
       const destination = await db.destination.create({
         data: {
           airtableCredential: integration === Integration.Airtable ? { create: { baseId: airtableBaseId! }} : undefined,
-          notionCredential: integration === Integration.Notion ? { connect: { botId: notionBotId! }} : undefined,
+          notionCredential: integration === Integration.Notion ? { connect: { botId_userId: { botId: notionBotId!, userId } }} : undefined,
           googleSheetsCredential: integration === Integration.Google ? { create: { spreadsheetId: googleSpreadsheetId! }} : undefined,
           codaCredential: integration === Integration.Coda ? { connect: { id: codaCredentialId }} : undefined,
           integration,
