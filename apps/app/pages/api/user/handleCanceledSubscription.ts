@@ -23,7 +23,7 @@ export default wrapper(async ({ req, logger }) => {
     const traits = {
       unsubscribed: true,
       email: "",
-      name: "",
+      name: "Deleted User",
       deleted_at: new Date()
     }
     const identifyPromise = identify({

@@ -2,8 +2,8 @@ import Stripe from "stripe";
 import moment from "moment-timezone";
 
 import * as baremetrics from "../baremetrics";
-import { formatSubscriptionForIdentify, backendIdentify as identify, trackSubscriptionRenewed, trackSubscriptionCanceled } from "../analytics";
-import { logSubscriptionRenewed, logSubscriptionCanceled, logsnagInsight, logUnhandledEvent } from "../logsnag";
+import { formatSubscriptionForIdentify, backendIdentify as identify, trackSubscriptionRenewed, trackSubscriptionCanceled, trackSubscriptionStarted } from "../analytics";
+import { logSubscriptionRenewed, logSubscriptionCanceled, logsnagInsight, logUnhandledEvent, logSubscriptionStarted } from "../logsnag";
 import { calculateTrialEndsAt } from "../stripe";
 import { db } from "../db";
 
@@ -11,7 +11,7 @@ export const handleCustomerSubscriptionUpdated = async (
   { subscription, customer, userId, timestamp, previousAttributes } : 
   { subscription: Stripe.Subscription; customer: Stripe.Customer; userId: string; timestamp: Date; previousAttributes: Record<string, any> }
 ) => {
-  const { cancel_at_period_end: previousCancelAtPeriodEnd } = previousAttributes as Record<string, any>;
+  const { cancel_at_period_end: previousCancelAtPeriodEnd, status: previousStatus } = previousAttributes as Record<string, any>;
 
   const traits = {
     ...formatSubscriptionForIdentify({ subscription }),
@@ -29,11 +29,18 @@ export const handleCustomerSubscriptionUpdated = async (
     ])
   }
 
-  if ( !previousCancelAtPeriodEnd && !!subscription.cancel_at_period_end ) {
+  if ( previousCancelAtPeriodEnd === false && !!subscription.cancel_at_period_end ) {
     const remainingDays = moment.unix(subscription.current_period_end).diff(moment(), 'days');
     await Promise.all([
       trackSubscriptionCanceled({ userId, plan, timestamp, remainingDays }),
       logSubscriptionCanceled({ userId, plan })
+    ])
+  }
+
+  if ( previousStatus === 'incomplete' && subscription.status === 'active' ) {
+    await Promise.all([
+      trackSubscriptionStarted({ userId, plan, remainingTrialDays: 0, timestamp }),
+      logSubscriptionStarted({ userId, plan, remainingTrialDays: 0 })
     ])
   }
 
