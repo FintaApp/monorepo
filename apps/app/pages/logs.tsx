@@ -11,13 +11,13 @@ import { Sync } from "~/components/Syncs";
 
 const Logs = () => {
   const { isAuthenticated } = useUser();
-  const [ offset, setOffset ] = useState(0);
+  const [ page, setPage ] = useState(0);
   const pageSize = 10;
-  const { data, isLoading, refetch, isRefetching } = trpc.syncs.getSyncs.useQuery({ take: pageSize, skip: offset }, { enabled: isAuthenticated })
+  const { data, isLoading, refetch, isRefetching } = trpc.syncs.getSyncs.useQuery({ take: pageSize, skip: page * pageSize }, { enabled: isAuthenticated })
 
   const totalSyncs = data?.totalSyncs;
   const syncs = data?.syncs;
-  const hasMore = ((offset + 1) * pageSize) <= (totalSyncs || 0)
+  const hasMore = ((page + 1) * pageSize) <= (totalSyncs || 0)
   return (
     <>
       <PageHeader title = "Syncs">
@@ -42,8 +42,8 @@ const Logs = () => {
 
                 <HStack mt = '8' justifyContent = 'center'>
                   <ButtonGroup spacing = '2' size = 'sm' variant = 'primaryOutline'>
-                    <Button onClick = { () => setOffset(prev => prev - 1)} isDisabled = { offset === 0 }>Prev</Button>
-                    <Button onClick = { () => setOffset(prev => prev + 1)} isDisabled = { !hasMore }>Next</Button>
+                    <Button onClick = { () => setPage(prev => prev - 1)} isDisabled = { page === 0 }>Prev</Button>
+                    <Button onClick = { () => setPage(prev => prev + 1)} isDisabled = { !hasMore }>Next</Button>
                   </ButtonGroup>
                 </HStack>
               </>
