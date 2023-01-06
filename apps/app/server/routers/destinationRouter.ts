@@ -429,7 +429,8 @@ export const destinationRouter = router({
           data: {
             trigger,
             triggerDestinationId: destinationId,
-            userId: user.id
+            userIdOld: user.id,
+            userIdNew: user.id
           }
         })
         logger.info("Created sync", { sync });

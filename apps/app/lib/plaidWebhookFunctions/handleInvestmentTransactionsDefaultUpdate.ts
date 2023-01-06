@@ -29,7 +29,8 @@ export const handleInvestmentTransactionsDefaultUpdate = async ({ item, destinat
     data: {
       trigger,
       triggerPlaidItemId: item.id,
-      userId: item.userId,
+      userIdOld: item.userId,
+      userIdNew: item.userId,
       results: {
         createMany: {
           data: filteredDestinations.map(destination => ({

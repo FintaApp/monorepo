@@ -24,7 +24,7 @@ export default wrapper(async ({ req, logger }) => {
 
   logger.info("Fetched destination", { destination, hasAppAccess });
 
-  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.InvestmentTransactions } as SyncMetadata }
+  const syncData = { trigger, triggerDestinationId: destination.id, userIdOld: destination.userId, userIdNew: destination.userId, metadata: { targetTable: Table.InvestmentTransactions } as SyncMetadata }
 
   if ( !hasAppAccess ) {
     return db.sync.create({ data: {
