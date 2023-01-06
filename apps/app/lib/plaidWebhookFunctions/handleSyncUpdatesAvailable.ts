@@ -35,8 +35,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
     data: {
       trigger,
       triggerPlaidItemId: item.id,
-      userIdOld: item.userId,
-      userIdNew: item.userId,
+      userId: item.userId,
       results: {
         createMany: {
           data: filteredDestinations.map(destination => ({

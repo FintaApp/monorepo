@@ -285,9 +285,8 @@ model Sync {
   error                       SyncError?
   errorMetadata               Json?       @map("error_metadata")
   metadata                    Json?       
-  userIdOld                   String      @map("userId")
-  userIdNew                   String?     @map("user_id")
-  user                        User        @relation(fields: [userIdOld], references: [id], onDelete: Cascade)
+  userId                      String      @map("user_id")
+  user                        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   triggerDestinationId        String?     @map("trigger_destination_id")
   triggerPlaidItemId          String?     @map("trigger_plaid_item_id")
   createdAt                   DateTime    @default(now()) @map("created_at")
@@ -300,7 +299,7 @@ model Sync {
   @@map("syncs")
   @@index([triggerDestinationId])
   @@index([triggerPlaidItemId])
-  @@index([userIdOld])
+  @@index([userId])
 }
 
 model SyncResult {

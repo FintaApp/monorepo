@@ -11,8 +11,8 @@ export const syncRouter = router({
     )
     .query(async ({ ctx: { user, db }, input: { skip, take }}) => {
       return Promise.all([
-        db.sync.aggregate({ where: { userIdOld: user.id }, _count: true }),
-        db.sync.findMany({ skip, take, where: { userIdOld: user.id }, 
+        db.sync.aggregate({ where: { userId: user.id }, _count: true }),
+        db.sync.findMany({ skip, take, where: { userId: user.id }, 
           include: { 
             results: {
               include: {

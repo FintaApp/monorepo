@@ -29,8 +29,7 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
       data: {
         trigger,
         triggerPlaidItemId: item.id,
-        userIdOld: item.userId,
-        userIdNew: item.userId,
+        userId: item.userId,
         results: {
           createMany: {
             data: filteredDestinations.map(destination => ({

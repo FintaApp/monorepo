@@ -26,8 +26,7 @@ export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logge
     data: {
       trigger,
       triggerPlaidItemId: item.id,
-      userIdOld: item.userId,
-      userIdNew: item.userId,
+      userId: item.userId,
       results: {
         createMany: {
           data: filteredDestinations.map(destination => ({
