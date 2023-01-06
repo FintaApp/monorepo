@@ -72,7 +72,13 @@ export default wrapper(async ({ req, logger }) => {
 
   return Promise.all(plaidItems.map(async item => {
     const getItemActiveAccountsResponse = await getItemActiveAccounts({ item, logger });
-    if ( getItemActiveAccountsResponse.hasAuthError ) { return ({ accounts: [] as OauthAccount[], hasAuthError: true, itemId: item.id }) }
+    if ( getItemActiveAccountsResponse.hasAuthError ) { 
+      await db.syncResult.update({ 
+        where: { syncId_plaidItemId_destinationId: { syncId: sync.id, plaidItemId: item.id, destinationId: destination.id }},
+        data: { error: SyncError.ItemError }
+      })
+      return ({ accounts: [] as OauthAccount[], hasAuthError: true, itemId: item.id }) 
+    }
 
     const destinationPlaidAccountIds = _.union(
       getItemActiveAccountsResponse.accountIds,
@@ -102,7 +108,7 @@ export default wrapper(async ({ req, logger }) => {
       liabilities = await getLiabilities({ accessToken, options })
         .then(response => response.data.liabilities)
         .catch(async err => {
-          const error = err.response.error as PlaidError;
+          const error = err.response.data as PlaidError;
           if ( !['NO_LIABILITY_ACCOUNTS'].includes(error.error_code) ) {
             logger.error(err, { data: error })
           };
