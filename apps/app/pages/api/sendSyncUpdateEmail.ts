@@ -11,14 +11,6 @@
 
 // import { appRouter } from "~/server/routers";
 
-// const frequencyToMomentUnit = {
-//   [Frequency.Daily]: 'day' as moment.unitOfTime.DurationConstructor,
-//   [Frequency.Weekly]: 'isoWeek' as moment.unitOfTime.DurationConstructor,
-//   [Frequency.Monthly]: 'month' as moment.unitOfTime.DurationConstructor,
-//   [Frequency.Quarterly]: 'quarter' as moment.unitOfTime.DurationConstructor,
-//   [Frequency.Yearly]: 'year' as moment.unitOfTime.DurationConstructor
-// }
-
 // const integrationLogos = {
 //   'coda': "https://verxjplbkfvenqdmjbfv.nhost.run/v1/storage/files/a22fb763-424f-43bb-a938-3830c7ed2e38",
 //   'airtable': "https://verxjplbkfvenqdmjbfv.nhost.run/v1/storage/files/6e33939d-8438-4d76-bc3d-a2a430573f90",
@@ -32,60 +24,6 @@
 // }
 
 // export default wrapper('public', async function handler({ req, logger }) {
-//   const router = appRouter.createCaller({
-//     req,
-//     logger,
-//     db
-//   });
-//   const userId = req.body.userId;
-//   if ( !userId ) { return { status: 400, message: "Missing user ID" }}
-
-//   // Fetch user;
-//   const user = await db.user.findFirstOrThrow({ where: { id: userId }})
-//     .then(response => {
-//       logger.info("Fetched user", { response });
-//       return response;
-//     })
-
-//   const { timezone, periodicUpdatesFrequency: frequency, isSubscribedPeriodicUpdates, periodicUpdatesJobId } = user;
-//   if ( !isSubscribedPeriodicUpdates ) {
-//     periodicUpdatesJobId && await easyCron.disableJob({ jobId: periodicUpdatesJobId });
-//     return { status: 200, message: "OK" }
-//   }
-
-//   const { start, end } = getTimePeriod(timezone || 'America/New_York', frequency || Frequency.Weekly);
-
-//   // Fetch Other Data
-//   const [
-//     { email, trialEndsAt, subscription, hasAppAccess },
-//     { plaidItems },
-//     { destinations },
-//     { sync_logs }
-//   ] = await Promise.all([
-//     db.user.findFirstOrThrow({ where: { id: userId }, select: { email: true, stripeCustomerId: true }})
-//       .then(async user => {
-//         const customerId = user.stripeCustomerId;
-//         const { trialEndsAt, subscription, hasAppAccess } = await router.stripe.getSubscription({ customerId });
-//         return { email: user.email, trialEndsAt, subscription, hasAppAccess }
-//       }),
-//     graphql.GetPlaidItems({ where: { user_id: { _eq: userId }, disabled_at: { _is_null: true }}, accounts_where: { is_closed: { _eq: false }}})
-//       .then(response => {
-//         logger.info("Plaid items fetched", { response });
-//         return response
-//       }),
-//     graphql.GetDestinations({ where: { user_id: { _eq: userId }, disabled_at: { _is_null: true }}})
-//       .then(response => {
-//         logger.info("Destinations fetched", { response });
-//         return response
-//       }),
-//     graphql.GetUserSyncLogs({ userId, start: start.toDate(), end: end.toDate() })
-//       .then(response => {
-//         logger.info("Sync logs fetched", { response })
-//         return response
-//       })
-//   ]);
-
-//   if ( !hasAppAccess ) { return { status: 200, message: 'OK' }}
 
 //   await cio.sendTransactionalEmail({ messageKey: cio.TRANSACTIONAL_EMAILS.SYNC_UPDATE, user: { id: userId, email }, logger, data: {
 //     start: start.format("LL"),
@@ -171,12 +109,5 @@
 //   return { start, end }
 // }
 
-// const getTimePeriodString = (dateMoment: Moment, frequency: Frequency ) => {
-//   if ( frequency === Frequency.Daily ) { return dateMoment.format("LL") }
-//   if ( frequency === Frequency.Weekly ) { return dateMoment.format("[Week] W, YYYY") }
-//   if ( frequency === Frequency.Monthly ) { return dateMoment.format("MMMM YYYY")}
-//   if ( frequency === Frequency.Quarterly ) { return dateMoment.format("[Q]Q YYYY") }
-//   if ( frequency === Frequency.Yearly ) { return dateMoment.format("[Year] YYYY")}
-// }
-
 export {};
+

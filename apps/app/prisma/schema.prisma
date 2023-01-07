@@ -59,7 +59,7 @@ model User {
   isSubscribedGeneral         Boolean     @default(true) @map("is_subscribed_general")
   isSubscribedPeriodicUpdates Boolean     @default(true) @map("is_subscribed_periodic_updates")
   periodicUpdatesFrequency    Frequency   @default(Weekly) @map("periodic_updates_frequency")
-  periodicUpdatesJobId        String?     @map("periodic_updates_job_id")
+  sendNextPeriodicUpdateEmailAt DateTime? @map("send_next_periodic_update_email_at")
 
   accounts          Account[]
   destinations      Destination[]

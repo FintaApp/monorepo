@@ -45,9 +45,7 @@ export const stripeRouter = router({
 
       const formattedCustomer = { id: customer!.id, createdAt: moment.unix(customer!.created).toDate() };
 
-      const hasAppAccess = subscription 
-      ? [ "active", "incomplete", "past_due", "trialing"].includes(subscription.status)
-      : moment(trialEndsAt).isSameOrAfter(moment());
+      const hasAppAccess = stripe.calculateHasAppAccess({ subscription, trialEndsAt });
 
       return { customer: formattedCustomer, subscription: formattedSubscription, hasAppAccess, trialEndsAt }
     }),

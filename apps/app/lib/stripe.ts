@@ -13,11 +13,8 @@ export const getCustomerByEmail = ({ email }: { email: string }) =>
 export const createCustomer = ({ email }: { email: string }) =>
   client.customers.create({ email })
 
-export const getCustomer = async ({ email, customerId }: { email?: string; customerId?: string }) => {
-  if (!(email || customerId)) { throw new Error("Must provide email or customerId") }
-  if ( customerId ) { return client.customers.retrieve(customerId) }
-  if ( email ) { return client.customers.list({ email }).then(response => response.data[0]) }
-}
+export const getCustomer = async ({ customerId }: { customerId: string }) => 
+  client.customers.retrieve(customerId).then(customer => customer as Stripe.Customer)
 
 export const getCustomerSubscription = ({ customerId: customer }: { customerId: string; }) =>
   client.subscriptions.list({ customer, limit: 1, status: 'all' }).then(response => response.data[0])
@@ -31,6 +28,11 @@ export const calculateTrialEndsAt = ({ customer, subscriptionTrialEndsAt }: { cu
     : moment.unix(customer!.created).add(14, 'days').toDate()
   }
 }
+
+export const calculateHasAppAccess = ({ subscription, trialEndsAt }: { subscription?: Stripe.Subscription; trialEndsAt: Date}) =>
+  subscription 
+    ? [ "active", "incomplete", "past_due", "trialing"].includes(subscription.status)
+    : moment(trialEndsAt).isSameOrAfter(moment());
 
 export const updateCustomer = async ({ customerId, properties = {} }: { 
   customerId: string;
