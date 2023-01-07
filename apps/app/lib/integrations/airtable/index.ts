@@ -48,7 +48,7 @@ export class Airtable extends IntegrationBase {
     const token = await db.airtableToken.findFirstOrThrow({ where: { userId }})
       .then(async token => {
         if ( moment(token.accessTokenExpiresAt).isAfter(moment().add('5', 'minutes')) ) { return token; };
-
+        
         // Refresh token
         const data = await axios.post(
           'https://www.airtable.com/oauth2/v1/token', 
@@ -127,7 +127,7 @@ export class Airtable extends IntegrationBase {
       .then(() => ({ isValid: true, errors: [] }))
       .catch(async (err: AirtableError) => {
         const error = await parseAirtableError(err, tableId, table);
-        return { isValid: false, errors: [ error ] }
+        return { isValid: false, error }
       })
   }
 
