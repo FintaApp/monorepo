@@ -183,7 +183,7 @@ export const nextAuthOptions: NextAuthOptions = {
 
       const dbUser = user as User; // need to re-type since createUser user model only has email, id and name
 
-      const { email, name, id: userId, stripeCustomerId: customerId, createdAt, timezone, isSubscribedGeneral, isSubscribedPeriodicUpdates, periodicUpdatesFrequency, periodicUpdatesJobId } = dbUser;
+      const { email, name, id: userId, stripeCustomerId: customerId, createdAt, timezone, isSubscribedGeneral, isSubscribedPeriodicUpdates, periodicUpdatesFrequency } = dbUser;
       // Update Stripe Customer
       const customer = await updateCustomer({ customerId, properties: { name: name || undefined, metadata: { user_id: userId }} });
 
