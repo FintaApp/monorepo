@@ -56,7 +56,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
   logger.debug("Destination fetched", { destination })
 
   const trigger = SyncTrigger.Destination;
-  const syncId = req.body?.syncId ? req.body.syncId as string : (
+  const syncId = req.body?.data?.syncId ? req.body?.data?.syncId as string : (
     targetTable
     ? await db.sync.create({ data: {
       trigger,
