@@ -1,92 +1,31 @@
 import moment from "moment-timezone";
-import { SyncError, SyncTrigger, Table } from "@prisma/client";
+import { SyncError, Table } from "@prisma/client";
 import _ from "lodash";
 
 import { GetTransactionsNextContinuation, OauthTransaction } from "@finta/shared";
 
-import { wrapper } from "~/lib/apiWrapper";
+import { oauthFunctionWrapper } from "~/lib/functionWrappers";
 import { db } from "~/lib/db";
 import { getTransactions } from "~/lib/plaid";
-import { getDestinationFromRequest } from "~/lib/getDestinationFromRequest";
 import { getItemActiveAccounts } from "~/lib/getItemActiveAccounts";
 import { Transaction, TransactionsGetRequestOptions } from "plaid";
 import { handlePlaidError } from "./_helpers";
 import * as formatter from "~/lib/integrations/coda/formatter"
 import { logSyncCompleted } from "~/lib/logsnag";
 import { trackSyncCompleted } from "~/lib/analytics";
-import { SyncMetadata } from "~/types";
 
 
-export default wrapper(async ({ req, logger }) => {
-  const trigger = SyncTrigger.Destination;
-  const { destination, hasAppAccess } = await getDestinationFromRequest({ req, logger });
-  if ( !destination ) { return { status: 404, message: "Destination not found" }};
-
-  logger.info("Fetched destination", { destination, hasAppAccess });
-
-  const syncData = { trigger, triggerDestinationId: destination.id, userId: destination.userId, metadata: { targetTable: Table.Transactions } as SyncMetadata }
-
-  if ( !hasAppAccess ) {
-    return db.sync.create({ data: {
-      ...syncData,
-      error: SyncError.NoSubscription,
-      isSuccess: false,
-      endedAt: new Date()
-    }})
-    .then(sync => {
-      logger.info("Sync created", { sync });
-      return { status: 200, message: "OK"}
-    });
-  }
-
-  const tableConfig = destination.tableConfigs.find(config => config.table === Table.Transactions) || { isEnabled: false };
-  if ( !tableConfig.isEnabled ) {
-    return db.sync.create({ data: { 
-        ...syncData,
-        isSuccess: false, 
-        error: SyncError.TransactionsDisabled, 
-        endedAt: new Date()
-      }})
-      .then(sync => {
-        logger.info("Sync created", { sync });
-        return { status: 200, message: "OK" }
-      })
-  }
-
-  const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
-
-  const errorItems = plaidItems.filter(item => item.error === 'ITEM_LOGIN_REQUIRED');
-  if ( errorItems.length > 0 ) {
-    return db.sync.create({ data: {
-      ...syncData,
-      isSuccess: false,
-      error: SyncError.ItemError,
-      endedAt: new Date(),
-      results: { createMany: { data: errorItems.map(item => ({ plaidItemId: item.id, error: SyncError.ItemError, destinationId: destination.id }))}
-      }
-    }})
-    .then(response => {
-      logger.info("Sync created", { sync: response });
-      return { status: 428, message: "Has Error Item" }
-    })
-  }
-
+export default oauthFunctionWrapper({ targetTable: Table.Transactions, allowItemError: false }, async ({ req, logger, destination, plaidItems, trigger, syncId }) => {
   const body = req.body as GetTransactionsNextContinuation;
-
-  const sync = req.body.data?.syncId 
-    ? { id: body.data.syncId }
-    : (await db.sync.create({
-      data: { 
-        ...syncData,
-        results: {
-          create: plaidItems.map(item => ({
-            plaidItemId: item.id,
-            destinationId: destination.id,
-            shouldSyncTransactions: (item.billedProducts as string[]).concat(item.availableProducts as string[]).includes('transactions')
-          }))
-        }
-      }
-    }).then(sync => { logger.info("Created sync", { sync }); return sync }))
+  await db.syncResult.createMany({
+    data: plaidItems.map(item => ({
+      syncId: syncId!,
+      plaidItemId: item.id,
+      destinationId: destination.id,
+      shouldSyncTransactions: (item.billedProducts as string[]).concat(item.availableProducts as string[]).includes('transactions')
+    })),
+    skipDuplicates: true
+  })
   
   const endDate = moment().format("YYYY-MM-DD");
   const startDate = destination.syncStartDate;
@@ -118,7 +57,7 @@ export default wrapper(async ({ req, logger }) => {
     .then(response => ({ ...response.data, hasAuthError: false }))
     .catch(async error => {
       const errorData = error.response.data;
-      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: sync.id, destinationId: destination.id });
+      const { hasAuthError } = await handlePlaidError({ logger, error: errorData, item, syncId: syncId!, destinationId: destination.id });
       if ( !hasAuthError ) { logger.error(error, { data: errorData })};
       return ({ transactions: [], total_transactions: 0, hasAuthError })
     });
@@ -128,7 +67,7 @@ export default wrapper(async ({ req, logger }) => {
     const newHasMore = newTotalTransactions < total_transactions;
 
     await db.syncResult.update({ 
-      where: { syncId_plaidItemId_destinationId: { syncId: sync.id, plaidItemId: item.id, destinationId: destination.id }},
+      where: { syncId_plaidItemId_destinationId: { syncId: syncId!, plaidItemId: item.id, destinationId: destination.id }},
       data: { transactionsAdded: { increment: formattedTransactions.length }}
     })
 
@@ -142,14 +81,14 @@ export default wrapper(async ({ req, logger }) => {
   }))
   .then(async responses => {
     if ( !!responses.find(response => response.hasAuthError)) { 
-      await db.sync.update({ where: { id: sync.id }, data: { isSuccess: false, error: SyncError.ItemError, endedAt: new Date() }})
+      await db.sync.update({ where: { id: syncId! }, data: { isSuccess: false, error: SyncError.ItemError, endedAt: new Date() }})
       return { status: 428, message: "Has Error Item" }
     };
 
     const shouldContinue = !!responses.find(response => response.hasMore );
     const nextContinuation = shouldContinue 
       ? { data: {
-          syncId: sync.id,
+          syncId: syncId!,
           paginationByItem: responses.map(response => ({
             itemId: response.itemId,
             hasMore: response.hasMore,
@@ -160,14 +99,14 @@ export default wrapper(async ({ req, logger }) => {
 
     if ( !shouldContinue ) {
       await Promise.all([
-        db.sync.update({ where: { id: sync.id }, data: { isSuccess: true, endedAt: new Date() }}),
+        db.sync.update({ where: { id: syncId! }, data: { isSuccess: true, endedAt: new Date() }}),
 
         logSyncCompleted({
           userId: destination.user.id,
           trigger,
           integration: destination.integration,
           institutionsSynced: plaidItems.length,
-          syncId: sync.id,
+          syncId: syncId!,
           destinationId: destination.id,
         }),
 

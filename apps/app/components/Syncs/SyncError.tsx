@@ -15,6 +15,7 @@ const getErrorText = ({ error, errorMetadata }: SyncErrorProps) => {
   if ( error === SyncErrorType.UnknownError ) { return "There was an issue with Finta during this sync." }
   if ( error === SyncErrorType.HoldingsDisabled || error === SyncErrorType.InvestmentTransactionsDisabled ) { return "Unable to sync because investments are disabled for this destination."}
   if ( error === SyncErrorType.TransactionsDisabled ) { return "Unable to sync because investments are disabled for this destination."}
+  if ( error === SyncErrorType.TableDisabled ) { return "Unable to sync because data type is disabled for this destination."}
   
   if ( error === SyncErrorType.MissingTable ) { return `This destination is missing the ${ errorMetadata?.table } table.`}
   if ( error === SyncErrorType.MissingField ) { return `This destination is missing the "${ errorMetadata?.field }" column in the ${ errorMetadata?.tableName || errorMetadata?.table } table.` }

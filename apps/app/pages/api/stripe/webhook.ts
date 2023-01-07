@@ -1,7 +1,7 @@
 import { StripeWebhookEventState } from "@prisma/client";
 import Stripe from "stripe";
 
-import { wrapper } from "~/lib/apiWrapper";
+import { publicFunctionWrapper } from "~/lib/functionWrappers";
 import { db } from "~/lib/db";
 import { getCustomer, validateStripeWebhook } from "~/lib/stripe";
 import * as functions from "~/lib/stripeWebhookFunctions";
@@ -12,7 +12,7 @@ export const config = {
   },
 }
 
-export default wrapper(async function handler({ req, logger }) {
+export default publicFunctionWrapper(async function handler({ req, logger }) {
   const { isValid, event, error } = await validateStripeWebhook(req);
   logger.info("Validated webhook", { isValid, error })
   if ( !isValid || !event ) { return { status: 400, message: error }};

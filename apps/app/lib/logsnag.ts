@@ -42,6 +42,16 @@ export const logUnhandledEvent = (description: string) => logsnagPublish({
   description
 });
 
+export const logError = ({ error, logRequestId }: { error: Error; logRequestId: string; }) =>
+  logsnagPublish({
+    channel: Channel.ERRORS,
+    icon: '❌',
+    event: Event.ERROR,
+    description: `Error: ${error.message}\n[View Logs](https://cloud.axiom.co/finta-dv39/stream/vercel?caseSensitive=0&ig=&q=%7B%22op%22%3A%22and%22%2C%22field%22%3A%22%22%2C%22children%22%3A%5B%7B%22field%22%3A%22fields.requestId%22%2C%22op%22%3A%22%3D%3D%22%2C%22value%22%3A%22${logRequestId}%22%7D%5D%7D)`,
+    notify: true,
+    parser: 'markdown'
+  })
+
 export const logUserSignedUp = ({ name, email, userId }: { name?: string; email: string; userId: string; }) =>
   logsnagPublish({
     channel: Channel.ACTIVITY,
@@ -256,6 +266,7 @@ enum Event {
   DESTINATION_CREATED = "Destination Created",
   DESTINATION_DELETED = "Destination Deleted",
   DESTINATION_ERROR_TRIGGERED = "Destination Error Triggered",
+  ERROR = "Error",
   INSTITUTION_CREATED = "Institution Created",
   INSTITUTION_DELETED = "Institution Deleted",
   INSTITUTION_ERROR_TRIGGERED = "Institution Error Triggered",

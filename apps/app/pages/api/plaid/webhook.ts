@@ -1,9 +1,9 @@
-import { wrapper } from "~/lib/apiWrapper";
+import { publicFunctionWrapper } from "~/lib/functionWrappers";
 import { db } from "~/lib/db";
 import { logUnhandledEvent } from "~/lib/logsnag";
 import * as plaidWebhookFunctions from "~/lib/plaidWebhookFunctions";
 
-export default wrapper(async ({ req, logger }) => {
+export default publicFunctionWrapper(async ({ req, logger }) => {
   const { webhook_type, webhook_code, item_id, asAdmin } = req.body;
   const item = await db.plaidItem.findFirst({ where: { id: item_id }, include: { accounts: true, institution: true, user: true }});
   logger.info("Fetched item", { item });

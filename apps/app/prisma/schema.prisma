@@ -434,6 +434,7 @@ enum SyncError {
   HoldingsDisabled @map("holdings_disabled")
   InvestmentTransactionsDisabled @map("investment_transactions_disabled")
   NoSubscription @map("no_subscription")
+  TableDisabled @map("table_disabled")
   @@map("sync_errors")
 }
 
