@@ -1,7 +1,7 @@
 import { Configuration, PlaidApi, PlaidEnvironments, InvestmentHoldingsGetRequestOptions, LiabilitiesGetRequestOptions, CountryCode, InvestmentsTransactionsGetRequestOptions, AccountsGetRequestOptions, PlaidError, TransactionsGetRequestOptions, Transaction, InvestmentTransaction, Products, TransactionsSyncRequestOptions, LiabilitiesGetResponse, AccountsGetResponse, InvestmentsHoldingsGetResponse, Security, Holding, AccountBase, Item } from "plaid";
 import * as _ from 'lodash';
 
-const allowedErrorCodes = ['NO_INVESTMENT_ACCOUNTS', 'NO_ACCOUNTS', "PRODUCT_NOT_READY"];
+const allowedErrorCodes = ['NO_INVESTMENT_ACCOUNTS', 'NO_ACCOUNTS', "PRODUCT_NOT_READY", "NO_LIABILITY_ACCOUNTS"];
 export type PlaidEnv = 'sandbox' | 'production';
 
 export const plaidEnvFromVercelEnv = ['development', 'preview'].includes(process.env.VERCEL_ENV || "") ? 'sandbox' : 'production'
