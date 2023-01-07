@@ -10,6 +10,7 @@ import moment from "moment-timezone";
 import { logDestinationErrorTriggered, logSyncCompleted } from "../logsnag";
 import { trackDestinationErrorTriggered, trackSyncCompleted } from "../analytics";
 import { LiabilitiesGetResponse, Security } from "plaid";
+import { getItemActiveAccounts } from "../getItemActiveAccounts";
 
 export const syncDestination = createStepFunction("Sync Destination", "destination/sync", async ({ event, tools }) => {
   const { destinationId, startDate, syncId, itemIds, tablesToSync, trigger } = event.data;
@@ -117,9 +118,17 @@ export const syncDestination = createStepFunction("Sync Destination", "destinati
   }
 
   for ( const item of plaidItems ) {
+    const getItemActiveAccountsResponse = await getItemActiveAccounts({ item, logger });
+    if ( getItemActiveAccountsResponse.hasAuthError ) { logger.info("Item is in error state"); continue; }
+    const accountIds = _.intersection(
+      getItemActiveAccountsResponse.accountIds || [],
+      destination.accounts
+        .filter(account => account.plaidItemId === item.id)
+        .map(account => account.id)
+    );
+    
     const endDate = moment().format("YYYY-MM-DD")
     const whereKey = { syncId, destinationId, plaidItemId: item.id};
-    const accountIds = destination.accounts.filter(account => account.plaidItemId === item.id).map(account => account.id);
     const products = ((item.availableProducts || []) as string[]).concat(((item.billedProducts || []) as string[]));
 
     const shouldSyncInstitution = tablesToSync.includes(Table.Institutions);
