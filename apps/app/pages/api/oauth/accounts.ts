@@ -34,7 +34,7 @@ export default oauthFunctionWrapper({ targetTable: Table.Accounts, allowItemErro
       return ({ accounts: [] as OauthAccount[], hasAuthError: true, itemId: item.id }) 
     }
 
-    const destinationPlaidAccountIds = _.union(
+    const destinationPlaidAccountIds = _.intersection(
       getItemActiveAccountsResponse.accountIds,
       destination.accounts
         .filter(account => account.plaidItemId === item.id)
@@ -69,13 +69,13 @@ export default oauthFunctionWrapper({ targetTable: Table.Accounts, allowItemErro
           return { student: [], mortgage: [], credit: [] } as LiabilitiesGetResponse['liabilities'];
         })
     }
-
+    
     const formattedAccounts = plaidAccounts.map(plaidAccount => {
       const itemAccount = destination.accounts.find(account => account.id === plaidAccount.account_id)!;
       const liability = liabilities.student?.find(s => s.account_id === plaidAccount.account_id)
         || liabilities.mortgage?.find(s => s.account_id === plaidAccount.account_id)
         || liabilities.credit?.find(s => s.account_id === plaidAccount.account_id)
-      
+
       return formatter.account({ itemId: item.id, plaidAccount, itemAccount, liability })
     });
 

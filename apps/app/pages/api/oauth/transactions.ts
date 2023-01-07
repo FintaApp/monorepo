@@ -37,7 +37,7 @@ export default oauthFunctionWrapper({ targetTable: Table.Transactions, allowItem
     const getItemActiveAccountsResponse = await getItemActiveAccounts({ item, logger });
     if ( getItemActiveAccountsResponse.hasAuthError ) { return ({ transactions: [] as OauthTransaction[], hasMore: false, totalTransactions: previousTotalTransactions, plaidAccountIds: [], hasAuthError: true, itemId: item.id })};
 
-    const destinationPlaidAccountIds = _.union(
+    const destinationPlaidAccountIds = _.intersection(
       getItemActiveAccountsResponse.accountIds,
       destination.accounts
         .filter(account => account.plaidItemId === item.id)

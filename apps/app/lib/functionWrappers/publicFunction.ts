@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { withAxiom, AxiomAPIRequest, Logger } from 'next-axiom';
 import { NextApiResponse } from "next";
 

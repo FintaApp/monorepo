@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { withAxiom, AxiomAPIRequest, Logger } from 'next-axiom';
 import { NextApiResponse } from "next";
 import { SyncError, SyncTrigger, Table, Destination as IDestination, User, PlaidAccount, PlaidItem as IPlaidItem, DestinationTableConfig, PlaidInstitution } from "@prisma/client";
@@ -36,6 +37,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
     logger.info("Incorrect auth header", { authHeader: req.headers['authorization']})
     return res.status(400).send("Incorrect authorization header"); 
   }
+  logger.debug("Request has token")
   const tokenHash = hash(token);
 
   const destination = await db.destination.findFirst({ 
@@ -51,6 +53,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
     logger.info("No destination found");
     return res.status(400).send("Invalid token")
   }
+  logger.debug("Destination fetched", { destination })
 
   const trigger = SyncTrigger.Destination;
   const syncId = req.body?.syncId ? req.body.syncId as string : (
@@ -63,7 +66,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
     }}).then(sync => sync.id)
     : undefined
   )
-  
+  logger.debug("Sync Id", { syncId })
   const syncLogger = syncId ? logger.with({ syncId }) : logger;
 
   const router = appRouter.createCaller({ req, db, logger, res: {} as any, user: destination.user });
@@ -75,6 +78,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
     };
     return res.status(402).send("Finta subscription not active")
   }
+  logger.debug("User has active trial or subscription");
 
   const plaidItems = _.uniqBy(destination.accounts.map(account => account.item), 'id');
   if ( !allowItemError && syncId ) {
@@ -92,6 +96,7 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
       return res.status(428).send("Has error bank account connection")
     }
   }
+  logger.debug("Destination doesn't have any error items");
 
   if ( syncId && targetTable && ([ Table.Transactions, Table.Holdings, Table.InvestmentTransactions] as Table[]).includes(targetTable) ) {
     const tableConfig = destination.tableConfigs.find(config => config.table === targetTable) || { isEnabled: false };
@@ -107,7 +112,8 @@ export const oauthFunctionWrapper = ({ targetTable, allowItemError = false }: { 
       return res.status(428).send("Sync table not enabled")
     }
   }
-
+  
+  logger.debug("Data is enabled")
   const { status, message } = await fn({ req, logger: syncLogger, destination, plaidItems, trigger, syncId })
     .catch(async error => {
       syncLogger.error(error);
