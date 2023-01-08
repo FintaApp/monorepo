@@ -130,6 +130,7 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
       .then(response => { destinationLogger.info("Upserted holdings", { results: response }); return response })
 
     await Destination.updateItemsOnFinish({ items: [item], institutionRecords, timezone: item.user.timezone })
+      .then(() => destinationLogger.info("Updated item record with last sync at"))
 
     await Promise.all([
       db.syncResult.update({

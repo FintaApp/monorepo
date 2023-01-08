@@ -121,6 +121,7 @@ export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logge
     ]);
 
     await Destination.updateItemsOnFinish({ items:[item], institutionRecords, timezone: item.user.timezone })
+      .then(() => destinationLogger.info("Updated item record with last sync at"))
 
     await Promise.all([
       db.syncResult.update({

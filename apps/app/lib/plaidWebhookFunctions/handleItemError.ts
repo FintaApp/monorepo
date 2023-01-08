@@ -112,6 +112,7 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
       destinationLogger.info("Upserted institution", { results: { added: institutionResults.added.length, updated: institutionResults.updated.length } });
 
       await Destination.updateItemsOnFinish({ items: [ itemWithError ], institutionRecords, timezone: (item as PlaidWebhookItem).user.timezone })
+        .then(() => destinationLogger.info("Updated item record with last sync at"))
 
       return Promise.all([
         db.syncResult.update({

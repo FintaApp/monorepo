@@ -156,17 +156,26 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
       { records: categoryRecords, results: categoryResults }
     ] = await Promise.all([
       Destination.upsertAccounts({ accounts: destinationAccounts, items: [item], institutionRecords })
-        .then(response => { destinationLogger.info("Upserted accounts", { results: response.results }); return response }),
+        .then(response => { destinationLogger.info("Upserted accounts", { results: { added: response.results.added.length, updated: response.results.updated.length } }); return response }),
 
       Destination.upsertCategories({ categories: destinationCategories })
-        .then(response => { destinationLogger.info("Upserted categories", { results: response.results }); return response })
+        .then(response => { destinationLogger.info("Upserted categories", { results: { added: response.results.added.length } }); return response })
     ]);
 
-    const transactionsResults = await Destination.upsertTransactions({ transactions: destinationTransactions, accountRecords, categoryRecords });
+    const transactionsResults = await Destination.upsertTransactions({ transactions: destinationTransactions, accountRecords, categoryRecords })
+      .then(response => {
+        destinationLogger.info("Upserted accounts", { results: { added: response.added.length, updated: response.updated.length }})
+        return response
+      })
 
-    const removedTransactionsResults = await Destination.removeTransactions({ removedTransactionIds: removed as string[] });
+    const removedTransactionsResults = await Destination.removeTransactions({ removedTransactionIds: removed as string[] })
+      .then(results => {
+        destinationLogger.info("Removed transactions", results );
+        return results
+    })
 
-    await Destination.updateItemsOnFinish({ items: [item], institutionRecords, timezone: item.user.timezone });
+    await Destination.updateItemsOnFinish({ items: [item], institutionRecords, timezone: item.user.timezone })
+      .then(() => destinationLogger.info("Updated item record with last sync at"))
     
     await Promise.all([
       db.syncResult.update({
