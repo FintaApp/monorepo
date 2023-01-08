@@ -26,7 +26,7 @@ export default publicFunctionWrapper(async ({ req, logger }) => {
     if ( webhook_code === 'DEFAULT_UPDATE' ) { await plaidWebhookFunctions.handleInvestmentTransactionsDefaultUpdate({ item, destinations, logger, asAdmin })}
 
   } else if ( webhook_type === 'ITEM') {
-    if ( webhook_code === 'ERROR' ) { await plaidWebhookFunctions.handleItemError({ item, data: req.body, logger })}
+    if ( webhook_code === 'ERROR' ) { await plaidWebhookFunctions.handleItemError({ item, data: req.body, logger, destinations })}
     if ( webhook_code === 'NEW_ACCOUNTS_AVAILABLE' ) { await plaidWebhookFunctions.handleNewAccountsAvailable() }
     if ( webhook_code === 'PENDING_EXPIRATION' ) { await plaidWebhookFunctions.handlePendingExpiration({ item, data: req.body, logger })}
     if ( webhook_code === 'USER_PERMISSION_REVOKED' ) { await plaidWebhookFunctions.handleUserPermissionRevoked({ item })}

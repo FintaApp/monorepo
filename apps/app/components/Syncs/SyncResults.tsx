@@ -86,7 +86,7 @@ export const SyncResults = ({ isErrorResults, columnsToDisplay, resultObject, re
 
                 { isErrorResults && !!result.error && (
                   <Td>
-                    <SyncError error = { result.error } errorMetadata = { result.errorMetadata as SyncErrorMetadata | null }/>
+                    <SyncError level = 'item' error = { result.error } errorMetadata = { result.errorMetadata as SyncErrorMetadata | null }/>
                   </Td>
                 )}
 

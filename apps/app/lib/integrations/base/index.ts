@@ -11,7 +11,7 @@ export class IntegrationBase {
   userId: string;
   integration?: Integration
   isLegacy: boolean;
-  config?: types.IntegrationConfig;
+  config: types.IntegrationConfig;
   formatter!: {
     institution: types.InstitutionFormatter,
     account: types.AccountFormatter,
@@ -28,6 +28,7 @@ export class IntegrationBase {
     this.userId = userId;
     this.isLegacy = false;
     this.isGoogle = false;
+    this.config = Object.values(Table).map(table => ({ isEnabled: false, tableId: '', fieldConfigs: [], table, records: [] }))
   }
 
   async getDefaulTableConfigs(): Promise<types.GetDefaultTableConfigsResponse> {
@@ -142,53 +143,85 @@ export class IntegrationBase {
     }))
   }
 
-  async upsertItem({ item }: { item: types.PlaidItem }): Promise<{ record: types.IntegrationRecord, isNew: boolean }> {
-    const { tableId, records, fieldConfigs } = this.config!.find(config => config.table === Table.Institutions)! // This should never be null realistically
-    const record = records.find(record => record.properties[Field.Id] === item.id);
-    if ( record ) { return { record, isNew: false } };
-
-    const data = this.formatter.institution.new({ item });
-    return this.createRecords({ tableId, data: [ this.getIntegrationFieldsFromData({ data, fieldConfigs }) ], fieldConfigs }).then(response => ({ record: response[0], isNew: true }))
+  async loadRecords({ table, tableConfigs }: { table: Table, tableConfigs: TableConfig[] }): Promise<types.IntegrationRecord[]> {
+    const { isEnabled, tableId, fieldConfigs } = tableConfigs.find(config => config.table === table) || { table, tableId: '', isEnabled: false, fieldConfigs: [] };
+    if ( !isEnabled || !tableId ) { return [] };
+    const records = await this.queryTable({ tableId, fieldConfigs });
+    this.config = tableConfigs.map(config => config.table === table ? ({ ...config, records }) : ({ ...config, records: [] }))
+    return records
   }
 
-  async updateItemOnFinish({ item, institutionRecord, timezone }: { item: types.PlaidItem; institutionRecord: types.IntegrationRecord; timezone?: string }) {
-    const { tableId, fieldConfigs } = this.config!.find(config => config.table === Table.Institutions)! // This should never be null realistically
+  async upsertItems({ items, records: manualRecords }: { items: types.PlaidItem[]; records?: types.IntegrationRecord[] }): Promise<{ records: types.IntegrationRecord[], results: { added: string[]; updated: string[] } }> {
+    const config = this.config.find(config => config.table === Table.Institutions) || defaultConfig;
+    const { tableId, fieldConfigs } = config;
+    const records = manualRecords || config.records;
+    const mappedItems = items.map(item => {
+      const record = records.find(record => record.properties[Field.Id] === item.id);
+      return { item, record }
+    });
 
+    const itemsToCreate = mappedItems
+      .filter(mi => !mi.record)
+
+    const newRecordsData = itemsToCreate
+      .map(({ item }) => {
+        const data = this.formatter.institution.new({ item });
+        return this.getIntegrationFieldsFromData({ data, fieldConfigs })
+      })
+
+    return this.createRecords({ tableId, data: newRecordsData, fieldConfigs })
+      .then(newRecords => ({
+        records: newRecords.concat(records),
+        results: {
+          added: itemsToCreate.map(({ item }) => item.id),
+          updated: items.filter(item => !itemsToCreate.map(({ item }) => item.id).includes(item.id)).map(item => item.id)
+        }
+      }))
+  }
+
+  async updateItemsOnFinish({ items, institutionRecords, timezone, config }: { items: types.PlaidItem[]; institutionRecords: types.IntegrationRecord[]; timezone?: string, config?: TableConfig }) {
+    const { tableId, fieldConfigs } = config || this.config!.find(config => config.table === Table.Institutions) || defaultConfig;
+    const data = items.map(item => ({
+      record: institutionRecords.find(record => record.properties[Field.Id] === item.id)!,
+      fields: this.getIntegrationFieldsFromData({ data: this.formatter.institution.updated({ item, timezone }), fieldConfigs }),
+      iconUrl: item.institution.logoUrl || undefined
+    }))
     return this.updateRecords({
       tableId,
-      data: [{
-        record: institutionRecord,
-        fields: this.getIntegrationFieldsFromData({ data: this.formatter.institution.updated({ item, timezone }), fieldConfigs })
-      }],
-      fieldConfigs,
-      iconUrl: item.institution.logoUrl || undefined
+      data,
+      fieldConfigs
     })
   }
 
   async upsertAccounts(
-    { accounts, item, institutionRecord, creditLiabilities, mortgageLiabilities, studentLiabilities }: 
-    { accounts?: AccountBase[], creditLiabilities?: CreditCardLiability[]; mortgageLiabilities?: MortgageLiability[]; studentLiabilities?: StudentLoan[]; item: types.PlaidItem, institutionRecord: types.IntegrationRecord }): Promise<{ records: types.IntegrationRecord[], results: { added: number; updated: number }}> {
-    const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Accounts) || defaultConfig;
-    if ( !accounts || !tableId || !isEnabled ) { return { records: [], results: { added: 0, updated: 0 }}};
+    { accounts, items, institutionRecords, creditLiabilities, mortgageLiabilities, studentLiabilities, records: manualRecords }: 
+    { accounts?: AccountBase[], creditLiabilities?: CreditCardLiability[]; mortgageLiabilities?: MortgageLiability[]; studentLiabilities?: StudentLoan[]; items: types.PlaidItem[], institutionRecords: types.IntegrationRecord[], records?: types.IntegrationRecord[] }): Promise<{ records: types.IntegrationRecord[], results: { added: string[]; updated: string[] }}> {
+      const config = this.config.find(config => config.table === Table.Accounts) || defaultConfig;
+    const { tableId, isEnabled, fieldConfigs } = config;
+    if ( !accounts || !tableId || !isEnabled ) { return { records: [], results: { added: [], updated: [] }}};
+    const records = manualRecords || config.records;
 
     const mappedAccounts = accounts.map(account => {
+      const item = items.find(item => item.accounts.map(account => account.id).includes(account.account_id))!
+      const institutionRecord = institutionRecords.find(record => record.properties[Field.Id] === item.id)!
       const accountRecord = records.find(record => record.properties[Field.Id] === account.account_id);
       const credit = creditLiabilities?.find(cl => cl.account_id === account.account_id);
       const mortage = mortgageLiabilities?.find(ml => ml.account_id === account.account_id);
       const student = studentLiabilities?.find(sl => sl.account_id === account.account_id);
-      const accountName = item.accounts.find(acc => acc.id === account.account_id)?.name || account.name;
+      const accountName = item!.accounts.find(acc => acc.id === account.account_id)?.name || account.name;
       const shouldUpdate = accountRecord && (
         (accountRecord?.properties[Field.Available] !== account.balances.available && !!fieldConfigs.find(config => config.field === Field.Available))
         || (accountRecord?.properties[Field.Current] !== account.balances.current && !!fieldConfigs.find(config => config.field === Field.Current))
         || (accountRecord?.properties[Field.Limit] !== account.balances.limit && !!fieldConfigs.find(config => config.field === Field.Limit))
         || !!fieldConfigs.find(config => liabilityFields.includes(config.field)) // Update if user syncs any liability fields. Too many to put here one by one
       )
-      return { record: accountRecord, shouldUpdate, account, credit, mortage, student, accountName }
+      return { record: accountRecord, shouldUpdate, account, credit, mortage, student, accountName, item, institutionRecord }
     });
 
     const accountsToCreate = mappedAccounts
-      .filter(ma => !ma.record )
-      .map(({ account, credit, mortage, student, accountName }) => {
+    .filter(ma => !ma.record )
+    const newRecordsData = accountsToCreate
+      .map(({ account, credit, mortage, student, accountName, item, institutionRecord }) => {
         const data = this.formatter.account.new({ 
           account, 
           itemRecordId: this.isGoogle ? item.id : institutionRecord.id as string,
@@ -199,49 +232,56 @@ export class IntegrationBase {
         });
         return this.getIntegrationFieldsFromData({ data, fieldConfigs })
       });
+
       const accountsToUpdate = mappedAccounts
         .filter(ma => !!ma.record && ma.shouldUpdate)
+      const updatedRecordsData = accountsToUpdate
         .map(({ account, record, student, credit, mortage }) => {
           const data = this.formatter.account.updated({ account, student, credit, mortage });
           return ({ record: record!, fields: this.getIntegrationFieldsFromData({ data, fieldConfigs })})
         })
 
       return Promise.all([
-        this.createRecords({ tableId, data: accountsToCreate, fieldConfigs }),
-        this.updateRecords({ tableId, data: accountsToUpdate, fieldConfigs })
+        this.createRecords({ tableId, data: newRecordsData, fieldConfigs }),
+        this.updateRecords({ tableId, data: updatedRecordsData, fieldConfigs })
       ])
       .then(([ newRecords, updatedRecords ]) => ({
         records: newRecords.concat(records),
         results: {
-          added: accountsToCreate.length,
-          updated: accountsToUpdate.length
+          added: accountsToCreate.map(({ account }) => account.account_id ),
+          updated: accountsToUpdate.map(({ account }) => account.account_id )
         }
       }))
   }
 
-  async upsertCategories({ categories }: { categories?: types.Category[] }): Promise<{ records: types.IntegrationRecord[], results: { added: number; }}> {
-    const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Categories) || defaultConfig;
-    if ( !categories || !tableId || !isEnabled ) { return { records: [], results: { added: 0 }} }
+  async upsertCategories({ categories, records: manualRecords }: { categories?: types.Category[]; records?: types.IntegrationRecord[] }): Promise<{ records: types.IntegrationRecord[], results: { added: string[]; }}> {
+    const config = this.config.find(config => config.table === Table.Categories) || defaultConfig;
+    const { tableId, isEnabled, fieldConfigs } = config
+    if ( !categories || !tableId || !isEnabled ) { return { records: [], results: { added: [] }} }
+    const records = manualRecords || config.records;
 
     const recordCategoryIds = records.map(record => record.properties[Field.Id]);
     const categoriesToCreate = categories
       .filter(category => !recordCategoryIds.includes(category.id))
+
+    const newRecordsData = categoriesToCreate
       .map(category => {
         const data = this.formatter.category.new({ category });
         return this.getIntegrationFieldsFromData({ data, fieldConfigs })
       });
     
-    return this.createRecords({ tableId, data: categoriesToCreate, fieldConfigs })
+    return this.createRecords({ tableId, data: newRecordsData, fieldConfigs })
       .then(newRecords => ({
         records: newRecords.concat(records),
-        results: { added: newRecords.length }
+        results: { added: categoriesToCreate.map(category => category.id) }
       }))
   }
 
-  async upsertSecurities({ securities }: { securities?: Security[] }): Promise<{ records: types.IntegrationRecord[], results: { added: number; updated: number; }}> {
-    const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Securities) || defaultConfig;
-    if ( !securities || !tableId || !isEnabled ) { return { records: [], results: { added: 0, updated: 0 }} }
-
+  async upsertSecurities({ securities, records: manualRecords }: { securities?: Security[]; records?: types.IntegrationRecord[] }): Promise<{ records: types.IntegrationRecord[], results: { added: string[]; updated: string[]; }}> {
+    const config = this.config.find(config => config.table === Table.Securities) || defaultConfig;
+    const { tableId, isEnabled, fieldConfigs } = config;
+    if ( !securities || !tableId || !isEnabled ) { return { records: [], results: { added: [], updated: [] }} }
+    const records = manualRecords || config.records;
     const mappedSecurities = securities.map(security => {
       const record = records.find(record => record.properties[Field.Id] === security.security_id);
       const shouldUpdate = record && (
@@ -253,37 +293,40 @@ export class IntegrationBase {
 
     const securitiesToCreate = mappedSecurities
       .filter(mh => !mh.record)
+    const newRecordsData = securitiesToCreate
       .map(({ security }) => {
         const data = this.formatter.security.new({ security });
         return this.getIntegrationFieldsFromData({ data, fieldConfigs })
       })
     const securitiesToUpdate = mappedSecurities
       .filter(mh => !!mh.record && mh.shouldUpdate)
+    const updatedRecordsData = securitiesToUpdate
       .map(({ security, record }) => {
         const data = this.formatter.security.updated({ security });
         return ({ record: record!, fields: this.getIntegrationFieldsFromData({ data, fieldConfigs })})
       })
     
     return Promise.all([
-      this.createRecords({ tableId, data: securitiesToCreate, fieldConfigs }),
-      this.updateRecords({ tableId, data: securitiesToUpdate, fieldConfigs })
+      this.createRecords({ tableId, data: newRecordsData, fieldConfigs }),
+      this.updateRecords({ tableId, data: updatedRecordsData, fieldConfigs })
     ])
     .then(([ newRecords, updatedRecords ]) => ({
       records: newRecords.concat(records),
       results: {
-        added: newRecords.length,
-        updated: securitiesToUpdate.length
+        added: securitiesToCreate.map(({ security }) => security.security_id ),
+        updated: securitiesToUpdate.map(({ security }) => security.security_id )
       }
     }))
   }
 
   async upsertTransactions(
-    { transactions, categoryRecords, accountRecords }: 
-    { transactions?: Transaction[]; categoryRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[]}
-  ): Promise<{ added: number; updated: number; }> {
-    const { tableId, records, isEnabled, fieldConfigs } = this.config!.find(config => config.table === Table.Transactions) || defaultConfig;
-    if ( !isEnabled || !tableId || !transactions || transactions.length === 0 ) { return { added: 0, updated: 0 }};
-
+    { transactions, categoryRecords, accountRecords, records: manualRecords }: 
+    { transactions?: Transaction[]; categoryRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[]; records?: types.IntegrationRecord[] }
+  ): Promise<{ added: string[]; updated: string[]; }> {
+    const config = this.config.find(config => config.table === Table.Transactions) || defaultConfig;
+    const { tableId, isEnabled, fieldConfigs } = config;
+    if ( !isEnabled || !tableId || !transactions || transactions.length === 0 ) { return { added: [], updated: [] }};
+    const records = manualRecords || config.records;
     const mappedTransactions = transactions.map(transaction => {
       const accountRecord = accountRecords.find(record => record.properties[Field.Id] === transaction.account_id);
       const categoryRecord = categoryRecords.find(record => record.properties[Field.Id] === transaction.category_id);
@@ -294,6 +337,7 @@ export class IntegrationBase {
 
     const transactionsToCreate = mappedTransactions
       .filter(mh => !mh.record && !mh.pendingRecord)
+    const newRecordsData = transactionsToCreate
       .map(({ transaction, accountRecord, categoryRecord }) => {
         const data = this.formatter.transaction.new({
           transaction,
@@ -305,18 +349,19 @@ export class IntegrationBase {
 
     const transactionsToUpdate = mappedTransactions
       .filter(mh => !!mh.pendingRecord)
+    const updatedRecordsData = transactionsToUpdate
       .map(({ transaction, pendingRecord }) => {
         const data = this.formatter.transaction.updated({ transaction });
         return ({ record: pendingRecord!, fields: this.getIntegrationFieldsFromData({ data, fieldConfigs })})
       })
 
     return Promise.all([
-      this.createRecords({ tableId, data: transactionsToCreate, fieldConfigs }),
-      this.updateRecords({ tableId, data: transactionsToUpdate, fieldConfigs })
+      this.createRecords({ tableId, data: newRecordsData, fieldConfigs }),
+      this.updateRecords({ tableId, data: updatedRecordsData, fieldConfigs })
     ])
     .then(() => ({
-      added: transactionsToCreate.length,
-      updated: transactionsToUpdate.length
+      added: transactionsToCreate.map(({ transaction }) => transaction.transaction_id ),
+      updated: transactionsToUpdate.map(({ transaction }) => transaction.transaction_id )
     }))
   }
 
@@ -329,12 +374,13 @@ export class IntegrationBase {
   }
 
   async upsertHoldings(
-    { holdings, securityRecords, accountRecords }: 
-    { holdings?: Holding[]; securityRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[] }
-  ): Promise<{ added: number; updated: number }> {
-    const { tableId, fieldConfigs, records, isEnabled } = this.config!.find(config => config.table === Table.Holdings) || defaultConfig;
-    if ( !holdings || !isEnabled || !tableId ) { return { added: 0, updated: 0 }};
-
+    { holdings, securityRecords, accountRecords, records: manualRecords }: 
+    { holdings?: Holding[]; securityRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[]; records?: types.IntegrationRecord[] }
+  ): Promise<{ added: { accountId: string }[]; updated: { accountId: string }[] }> {
+    const config = this.config.find(config => config.table === Table.Holdings) || defaultConfig;
+    const { tableId, fieldConfigs, isEnabled } = config;
+    if ( !holdings || !isEnabled || !tableId ) { return { added: [], updated: [] }};
+    const records = manualRecords || config.records;
     const mappedHoldings = holdings.map(holding => {
       const accountRecord = accountRecords.find(record => record.properties[Field.Id] === holding.account_id);
       const securityRecord = securityRecords.find(record => record.properties[Field.Id] === holding.security_id);
@@ -361,6 +407,7 @@ export class IntegrationBase {
 
     const holdingsToCreate = mappedHoldings
       .filter(mh => !mh.record)
+    const createRecordsData = holdingsToCreate
       .map(({ holding, accountRecord, securityRecord }) => {
         const data = this.formatter.holding.new({
           holding,
@@ -372,30 +419,33 @@ export class IntegrationBase {
       })
     const holdingsToUpdate = mappedHoldings
       .filter(mh => !!mh.record && mh.shouldUpdate)
+    const updateRecordsData = holdingsToUpdate
       .map(({ holding, record }) => {
         const data = this.formatter.holding.updated({ holding });
         return ({ record: record!, fields: this.getIntegrationFieldsFromData({ data, fieldConfigs })})
       })
     
     return Promise.all([
-      this.createRecords({ tableId, data: holdingsToCreate, fieldConfigs }),
-      this.updateRecords({ tableId, data: holdingsToUpdate, fieldConfigs })
+      this.createRecords({ tableId, data: createRecordsData, fieldConfigs }),
+      this.updateRecords({ tableId, data: updateRecordsData, fieldConfigs })
     ])
     .then(() => ({ 
-      added: holdingsToCreate.length,
-      updated: holdingsToUpdate.length
+      added: holdingsToCreate.map(({ holding }) => ({ accountId: holding.account_id })),
+      updated: holdingsToUpdate.map(({ holding }) => ({ accountId: holding.account_id }))
     }))
   }
 
   async upsertInvestmentTransactions(
-    { investmentTransactions, securityRecords, accountRecords }: 
-    { investmentTransactions?: InvestmentTransaction[]; securityRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[] }
-  ): Promise<{ added: number; }> {
-    const { tableId, fieldConfigs, records, isEnabled } = this.config!.find(config => config.table === Table.InvestmentTransactions) || defaultConfig;
-    if ( !investmentTransactions || !tableId || !isEnabled ) { return { added: 0 }};
-
+    { investmentTransactions, securityRecords, accountRecords, records: manualRecords }: 
+    { investmentTransactions?: InvestmentTransaction[]; securityRecords: types.IntegrationRecord[]; accountRecords: types.IntegrationRecord[]; records?: types.IntegrationRecord[] }
+  ): Promise<{ added: string[]; }> {
+    const config = this.config.find(config => config.table === Table.InvestmentTransactions) || defaultConfig;
+    const { tableId, fieldConfigs, isEnabled } = config;
+    if ( !investmentTransactions || !tableId || !isEnabled ) { return { added: [] }};
+    const records = manualRecords || config.records;
     const recordTransactionIds = records.map(record => record.properties[Field.Id]);
     const transactionsToCreate = investmentTransactions.filter(transaction => !recordTransactionIds.includes(transaction.investment_transaction_id))
+    const newRecordsData = transactionsToCreate
       .map(investmentTransaction => {
         const accountRecord = accountRecords.find(record => record.properties[Field.Id] === investmentTransaction.account_id);
         const securityRecord = securityRecords.find(record => record.properties[Field.Id] === investmentTransaction.security_id);
@@ -407,7 +457,10 @@ export class IntegrationBase {
         return this.getIntegrationFieldsFromData({ data, fieldConfigs })
       })
     
-    return this.createRecords({ tableId, data: transactionsToCreate, fieldConfigs }).then(() => ({ added: transactionsToCreate.length }))
+    return this.createRecords({ tableId, data: newRecordsData, fieldConfigs })
+      .then(() => ({ 
+        added: transactionsToCreate.map(investmentTransaction => investmentTransaction.investment_transaction_id) 
+      }))
   }
 
   // Externally-used methods handled in sub-classes
@@ -419,7 +472,7 @@ export class IntegrationBase {
   async _validateTableConfig({ tableId, table, fields }: types.ValidateTableConfigProps): Promise<types.AirtableLegacyValidateResponse> { return {} as types.AirtableLegacyValidateResponse};
   async queryTable({ tableId, fieldConfigs }: { tableId: string; fieldConfigs: TableConfig['fieldConfigs'] }): Promise<types.IntegrationRecord[]> { return [] }
   async createRecords({ tableId, data, fieldConfigs }: { tableId: string, data: Record<string, any>[]; fieldConfigs: TableConfig['fieldConfigs']}): Promise<types.IntegrationRecord[]> { return [] }
-  async updateRecords({ tableId, data, fieldConfigs, iconUrl }: { iconUrl?: string; tableId: string, data: { fields: Record<string, any>, record: types.IntegrationRecord }[]; fieldConfigs: TableConfig['fieldConfigs']}): Promise<types.IntegrationRecord[]> { return [] }
+  async updateRecords({ tableId, data, fieldConfigs }: { tableId: string, data: { fields: Record<string, any>; record: types.IntegrationRecord; iconUrl?: string;}[]; fieldConfigs: TableConfig['fieldConfigs']}): Promise<types.IntegrationRecord[]> { return [] }
   async deleteRecords({ tableId, records }: { tableId: string; records: types.IntegrationRecord[]}): Promise<void> {}
 
   // Methods used in sub-classes

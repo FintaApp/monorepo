@@ -69,14 +69,17 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
       hasMore = false
     }
   }
-
   const transactions = added.concat(modified);
+  logger.info("Total transactions fetched", { count: transactions.length})
   const categories = _.uniqBy(transactions
     .filter(transaction => !!transaction.category_id && !!transaction.category)
     .map(transaction => ({ id: transaction.category_id!, name: transaction.category![transaction.category!.length -1]!, category_group: transaction.category![0]! }))
   , 'id')
-  const accounts = await getAccounts({ accessToken }).then(response => response.data.accounts);
-
+  const accounts = await getAccounts({ accessToken }).then(response => response.data.accounts).catch(err => {
+    console.log(err);
+    return []
+  });
+  logger.info("Total accounts fetched", { count: accounts.length})
   return Promise.all(filteredDestinations.map(async destination => {
     const destinationLogger = logger.with({ destinationId: destination.id });
     const syncResultWhere = { syncId_plaidItemId_destinationId: { syncId: sync.id, destinationId: destination.id, plaidItemId: item.id }};
@@ -84,7 +87,7 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
     const credentials = ( destination.airtableCredential || destination.googleSheetsCredential || destination.notionCredential )!
     const Destination = getDestinationObject({ userId: destination.userId, integration: destination.integration, credentials })!;
     await Destination.init();
-
+    destinationLogger.info("Destination initalized");
     // Validate credentials
     const validateCredentialsResponse = await Destination.validateCredentials();
     destinationLogger.info("Validate credentials response", { response: validateCredentialsResponse });
@@ -145,14 +148,14 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
     const destinationTransactions = transactions.filter(transaction => destinationAccountIds.includes(transaction.account_id));
     const destinationCategories = categories.filter(category => destinationTransactions.map(transaction => transaction.category_id).includes(category.id));
 
-    const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item });
-    destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
+    const { records: institutionRecords, results: institutionResults } = await Destination.upsertItems({ items: [ item ] });
+    destinationLogger.info("Upserted institution", { results: { added: institutionResults.added.length, updated: institutionResults.updated.length } });
 
     const [
       { records: accountRecords, results: accountResults },
       { records: categoryRecords, results: categoryResults }
     ] = await Promise.all([
-      Destination.upsertAccounts({ accounts: destinationAccounts, item, institutionRecord })
+      Destination.upsertAccounts({ accounts: destinationAccounts, items: [item], institutionRecords })
         .then(response => { destinationLogger.info("Upserted accounts", { results: response.results }); return response }),
 
       Destination.upsertCategories({ categories: destinationCategories })
@@ -163,19 +166,19 @@ export const handleSyncUpdatesAvailable = async ({ item, data, destinations, log
 
     const removedTransactionsResults = await Destination.removeTransactions({ removedTransactionIds: removed as string[] });
 
-    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone });
+    await Destination.updateItemsOnFinish({ items: [item], institutionRecords, timezone: item.user.timezone });
     
     await Promise.all([
       db.syncResult.update({
         where: syncResultWhere,
         data: {
-          institutionsAdded: isInstitutionRecordNew ? 1 : 0,
-          institutionsUpdated: isInstitutionRecordNew ? 0 : 1,
-          accountsAdded: accountResults.added,
-          accountsUpdated: accountResults.updated,
-          categoriesAdded: categoryResults.added,
-          transactionsAdded: transactionsResults.added,
-          transactionsUpdated: transactionsResults.updated,
+          institutionsAdded: institutionResults.added.length,
+          institutionsUpdated: institutionResults.updated.length,
+          accountsAdded: accountResults.added.length,
+          accountsUpdated: accountResults.updated.length,
+          categoriesAdded: categoryResults.added.length,
+          transactionsAdded: transactionsResults.added.length,
+          transactionsUpdated: transactionsResults.updated.length,
           transactionsRemoved: removedTransactionsResults.removed
         }
       }).then(response => destinationLogger.info("Updated sync results", { response })),

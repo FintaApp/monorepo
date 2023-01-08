@@ -2,15 +2,18 @@ import { Text } from "@chakra-ui/react";
 import { SyncError as SyncErrorType } from "@prisma/client";
 import { SyncErrorMetadata } from "~/types";
 
-type SyncErrorProps = { error: SyncErrorType; errorMetadata?: SyncErrorMetadata | null }
+type SyncErrorProps = { error: SyncErrorType; errorMetadata?: SyncErrorMetadata | null; level?: 'destination' | 'item' }
 
 export const SyncError = (props: SyncErrorProps) => {
   return <Text textAlign = 'center'>{ getErrorText(props) }</Text>
 }
 
-const getErrorText = ({ error, errorMetadata }: SyncErrorProps) => {
+const getErrorText = ({ error, errorMetadata, level = 'destination'  }: SyncErrorProps) => {
   if ( error === SyncErrorType.NoSubscription ) { return "Unable to sync due to inactive Finta subscription." }
-  if ( error === SyncErrorType.ItemError ) { return "Unable to sync because at least one bank institution is in an error state."}
+  if ( error === SyncErrorType.ItemError ) { return level === 'destination' 
+    ? "Unable to fully sync because at least one bank institution is in an error state."
+    : "This bank account needs to be reconnected."
+  }
   if ( error === SyncErrorType.InvalidCredentials ) { return "The credentials for this destination are invalid." }
   if ( error === SyncErrorType.UnknownError ) { return "There was an issue with Finta during this sync." }
   if ( error === SyncErrorType.HoldingsDisabled || error === SyncErrorType.InvestmentTransactionsDisabled ) { return "Unable to sync because investments are disabled for this destination."}

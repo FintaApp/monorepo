@@ -34,7 +34,7 @@ export type AirtableLegacyValidateResponse = { isValid: boolean, error?: {
 export type IntegrationRecord = {
   id: string | number; // The sheet / page / record id used by the integration
   properties: Record<Field, any>;
-  object: GoogleSpreadsheetRow | PageObjectResponse | AirtableRecord<FieldSet>
+  object: GoogleSpreadsheetRow | PageObjectResponse | AirtableRecord<FieldSet> | {}
 }
 
 export type IntegrationConfig = {

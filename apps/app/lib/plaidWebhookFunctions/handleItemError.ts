@@ -23,6 +23,7 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
   };
   
   const filteredDestinations = (destinations || []).filter(destinationFilter);
+  logger.info("Filtered destinations", { count: filteredDestinations.length })
   if ( filteredDestinations.length > 0 ) {
     const trigger = SyncTrigger.ItemUpdate;
     const sync = await db.sync.create({
@@ -106,17 +107,18 @@ export const handleItemError = async ({ item, data, destinations, logger }: { de
       await Destination.load({ tableTypes, tableConfigs: destination.tableConfigs });
       destinationLogger.info("Loaded destination data");
 
-      const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item: { ...item, error: error_code } as PlaidWebhookItem });
-      destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew });
+      const itemWithError = { ...item, error: error_code } as PlaidWebhookItem;
+      const { records: institutionRecords, results: institutionResults } = await Destination.upsertItems({ items: [ itemWithError ] });
+      destinationLogger.info("Upserted institution", { results: { added: institutionResults.added.length, updated: institutionResults.updated.length } });
 
-      await Destination.updateItemOnFinish({ item: item as PlaidWebhookItem, institutionRecord, timezone: (item as PlaidWebhookItem).user.timezone })
+      await Destination.updateItemsOnFinish({ items: [ itemWithError ], institutionRecords, timezone: (item as PlaidWebhookItem).user.timezone })
 
       return Promise.all([
         db.syncResult.update({
           where: syncResultWhere,
           data: {
-            institutionsAdded: isInstitutionRecordNew ? 1 : 0,
-            institutionsUpdated: isInstitutionRecordNew ? 0 : 1,
+            institutionsAdded: institutionResults.added.length,
+            institutionsUpdated: institutionResults.updated.length
           }
         }).then(response => destinationLogger.info("Updated sync results", { response })),
   

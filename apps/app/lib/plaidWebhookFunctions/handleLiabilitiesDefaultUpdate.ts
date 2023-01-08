@@ -110,26 +110,26 @@ export const handleLiabilitiesDefaultUpdate = async ({ item, destinations, logge
     const destinationStudentLiabilities = (liabilities.student || []).filter(liab => destinationAccountIds.includes(liab.account_id || ""));
     const destinationMortgageLiabilities = (liabilities.mortgage || []).filter(liab => destinationAccountIds.includes(liab.account_id || ""));
 
-    const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item });
-    destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
+    const { records: institutionRecords, results: institutionResults } = await Destination.upsertItems({ items: [item] });
+    destinationLogger.info("Upserted institution", { results: { added: institutionResults.added.length, updated: institutionResults.updated.length } });
 
     const [
       { results: accountResults }
     ] = await Promise.all([
-      Destination.upsertAccounts({ accounts: destinationAccounts, item, institutionRecord, creditLiabilities: destinationCreditLiabilities, studentLiabilities: destinationStudentLiabilities, mortgageLiabilities: destinationMortgageLiabilities })
+      Destination.upsertAccounts({ accounts: destinationAccounts, items: [item], institutionRecords, creditLiabilities: destinationCreditLiabilities, studentLiabilities: destinationStudentLiabilities, mortgageLiabilities: destinationMortgageLiabilities })
         .then(response => { destinationLogger.info("Upserted accounts", { results: response.results }); return response }),
     ]);
 
-    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone })
+    await Destination.updateItemsOnFinish({ items:[item], institutionRecords, timezone: item.user.timezone })
 
     await Promise.all([
       db.syncResult.update({
         where: syncResultWhere,
         data: {
-          institutionsAdded: isInstitutionRecordNew ? 1 : 0,
-          institutionsUpdated: isInstitutionRecordNew ? 0 : 1,
-          accountsAdded: accountResults.added,
-          accountsUpdated: accountResults.updated,
+          institutionsAdded: institutionResults.added.length,
+          institutionsUpdated: institutionResults.updated.length,
+          accountsAdded: accountResults.added.length,
+          accountsUpdated: accountResults.updated.length,
         }
       }).then(response => destinationLogger.info("Updated sync results", { response })),
 

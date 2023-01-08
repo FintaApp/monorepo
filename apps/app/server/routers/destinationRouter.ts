@@ -440,12 +440,7 @@ export const destinationRouter = router({
           data: { 
             destinationId, 
             startDate: startDate || destination.syncStartDate, 
-            syncId: sync.id, 
-            itemIds: plaidItems.map(item => item.id), 
-            tablesToSync: [ 
-              Table.Institutions, Table.Accounts, Table.Categories, Table.Transactions,
-              Table.Holdings, Table.InvestmentTransactions, Table.Securities
-            ],
+            syncId: sync.id,
             trigger 
           },
           user: { id: destination.userId }

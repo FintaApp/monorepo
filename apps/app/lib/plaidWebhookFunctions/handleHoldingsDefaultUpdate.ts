@@ -112,14 +112,14 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
     const destinationHoldings = holdings.filter(holding => destinationAccountIds.includes(holding.account_id));
     const destinationSecurities = securities.filter(security => destinationHoldings.map(holding => holding.security_id).includes(security.security_id))
 
-    const { record: institutionRecord, isNew: isInstitutionRecordNew } = await Destination.upsertItem({ item });
-    destinationLogger.info("Upserted institution", { isNew: isInstitutionRecordNew })
+    const { records: institutionRecords, results: institutionResults } = await Destination.upsertItems({ items: [ item ] });
+    destinationLogger.info("Upserted institution", { results: { added: institutionResults.added.length, updated: institutionResults.updated.length } })
 
     const [
       { records: accountRecords, results: accountResults },
       { records: securityRecords, results: securityResults }
     ] = await Promise.all([
-      Destination.upsertAccounts({ accounts: destinationAccounts, item, institutionRecord })
+      Destination.upsertAccounts({ accounts: destinationAccounts, items: [item], institutionRecords })
         .then(response => { destinationLogger.info("Upserted accounts", { results: response.results }); return response }),
 
       Destination.upsertSecurities({ securities: destinationSecurities })
@@ -129,20 +129,20 @@ export const handleHoldingsDefaultUpdate = async ({ item, destinations, logger }
     const holdingsResults = await Destination.upsertHoldings({ holdings: destinationHoldings, securityRecords, accountRecords })
       .then(response => { destinationLogger.info("Upserted holdings", { results: response }); return response })
 
-    await Destination.updateItemOnFinish({ item, institutionRecord, timezone: item.user.timezone })
+    await Destination.updateItemsOnFinish({ items: [item], institutionRecords, timezone: item.user.timezone })
 
     await Promise.all([
       db.syncResult.update({
         where: syncResultWhere,
         data: {
-          institutionsAdded: isInstitutionRecordNew ? 1 : 0,
-          institutionsUpdated: isInstitutionRecordNew ? 0 : 1,
-          accountsAdded: accountResults.added,
-          accountsUpdated: accountResults.updated,
-          securitiesAdded: securityResults.added,
-          securitiesUpdated: securityResults.updated,
-          holdingsAdded: holdingsResults.added,
-          holdingsUpdated: holdingsResults.updated,
+          institutionsAdded: institutionResults.added.length,
+          institutionsUpdated: institutionResults.updated.length,
+          accountsAdded: accountResults.added.length,
+          accountsUpdated: accountResults.updated.length,
+          securitiesAdded: securityResults.added.length,
+          securitiesUpdated: securityResults.updated.length,
+          holdingsAdded: holdingsResults.added.length,
+          holdingsUpdated: holdingsResults.updated.length,
         }
       }).then(response => destinationLogger.info("Updated sync results", { response })),
 

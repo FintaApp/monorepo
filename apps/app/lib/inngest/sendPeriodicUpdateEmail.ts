@@ -11,7 +11,7 @@ export const sendPeriodicUpdateEmail = createScheduledFunction(
   "0 * * * *",
   async () => {
     // Get all users with periodic update emails enabled
-    const shouldIncludeNewUsers = moment().day() === 1 && moment().tz('America/New_York').hour() === 9 ;
+    const shouldIncludeNewUsers = moment().day() === 1 && moment().tz('America/New_York').hour() === 12 ;
     const emailFilter = shouldIncludeNewUsers 
       ? { OR: { sendNextPeriodicUpdateEmailAt: null, AND: { sendNextPeriodicUpdateEmailAt: { lte: new Date() }}} } 
       : { sendNextPeriodicUpdateEmailAt: { lte: new Date() }}

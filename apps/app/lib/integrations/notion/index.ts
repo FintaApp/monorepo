@@ -99,8 +99,8 @@ export class Notion extends IntegrationBase {
     )
   }
 
-  async updateRecords({ tableId, data, fieldConfigs, iconUrl }: { iconUrl?: string; tableId: string; data: { fields: Record<string, any>; record: types.IntegrationRecord; }[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
-    return Promise.all(data.map(async ({ record, fields }) => {
+  async updateRecords({ tableId, data, fieldConfigs }: { tableId: string; data: { fields: Record<string, any>; record: types.IntegrationRecord; iconUrl?: string;}[]; fieldConfigs: { id?: string | undefined; field: Field; fieldId: string; tableConfigId?: string | undefined; }[]; }): Promise<types.IntegrationRecord[]> {
+    return Promise.all(data.map(async ({ record, fields, iconUrl }) => {
       return retryWrapper(() => this.client.pages.update({ 
         page_id: record.id as string, 
         properties: fields, 
