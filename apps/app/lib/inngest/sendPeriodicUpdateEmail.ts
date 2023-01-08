@@ -61,7 +61,7 @@ export const sendPeriodicUpdateEmail = createScheduledFunction(
         total_plaid_items: plaidItems.length,
         plaid_items: plaidItems.map(item => ({
           institution_name: item.institution.name,
-          logo: item.institution.logoUrl || "https://storage.googleapis.com/integration_logos/bank.svg",
+          logo: item.institution.logoUrl || "https://storage.googleapis.com/integration_logos/bank.png",
           accounts_count: item.accounts.length,
           error: item.error
         })),

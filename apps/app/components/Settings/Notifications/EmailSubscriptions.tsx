@@ -1,6 +1,7 @@
 import { Box, HStack, Switch, FormControl, FormHelperText, FormLabel, VStack } from "@chakra-ui/react";
 import { Frequency } from "@prisma/client";
 import { useEffect, useState } from "react";
+import moment from "moment-timezone";
 
 import { Select } from "~/components/Forms/Select";
 
@@ -88,6 +89,7 @@ export const EmailSubscriptions = () => {
               placeholder = "Sync Update Frequency"
               isDisabled = { !preferences.isSubscribedPeriodicUpdates }
             />
+            <FormHelperText display = { preferences.isSubscribedPeriodicUpdates ? 'inline-flex' : 'none'}>Your next email will be sent at { moment(user.sendNextPeriodicUpdateEmailAt).format("LLL") }</FormHelperText>
           </Box>
       </FormControl>
     </VStack>

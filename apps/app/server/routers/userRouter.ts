@@ -7,6 +7,7 @@ import { backendIdentify as identify, formatUserForIdentify, trackPasswordChange
 import {  getCustomerSubscription, updateCustomer, cancelSubscription } from "~/lib/stripe";
 import { removeItem } from "~/lib/plaid";
 import { logUserDeleted } from "~/lib/logsnag";
+import { getSendNextPeriodicUpdateEmailAt } from "~/lib/getSendNextPeriodicUpdateEmailAt";
 
 export const userRouter = router({
   updateUser: protectedProcedure
@@ -26,6 +27,15 @@ export const userRouter = router({
       logger.info("Updated user", { user: updatedUser })
 
       const field = Object.keys(input)[0];
+      if ( ['isSubscribedPeriodicUpdates', 'periodicUpdatesFrequency', 'timezone'].includes(field) ) {
+        const sendNextPeriodicUpdateEmailAt = getSendNextPeriodicUpdateEmailAt({ 
+          frequency: updatedUser.periodicUpdatesFrequency, 
+          timezone: updatedUser.timezone,
+          forceNextDuration: false
+        })
+        await db.user.update({ where: { id: userId }, data: { sendNextPeriodicUpdateEmailAt }})
+          .then(response => logger.info("Updated sendNextPeriodicUpdateEmailAt", { result: response.sendNextPeriodicUpdateEmailAt }))
+      }
 
       const updateStripeNamePromise = field === 'name'
         ? updateCustomer({ customerId: updatedUser.stripeCustomerId, properties: { name: input.name }})
@@ -127,7 +137,8 @@ export const userRouter = router({
             isSubscribedPeriodicUpdates: true,
             periodicUpdatesFrequency: true,
             stripeCustomerId: true,
-            timezone: true
+            timezone: true,
+            sendNextPeriodicUpdateEmailAt: true
           }
         })
       }),
