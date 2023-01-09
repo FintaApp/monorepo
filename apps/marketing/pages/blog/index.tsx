@@ -7,8 +7,8 @@ import { PostCard } from '~/components/PostCard';
 import { useState } from 'react';
 
 const Blog = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
-  const [ filter, setFilter ] = useState<'company' | 'howTo' | 'airtable' | 'notion' | 'coda' | 'google' | 'all'>('airtable');
-  
+  const [ filter, setFilter ] = useState<'company' | 'howTo' | 'airtable' | 'notion' | 'coda' | 'google' | 'all'>('all');
+
   const postFilter = (post: typeof posts[0]) => {
     if ( filter === 'airtable' ) { return post.integration === 'airtable'}
     if ( filter === 'all' ) { return !post.hasGenericPost }

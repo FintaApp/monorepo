@@ -25,7 +25,7 @@ const legalLinks = [
 ]
 
 export const Footer = () => (
-  <Container maxW = "container.lg" as = "footer" bottom = "0" pb = "6" borderTop = "1px" borderColor = { mode('gray.light.7', 'gray.dark.7') }>
+  <Container mt = '6' maxW = "container.lg" as = "footer" bottom = "0" pb = "6" borderTop = "1px" borderColor = { mode('gray.light.7', 'gray.dark.7') }>
     <HStack mt = "6">
       <Section title = "legal" links = { legalLinks }/>
     </HStack>

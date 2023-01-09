@@ -264,6 +264,8 @@ importers:
       '@emotion/styled': ^11.10.5
       '@finta/shared': workspace:*
       '@radix-ui/react-icons': ^1.1.1
+      '@segment/analytics-next': ^1.48.0
+      '@segment/snippet': ^4.15.3
       '@types/node': ^17.0.38
       '@types/react': ^18.0.26
       '@types/react-dom': ^18.0.9
@@ -287,6 +289,8 @@ importers:
       '@emotion/styled': 11.10.5_pwtpayi7py7ecifctvjbac33ee
       '@finta/shared': link:../../packages/shared
       '@radix-ui/react-icons': 1.1.1_react@18.2.0
+      '@segment/analytics-next': 1.48.0
+      '@segment/snippet': 4.15.3
       add: 2.0.6
       contentlayer: 0.2.9
       date-fns: 2.29.3
@@ -4244,6 +4248,22 @@ packages:
     engines: {node: '>= 10'}
     dev: false
 
+  /@ndhoule/each/2.0.1:
+    resolution: {integrity: sha512-wHuJw6x+rF6Q9Skgra++KccjBozCr9ymtna0FhxmV/8xT/hZ2ExGYR8SV8prg8x4AH/7mzDYErNGIVHuzHeybw==}
+    dependencies:
+      '@ndhoule/keys': 2.0.0
+    dev: false
+
+  /@ndhoule/keys/2.0.0:
+    resolution: {integrity: sha512-vtCqKBC1Av6dsBA8xpAO+cgk051nfaI+PnmTZep2Px0vYrDvpUmLxv7z40COlWH5yCpu3gzNhepk+02yiQiZNw==}
+    dev: false
+
+  /@ndhoule/map/2.0.1:
+    resolution: {integrity: sha512-WOEf2An9mL4DVY6NHgaRmFC82pZGrmzW4I0hpPPdczDP4Gp5+Q1Nny77x3w0qzENA8+cbgd9+Lx2ClSTLvkB0g==}
+    dependencies:
+      '@ndhoule/each': 2.0.1
+    dev: false
+
   /@next-auth/prisma-adapter/1.0.5_o5bqbtvtgq3azu224hvvkl6nwy:
     resolution: {integrity: sha512-VqMS11IxPXrPGXw6Oul6jcyS/n8GLOWzRMrPr3EMdtD6eOalM6zz05j08PcNiis8QzkfuYnCv49OvufTuaEwYQ==}
     peerDependencies:
@@ -5016,6 +5036,12 @@ packages:
       component-type: 1.2.1
       join-component: 1.1.0
     dev: true
+
+  /@segment/snippet/4.15.3:
+    resolution: {integrity: sha512-75kVTYaQGYMkwVjJvCLLOlzxV8jCDxvKG68U88joo/rBx95SIXETcjUmIXF6A7SFRCgz83B+zrZbo+JYsmHkig==}
+    dependencies:
+      '@ndhoule/map': 2.0.1
+    dev: false
 
   /@segment/tsub/1.0.1:
     resolution: {integrity: sha512-rUpvlj/rRfOolk5rjwyrsbl0qzGLsaYgFNEiOSrwrWDryDPq1ZGdo+3Eb+E8+EC0yZOAO4F1DjJfLtaSifpx7w==}
