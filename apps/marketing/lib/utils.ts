@@ -1,4 +1,3 @@
-
 export const select = <T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
   return keys.reduce((newObj, curr) => {
     newObj[curr] = obj[curr]
@@ -10,3 +9,8 @@ export const select = <T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
 export function absoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_URL}${path}`
 }
+
+export const categoryMapping = {
+  'how-to': 'How To',
+  'company': 'Company'
+} as Record<string, any>

@@ -14,6 +14,16 @@ const nextConfig = {
         destination: 'https://www.iubenda.com/terms-and-conditions/49633829',
         permanent: true,
         basePath: false
+      },
+      {
+        source: '/integration/:path*',
+        destination: '/integrations/:path*',
+        permanent: true
+      },
+      {
+        source: '/blog-pages/:path*',
+        destination: '/blog/:path*',
+        permanent: true
       }
     ]
   }

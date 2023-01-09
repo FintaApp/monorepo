@@ -17,9 +17,10 @@ export type BlogPost = {
   publishedAt: string
   image: string
   description: string
-  seoDescription: string
-  category: 'company'
-  integrations?: ('airtable' | 'coda' | 'google' | 'notion')[] | undefined
+  category: 'company' | 'how-to'
+  integration?: 'airtable' | 'coda' | 'google' | 'notion' | 'none' | undefined
+  hasGenericPost: boolean
+  cta: string
   /** MDX file body */
   body: MDX
   slug: string
@@ -50,7 +51,7 @@ export type Integration = {
   type: 'Integration'
   name: string
   logo: string
-  id?: 'airtable' | 'coda' | 'google' | 'notion' | undefined
+  id?: 'airtable' | 'coda' | 'google' | 'notion' | 'none' | undefined
   description: string
   companyUrl: string
   /** MDX file body */

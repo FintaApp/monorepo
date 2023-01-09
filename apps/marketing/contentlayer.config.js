@@ -19,12 +19,12 @@ const computedFields = {
 
 const integrationField = {
   type: 'enum',
-  options: ['airtable', 'coda', 'google', 'notion' ]
+  options: ['airtable', 'coda', 'google', 'notion', 'none' ]
 }
 
 const categoryField = {
   type: 'enum',
-  options: [ 'company' ],
+  options: [ 'company', 'how-to' ],
   required: true
 }
 
@@ -51,9 +51,10 @@ const BlogPost = defineDocumentType(() => ({
     publishedAt: { type: 'string', required: true },
     image: { type: 'string', required: true },
     description: { type: 'string', required: true },
-    seoDescription: { type: 'string', required: true },
     category: categoryField,
-    integrations: { type: 'list', of: integrationField }
+    integration: integrationField,
+    hasGenericPost: { type: 'boolean', required: true },
+    cta: { type: 'string', required: true }
   },
   computedFields
 }))

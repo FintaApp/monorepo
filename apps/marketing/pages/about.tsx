@@ -14,7 +14,7 @@ const About = () => (
     <VStack width = "full" spacing = "4" mt = "12">
       <Heading variant = "h1" textAlign = "center">Hi! 👋🏽 I'm Taylor.</Heading>
       <Image
-        src = "/headshot.jpeg"
+        src = "/images/headshot.jpeg"
         maxW = {{ base: "50%", md: '40%'}}
         rounded = "xl"
         mx = "auto"
