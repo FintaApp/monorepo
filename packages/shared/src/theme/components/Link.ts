@@ -30,6 +30,10 @@ export const Link: any = defineStyleConfig({
       _hover: {
         textDecoration: 'none'
       }
-    })
+    }),
+    unstyled: {
+      color: 'inherit',
+      fontWeight: 'unset'
+    }
   }
 })
