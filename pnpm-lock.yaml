@@ -261,6 +261,7 @@ importers:
       '@emotion/react': ^11.10.5
       '@emotion/styled': ^11.10.5
       '@finta/shared': workspace:*
+      '@radix-ui/react-icons': ^1.1.1
       '@types/node': ^17.0.38
       '@types/react': ^18.0.26
       '@types/react-dom': ^18.0.9
@@ -270,12 +271,14 @@ importers:
       react: ^18.2.0
       react-dom: ^18.2.0
       tsconfig: workspace:*
+      typescript: 4.9.4
     dependencies:
       '@babel/core': 7.20.7
       '@chakra-ui/react': 2.4.2_uibis2bm44wz3hkzfktj2mle4y
       '@emotion/react': 11.10.5_3grbeiqrb6djg67fiejiqngkdi
       '@emotion/styled': 11.10.5_pwtpayi7py7ecifctvjbac33ee
       '@finta/shared': link:../../packages/shared
+      '@radix-ui/react-icons': 1.1.1_react@18.2.0
       framer-motion: 6.5.1_biqbaboplfbrettd7655fr4n2y
       next: 13.1.1_7xlrwlvvs7cv2obrs6a5y6oxxq
       next-axiom: 0.16.0_next@13.1.1
@@ -286,6 +289,7 @@ importers:
       '@types/react': 18.0.26
       '@types/react-dom': 18.0.10
       tsconfig: link:../../packages/tsconfig
+      typescript: 4.9.4
 
   packages/eslint-config-custom:
     specifiers:
