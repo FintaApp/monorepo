@@ -5,12 +5,13 @@ import { nextAuthOptions } from "./auth";
 
 export const authGate =
   (func: GetServerSideProps, shouldBeSignedIn: boolean) => async (ctx: GetServerSidePropsContext) => {
+    console.log("Fetching session", new Date())
     const session = await unstable_getServerSession(
       ctx.req,
       ctx.res,
       nextAuthOptions
     );
-
+    console.log("Fetched session", new Date())
     if ( session && !shouldBeSignedIn ) {
       return {
         redirect: {
